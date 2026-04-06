@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#83d0f6",
+                    "surface-container": "#eceeef",
+                    "surface-container-low": "#f2f4f5",
+                    "on-tertiary-container": "#c1e9ff",
+                    "primary-fixed": "#ffdad7",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#410004",
+                    "tertiary": "#00536e",
+                    "on-tertiary-fixed": "#001e2b",
+                    "secondary": "#515f74",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-primary-container": "#ffdad7",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "surface-container-high": "#e6e8e9",
+                    "inverse-primary": "#ffb3ae",
+                    "surface-dim": "#d8dadb",
+                    "inverse-on-surface": "#eff1f2",
+                    "background": "#f8fafb",
+                    "primary": "#9d0518",
+                    "tertiary-fixed": "#c0e8ff",
+                    "secondary-container": "#d5e3fc",
+                    "outline-variant": "#e3bebb",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "on-surface": "#191c1d",
+                    "surface": "#f8fafb",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#b72028",
+                    "on-primary-fixed-variant": "#930015",
+                    "on-primary": "#ffffff",
+                    "outline": "#8f706d",
+                    "surface-bright": "#f8fafb",
+                    "on-secondary-container": "#57657a",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#c0272d",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error": "#ffffff",
+                    "on-background": "#191c1d",
+                    "on-surface-variant": "#5a403e",
+                    "tertiary-container": "#006d8f",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "inverse-surface": "#2e3132",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-variant": "#e1e3e4",
+                    "primary-fixed-dim": "#ffb3ae"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .qr-bracket-tl { border-top: 4px solid #C0272D; border-left: 4px solid #C0272D; }
+        .qr-bracket-tr { border-top: 4px solid #C0272D; border-right: 4px solid #C0272D; }
+        .qr-bracket-bl { border-bottom: 4px solid #C0272D; border-left: 4px solid #C0272D; }
+        .qr-bracket-br { border-bottom: 4px solid #C0272D; border-right: 4px solid #C0272D; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface antialiased min-h-screen pb-12">
+<!-- Header: Explicitly excluding Nav Shell as per Task-Focused/Linear rules -->
+<header class="fixed top-0 left-0 w-full bg-white dark:bg-slate-900 h-16 flex items-center px-6 z-50">
+<div class="flex items-center justify-between w-full">
+<button class="p-2 -ml-2 text-on-surface transition-all active:scale-95">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight Inter">Staff Login</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="pt-20 px-6 max-w-md mx-auto space-y-8">
+<!-- Tabs Section -->
+<div class="flex w-full border-b border-surface-container-highest">
+<button class="flex-1 pb-4 text-sm font-semibold text-primary border-b-2 border-primary transition-all">
+<div class="flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                    Scan QR
+                </div>
+</button>
+<button class="flex-1 pb-4 text-sm font-medium text-secondary transition-all hover:bg-surface-container-low">
+<div class="flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">keyboard</span>
+                    Enter Code
+                </div>
+</button>
+</div>
+<!-- Scan Section -->
+<div class="space-y-6">
+<!-- Camera Viewfinder -->
+<div class="relative w-full aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-2xl group">
+<!-- Mock Camera Feed Background -->
+<div class="absolute inset-0 opacity-40 bg-cover bg-center" data-alt="blurry atmospheric restaurant interior with warm ambient lighting and silhouettes of kitchen staff moving in background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuASpJsQnAe3vSSL8i32tD2G5BwXqNv42S560ypDJl12ukX9KPQDuB9NNfX5TEssnF8JPsvXhw5MsKQzaT3NpiKiE-CP1ZdeD4i3x_vO6BHC7VANSgaDbqQ5R3_PmzibWk5ssgGg5fhAv-pjT_AIu_ZlYjXkKvOt2LYCgF1llr_gO7LGMRUsNmsYIJpGB2ePxaPY9JBhPVPewXJ2ryRIYbQ2Ng4P-yCMXzjXmDltFk9aaR5EicANVwL5-heH1ce6s57ouq0FoKmHDwU')"></div>
+<!-- Brackets -->
+<div class="absolute inset-16 flex flex-col justify-between pointer-events-none">
+<div class="flex justify-between h-12">
+<div class="qr-bracket-tl w-12 rounded-tl-lg"></div>
+<div class="qr-bracket-tr w-12 rounded-tr-lg"></div>
+</div>
+<div class="flex justify-between h-12">
+<div class="qr-bracket-bl w-12 rounded-bl-lg"></div>
+<div class="qr-bracket-br w-12 rounded-br-lg"></div>
+</div>
+</div>
+<!-- Scanning Line -->
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-primary/40 shadow-[0_0_15px_#9D0518] -translate-y-1/2"></div>
+</div>
+<p class="text-center text-secondary text-sm font-medium">
+                Point camera at restaurant QR code
+            </p>
+<!-- Restaurant Confirmed Card -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4 shadow-[0_12px_32px_-8px_rgba(157,5,24,0.08)] border-l-4 border-emerald-500">
+<div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-on-surface">The Grand Spice — Bandra West</h3>
+<p class="text-xs text-secondary font-mono tracking-tight uppercase">Station ID: TGS-BW-04</p>
+</div>
+</div>
+</div>
+<!-- PIN Screen Section -->
+<div class="pt-4 space-y-8">
+<div class="text-center space-y-2">
+<h2 class="text-2xl font-bold Inter tracking-tight">Enter your PIN</h2>
+<p class="text-secondary text-sm">4-digit PIN given by your admin</p>
+</div>
+<!-- PIN Display -->
+<div class="flex justify-center gap-6">
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary/10"></div>
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary/10"></div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest"></div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest"></div>
+</div>
+<!-- Number Keypad -->
+<div class="grid grid-cols-3 gap-6 max-w-xs mx-auto place-items-center">
+<!-- Row 1 -->
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">1</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">2</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">3</button>
+<!-- Row 2 -->
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">4</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">5</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">6</button>
+<!-- Row 3 -->
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">7</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">8</button>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">9</button>
+<!-- Row 4 -->
+<div class="w-20 h-20"></div>
+<button class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-2xl font-bold text-slate-900 transition-all active:scale-95 active:bg-surface-container-high">0</button>
+<button class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-all active:scale-95 active:bg-primary/20">
+<span class="material-symbols-outlined text-3xl">backspace</span>
+</button>
+</div>
+<!-- Footer Action -->
+<div class="pt-4 text-center">
+<button class="text-primary font-bold text-sm hover:underline decoration-2 underline-offset-4 transition-all">
+                    Wrong restaurant? Start over
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Margin for safety on mobile -->
+<div class="h-12"></div>
+</body></html>

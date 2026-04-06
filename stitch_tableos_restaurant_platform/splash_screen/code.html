@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TableOS | Splash Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#83d0f6",
+                    "surface-container": "#eceeef",
+                    "surface-container-low": "#f2f4f5",
+                    "on-tertiary-container": "#c1e9ff",
+                    "primary-fixed": "#ffdad7",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#410004",
+                    "tertiary": "#00536e",
+                    "on-tertiary-fixed": "#001e2b",
+                    "secondary": "#515f74",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-primary-container": "#ffdad7",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "surface-container-high": "#e6e8e9",
+                    "inverse-primary": "#ffb3ae",
+                    "surface-dim": "#d8dadb",
+                    "inverse-on-surface": "#eff1f2",
+                    "background": "#f8fafb",
+                    "primary": "#9d0518",
+                    "tertiary-fixed": "#c0e8ff",
+                    "secondary-container": "#d5e3fc",
+                    "outline-variant": "#e3bebb",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "on-surface": "#191c1d",
+                    "surface": "#f8fafb",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#b72028",
+                    "on-primary-fixed-variant": "#930015",
+                    "on-primary": "#ffffff",
+                    "outline": "#8f706d",
+                    "surface-bright": "#f8fafb",
+                    "on-secondary-container": "#57657a",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#c0272d",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error": "#ffffff",
+                    "on-background": "#191c1d",
+                    "on-surface-variant": "#5a403e",
+                    "tertiary-container": "#006d8f",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "inverse-surface": "#2e3132",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-variant": "#e1e3e4",
+                    "primary-fixed-dim": "#ffb3ae"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        @keyframes progress-animation {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(0%); }
+        }
+        .animate-progress {
+            animation: progress-animation 2s ease-in-out forwards;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest font-body text-on-surface antialiased overflow-hidden">
+<main class="relative h-screen w-full flex flex-col items-center justify-center">
+<!-- Central Branding Cluster -->
+<div class="flex flex-col items-center text-center">
+<!-- Abstract T+O Symbol -->
+<div class="relative w-16 h-16 flex items-center justify-center mb-6">
+<!-- Outer Ring (O) -->
+<div class="absolute inset-0 border-[6px] border-primary-container rounded-full opacity-10"></div>
+<!-- Abstract T + Arc (The "Architect" Mark) -->
+<div class="relative w-full h-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[64px] text-primary-container leading-none" data-icon="restaurant_menu">restaurant_menu</span>
+</div>
+</div>
+<!-- Wordmark -->
+<h1 class="text-[28px] font-bold text-on-surface tracking-tighter mb-1">
+                TableOS
+            </h1>
+<!-- Tagline -->
+<p class="text-[12px] font-medium text-secondary tracking-widest uppercase opacity-70">
+                Restaurant Intelligence Platform
+            </p>
+</div>
+<!-- Progress and Versioning Footer -->
+<div class="absolute bottom-12 w-full max-w-[240px] px-4 space-y-4">
+<!-- Progress Line Container -->
+<div class="h-[2px] w-full bg-surface-container-highest overflow-hidden rounded-full">
+<div class="h-full bg-primary-container w-full animate-progress origin-left"></div>
+</div>
+<!-- Version Number -->
+<div class="text-center">
+<span class="font-mono text-[10px] text-secondary/50 tracking-wider">v1.0.0</span>
+</div>
+</div>
+<!-- Subtle Branding Texture (Asymmetric Accent) -->
+<div class="absolute top-0 right-0 p-12 opacity-[0.03] select-none pointer-events-none">
+<span class="material-symbols-outlined text-[320px] rotate-12" data-icon="deck">deck</span>
+</div>
+<div class="absolute bottom-0 left-0 p-12 opacity-[0.03] select-none pointer-events-none">
+<span class="material-symbols-outlined text-[240px] -rotate-12" data-icon="receipt_long">receipt_long</span>
+</div>
+</main>
+<!-- Shell Suppression Notice: This is a Splash screen (Transactional/Onboarding intent). 
+         Per "The Filter" rule, Navigation shells (TopAppBar, BottomNavBar) are suppressed. -->
+</body></html>

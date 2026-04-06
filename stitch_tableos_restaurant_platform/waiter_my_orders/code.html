@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TableOS - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#ffdad7",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "tertiary-fixed": "#c0e8ff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f2",
+                    "tertiary-container": "#006d8f",
+                    "surface-container": "#eceeef",
+                    "on-primary-fixed-variant": "#930015",
+                    "tertiary": "#00536e",
+                    "surface-dim": "#d8dadb",
+                    "outline-variant": "#e3bebb",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#f2f4f5",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary-fixed-dim": "#ffb3ae",
+                    "tertiary-fixed-dim": "#83d0f6",
+                    "background": "#f8fafb",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-primary-container": "#ffdad7",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#ffb3ae",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "inverse-surface": "#2e3132",
+                    "surface-tint": "#b72028",
+                    "on-primary-fixed": "#410004",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#c0272d",
+                    "on-surface-variant": "#5a403e",
+                    "surface-container-high": "#e6e8e9",
+                    "surface": "#f8fafb",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary": "#9d0518",
+                    "on-tertiary-fixed": "#001e2b",
+                    "on-tertiary-container": "#c1e9ff",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "surface-bright": "#f8fafb",
+                    "secondary": "#515f74",
+                    "on-background": "#191c1d",
+                    "outline": "#8f706d",
+                    "on-secondary-container": "#57657a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- Top Navigation Bar (Shared Component: TopAppBar) -->
+<header class="w-full sticky top-0 z-50 flex items-center justify-between px-6 py-4 w-full bg-white dark:bg-gray-950 shadow-[0_12px_32px_-8px_rgba(157,5,24,0.08)]">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full overflow-hidden bg-surface-container-high ring-2 ring-primary/10">
+<img alt="Admin Profile" class="h-full w-full object-cover" data-alt="professional headshot of a waiter in a dark uniform with clean grooming and a friendly neutral expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6NhT_fwKU80J9jeoMmdlUPDWCslFoyYnvpa6pUemWISoA1xWhPovT9lWy4h08FO9s8etNlOfkTmdd5bOYJOv_gPBbaXZLDHJAi_zwkTBhrPbo3_z2Hxb6QAXLYV0tSwI8tm1Y-_5xkZkVXRW8yRUzEkL4TUNquK9bY4NmB9zpmH1Sz3BMCq9hG0C36pbiFtv7O9oE0D96DYnRXMprt5a-xdD6Mc5_GpvZ1zKRTYICjCFYMkSwS9BmfnW5i07oIXvRTF_Zn108UhU"/>
+</div>
+<h1 class="text-2xl font-bold tracking-tighter text-red-700 dark:text-red-600">TableOS</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-gray-50 p-2 rounded-full transition-colors active:scale-95 duration-150" data-icon="notifications">notifications</button>
+</div>
+</header>
+<main class="max-w-3xl mx-auto px-4 pt-6 pb-32">
+<!-- Page Header & Filter Section (Sticky) -->
+<div class="sticky top-[72px] z-40 bg-surface/80 backdrop-blur-md py-4">
+<h2 class="text-3xl font-bold text-on-surface tracking-tight mb-6">My Orders</h2>
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-6 py-2.5 rounded-full text-sm font-semibold bg-primary-container text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-95">ALL</button>
+<button class="px-6 py-2.5 rounded-full text-sm font-semibold bg-surface-container-lowest text-secondary border border-outline-variant/30 hover:bg-surface-container transition-all active:scale-95">ACTIVE</button>
+<button class="px-6 py-2.5 rounded-full text-sm font-semibold bg-surface-container-lowest text-secondary border border-outline-variant/30 hover:bg-surface-container transition-all active:scale-95">SERVED</button>
+</div>
+</div>
+<!-- Orders Grid / List -->
+<div class="mt-4 space-y-4">
+<!-- Order Card 1 (COOKING) -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex flex-col gap-4 relative overflow-hidden">
+<!-- Signature Red Strike -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-container"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-mono text-sm font-bold px-3 py-1 bg-surface-container-low rounded-lg border border-outline-variant/20">[T03]</span>
+<span class="font-mono text-xs text-secondary tracking-widest uppercase">#1042</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-error/10 text-error">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+<span class="text-[10px] font-bold tracking-widest uppercase font-label">COOKING</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-on-surface">
+<span class="text-sm font-medium">Wagyu Burger</span>
+<span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">x1</span>
+</div>
+<div class="flex justify-between items-center text-on-surface">
+<span class="text-sm font-medium">Truffle Fries (Large)</span>
+<span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">x2</span>
+</div>
+<div class="flex justify-between items-center text-on-surface">
+<span class="text-sm font-medium">Old Fashioned</span>
+<span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">x1</span>
+</div>
+</div>
+<div class="pt-4 mt-2 border-t border-dashed border-outline-variant/30 flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[10px] text-secondary uppercase font-bold tracking-tighter">Total Amount</span>
+<span class="font-mono text-xl font-bold text-on-surface">₹4,850.00</span>
+</div>
+<button class="h-10 px-4 bg-primary/10 text-primary-container font-semibold rounded-lg text-sm hover:bg-primary/20 transition-colors">
+                        Add Item
+                    </button>
+</div>
+</div>
+<!-- Order Card 2 (READY TO SERVE) -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex flex-col gap-4 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-mono text-sm font-bold px-3 py-1 bg-surface-container-low rounded-lg border border-outline-variant/20">[T12]</span>
+<span class="font-mono text-xs text-secondary tracking-widest uppercase">#1045</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary/10 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold tracking-widest uppercase font-label">READY</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-on-surface">
+<span class="text-sm font-medium">Paneer Tikka Platter</span>
+<span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">x1</span>
+</div>
+<div class="flex justify-between items-center text-on-surface">
+<span class="text-sm font-medium">Garlic Naan</span>
+<span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">x3</span>
+</div>
+</div>
+<div class="pt-4 mt-2 border-t border-dashed border-outline-variant/30 flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[10px] text-secondary uppercase font-bold tracking-tighter">Total Amount</span>
+<span class="font-mono text-xl font-bold text-on-surface">₹1,240.00</span>
+</div>
+<button class="h-10 px-6 bg-primary-container text-on-primary font-bold rounded-lg text-sm shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                        Serve Now
+                    </button>
+</div>
+</div>
+<!-- Order Card 3 (SERVED) -->
+<div class="bg-surface-container-low opacity-80 border border-outline-variant/20 rounded-xl p-5 flex flex-col gap-4 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-mono text-sm font-bold px-3 py-1 bg-surface-container rounded-lg">[T08]</span>
+<span class="font-mono text-xs text-secondary tracking-widest uppercase">#1038</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary">
+<span class="text-[10px] font-bold tracking-widest uppercase font-label">SERVED</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-secondary">
+<span class="text-sm">Classic Margherita</span>
+<span class="font-mono text-xs">x2</span>
+</div>
+<div class="flex justify-between items-center text-secondary">
+<span class="text-sm">Virgin Mojito</span>
+<span class="font-mono text-xs">x2</span>
+</div>
+</div>
+<div class="pt-4 mt-2 border-t border-dashed border-outline-variant/30 flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[10px] text-secondary uppercase font-bold tracking-tighter">Total Amount</span>
+<span class="font-mono text-lg font-bold text-secondary">₹2,100.00</span>
+</div>
+<button class="h-10 px-4 text-primary font-semibold rounded-lg text-sm transition-colors">
+                        Details
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Shared Component: BottomNavBar) -->
+<nav class="fixed bottom-0 left-0 right-0 flex justify-around items-center h-20 px-4 pb-safe bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_-6px_rgba(157,5,24,0.05)]">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 hover:text-red-600 dark:hover:text-red-400 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="layers">layers</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Floor</span>
+</a>
+<a class="flex flex-col items-center justify-center text-red-700 dark:text-red-500 border-l-4 border-red-600 bg-red-50 dark:bg-red-900/20 py-2 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 hover:text-red-600 dark:hover:text-red-400 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Inventory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 hover:text-red-600 dark:hover:text-red-400 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="monitoring">monitoring</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Metrics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 hover:text-red-600 dark:hover:text-red-400 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</body></html>

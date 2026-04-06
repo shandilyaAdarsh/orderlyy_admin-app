@@ -1,0 +1,667 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+const _kPrimary = Color(0xFFC0272D);
+
+// ── Staff Member Model ────────────────────────────────────────────────────────
+class _StaffMember {
+  final String id;
+  final String name;
+  final String role;
+  final String pin;
+  final bool isActive;
+  final String tenantId;
+
+  const _StaffMember({
+    required this.id,
+    required this.name,
+    required this.role,
+    required this.pin,
+    required this.isActive,
+    required this.tenantId,
+  });
+
+  factory _StaffMember.fromMap(Map<String, dynamic> m) => _StaffMember(
+        id: m['id'] as String,
+        name: m['name'] as String? ?? 'Unknown',
+        role: m['role'] as String? ?? 'waiter',
+        pin: m['pin'] as String? ?? '----',
+        isActive: m['is_active'] as bool? ?? true,
+        tenantId: m['tenant_id'] as String? ?? '',
+      );
+}
+
+// ── Screen ────────────────────────────────────────────────────────────────────
+class StaffManagementScreen extends ConsumerStatefulWidget {
+  const StaffManagementScreen({super.key});
+
+  @override
+  ConsumerState<StaffManagementScreen> createState() =>
+      _StaffManagementScreenState();
+}
+
+class _StaffManagementScreenState
+    extends ConsumerState<StaffManagementScreen> {
+  List<_StaffMember> _staff = [];
+  bool _isLoading = true;
+  String _tenantId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<String?> _getTenantId() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return null;
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .single();
+      return profile['tenant_id'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _load() async {
+    setState(() => _isLoading = true);
+    try {
+      final tid = await _getTenantId();
+      if (tid == null) {
+        setState(() {
+          _staff = _demoStaff;
+          _tenantId = 'demo';
+          _isLoading = false;
+        });
+        return;
+      }
+      _tenantId = tid;
+      final data = await Supabase.instance.client
+          .from('staff')
+          .select()
+          .eq('tenant_id', tid)
+          .order('name');
+      setState(() {
+        _staff = (data as List).map((m) => _StaffMember.fromMap(m)).toList();
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _staff = _demoStaff;
+        _tenantId = 'demo';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFB),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: const Color(0xFFE2E8F0),
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            Text('TableOS',
+                style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: _kPrimary)),
+            const SizedBox(width: 12),
+            Container(
+                width: 1, height: 20, color: const Color(0xFFE2E8F0)),
+            const SizedBox(width: 12),
+            Text('Staff',
+                style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0F172A))),
+            const SizedBox(width: 8),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                  color: _kPrimary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text('${_staff.length}',
+                  style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _kPrimary)),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add_rounded, color: _kPrimary),
+            onPressed: () => _showStaffSheet(context, null),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: _kPrimary))
+          : _staff.isEmpty
+              ? _buildEmpty()
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  color: _kPrimary,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    itemCount: _staff.length,
+                    itemBuilder: (context, i) => _StaffCard(
+                      member: _staff[i],
+                      onTap: () => _showStaffSheet(context, _staff[i]),
+                    )
+                        .animate(
+                            delay: Duration(milliseconds: 50 * i))
+                        .fadeIn(duration: 300.ms)
+                        .slideY(begin: 0.1, curve: Curves.easeOut),
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.group_outlined,
+              size: 64,
+              color: const Color(0xFFCBD5E1).withValues(alpha: 0.6)),
+          const SizedBox(height: 16),
+          Text('No staff members yet',
+              style: GoogleFonts.inter(
+                  fontSize: 16, color: const Color(0xFF94A3B8))),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => _showStaffSheet(context, null),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add First Staff'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _kPrimary,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStaffSheet(BuildContext context, _StaffMember? member) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _StaffSheet(
+        member: member,
+        tenantId: _tenantId,
+        onSaved: _load,
+      ),
+    );
+  }
+}
+
+// ── Staff Card ────────────────────────────────────────────────────────────────
+class _StaffCard extends StatelessWidget {
+  final _StaffMember member;
+  final VoidCallback onTap;
+
+  const _StaffCard({required this.member, required this.onTap});
+
+  Color get _roleColor => switch (member.role) {
+        'owner' => _kPrimary,
+        'manager' => const Color(0xFF3B82F6),
+        _ => const Color(0xFF64748B),
+      };
+
+  String get _roleLabel => switch (member.role) {
+        'owner' => 'OWNER',
+        'manager' => 'MANAGER',
+        _ => 'WAITER',
+      };
+
+  String get _initials {
+    final parts = member.name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return member.name.substring(0, member.name.length >= 2 ? 2 : 1).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Stack(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _roleColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(_initials,
+                        style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: _roleColor)),
+                  ),
+                ),
+                if (member.isActive)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 14),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(member.name,
+                          style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A))),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _roleColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(_roleLabel,
+                            style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: _roleColor,
+                                letterSpacing: 0.5)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('PIN: ',
+                          style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: const Color(0xFF94A3B8))),
+                      Text('●' * member.pin.length,
+                          style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11,
+                              color: const Color(0xFF64748B),
+                              letterSpacing: 3)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: member.isActive
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                            member.isActive ? 'ACTIVE' : 'INACTIVE',
+                            style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: member.isActive
+                                    ? const Color(0xFF059669)
+                                    : const Color(0xFF94A3B8),
+                                letterSpacing: 0.5)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                color: Color(0xFFCBD5E1), size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Add / Edit Staff Sheet ────────────────────────────────────────────────────
+class _StaffSheet extends StatefulWidget {
+  final _StaffMember? member;
+  final String tenantId;
+  final VoidCallback onSaved;
+  const _StaffSheet(
+      {this.member, required this.tenantId, required this.onSaved});
+
+  @override
+  State<_StaffSheet> createState() => _StaffSheetState();
+}
+
+class _StaffSheetState extends State<_StaffSheet> {
+  late TextEditingController _nameCtrl;
+  late TextEditingController _pinCtrl;
+  String _role = 'waiter';
+  bool _active = true;
+  bool _isSaving = false;
+
+  static const _roles = ['waiter', 'manager', 'owner'];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.member?.name ?? '');
+    _pinCtrl = TextEditingController(text: widget.member?.pin ?? '');
+    _role = widget.member?.role ?? 'waiter';
+    _active = widget.member?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _pinCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _nameCtrl.text.trim();
+    final pin = _pinCtrl.text.trim();
+    if (name.isEmpty || pin.isEmpty) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final data = {
+        'name': name,
+        'pin': pin,
+        'role': _role,
+        'is_active': _active,
+        'tenant_id': widget.tenantId,
+      };
+      if (widget.member == null) {
+        await Supabase.instance.client.from('staff').insert(data);
+      } else {
+        await Supabase.instance.client
+            .from('staff')
+            .update(data)
+            .eq('id', widget.member!.id);
+      }
+    } catch (_) {}
+    if (mounted) Navigator.pop(context);
+    widget.onSaved();
+    if (mounted) setState(() => _isSaving = false);
+  }
+
+  Future<void> _remove() async {
+    if (widget.member == null) return;
+    try {
+      await Supabase.instance.client
+          .from('staff')
+          .delete()
+          .eq('id', widget.member!.id);
+    } catch (_) {}
+    if (mounted) Navigator.pop(context);
+    widget.onSaved();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      widget.member == null
+                          ? 'Add Staff Member'
+                          : 'Edit Staff',
+                      style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A))),
+                  const SizedBox(height: 20),
+                  _field('Full Name', _nameCtrl, 'e.g. Rajesh Kumar'),
+                  const SizedBox(height: 12),
+                  _field('PIN (4 digits)', _pinCtrl, 'e.g. 1234',
+                      type: TextInputType.number, maxLen: 4),
+                  const SizedBox(height: 16),
+                  // Role
+                  Text('Role',
+                      style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF64748B))),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: _roles.map((r) {
+                      final active = _role == r;
+                      final color = switch (r) {
+                        'owner' => _kPrimary,
+                        'manager' => const Color(0xFF3B82F6),
+                        _ => const Color(0xFF64748B),
+                      };
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _role = r),
+                          child: AnimatedContainer(
+                            duration: 200.ms,
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color:
+                                  active ? color : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(r.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: active
+                                          ? Colors.white
+                                          : const Color(0xFF64748B))),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  // Active toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Active',
+                          style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A))),
+                      Switch(
+                        value: _active,
+                        onChanged: (v) => setState(() => _active = v),
+                        activeThumbColor: _kPrimary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      if (widget.member != null) ...[
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _remove,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _kPrimary,
+                              side: BorderSide(color: _kPrimary),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: Text('Remove',
+                                style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _kPrimary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                          ),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
+                              : Text('Save',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _field(String label, TextEditingController ctrl, String hint,
+      {TextInputType? type, int? maxLen}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF64748B))),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          keyboardType: type,
+          maxLength: maxLen,
+          style: GoogleFonts.inter(
+              fontSize: 14, color: const Color(0xFF0F172A)),
+          decoration: InputDecoration(
+            hintText: hint,
+            counterText: '',
+            hintStyle: GoogleFonts.inter(
+                fontSize: 14, color: const Color(0xFFCBD5E1)),
+            filled: true,
+            fillColor: const Color(0xFFF8FAFB),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide:
+                    const BorderSide(color: _kPrimary, width: 2)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Demo data ─────────────────────────────────────────────────────────────────
+const _demoStaff = [
+  _StaffMember(
+      id: '1', name: 'Vikram Sharma', role: 'owner',
+      pin: '1111', isActive: true, tenantId: 'demo'),
+  _StaffMember(
+      id: '2', name: 'Priya Mehta', role: 'manager',
+      pin: '2222', isActive: true, tenantId: 'demo'),
+  _StaffMember(
+      id: '3', name: 'Raju Yadav', role: 'waiter',
+      pin: '1234', isActive: true, tenantId: 'demo'),
+  _StaffMember(
+      id: '4', name: 'Ananya Singh', role: 'waiter',
+      pin: '5678', isActive: false, tenantId: 'demo'),
+];

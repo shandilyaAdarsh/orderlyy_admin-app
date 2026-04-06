@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TableOS — Needs Attention</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#ffdad7",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "tertiary-fixed": "#c0e8ff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f2",
+                    "tertiary-container": "#006d8f",
+                    "surface-container": "#eceeef",
+                    "on-primary-fixed-variant": "#930015",
+                    "tertiary": "#00536e",
+                    "surface-dim": "#d8dadb",
+                    "outline-variant": "#e3bebb",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#f2f4f5",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary-fixed-dim": "#ffb3ae",
+                    "tertiary-fixed-dim": "#83d0f6",
+                    "background": "#f8fafb",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-primary-container": "#ffdad7",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#ffb3ae",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "inverse-surface": "#2e3132",
+                    "surface-tint": "#b72028",
+                    "on-primary-fixed": "#410004",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#c0272d",
+                    "on-surface-variant": "#5a403e",
+                    "surface-container-high": "#e6e8e9",
+                    "surface": "#f8fafb",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary": "#9d0518",
+                    "on-tertiary-fixed": "#001e2b",
+                    "on-tertiary-container": "#c1e9ff",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "surface-bright": "#f8fafb",
+                    "secondary": "#515f74",
+                    "on-background": "#191c1d",
+                    "outline": "#8f706d",
+                    "on-secondary-container": "#57657a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .signature-strike-gray {
+            border-left: 4px solid #5a403e;
+        }
+        .signature-strike-amber {
+            border-left: 4px solid #b72028; /* Using primary for high intent */
+        }
+        .payment-pending-border {
+            border-left: 4px solid #f59e0b;
+        }
+        .cleaning-border {
+            border-left: 4px solid #64748b;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body antialiased">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-white dark:bg-gray-950 shadow-[0_12px_32px_-8px_rgba(157,5,24,0.08)] flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="Admin Profile" data-alt="Close up portrait of a professional restaurant manager in a clean white shirt against a soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8iKDzXMFg3xFOrMk4Ty41MgxrWc3it6Xl50i-t2pw2ZPt0WpD8yHqAB_lIhmQHDOtShwm2o1rsIJVi30MbBeF-8jSYd3ecUmmgpAGrHgSXhJh6Pw-XbJzRHwhcLBLlz-9O9hUXFjIPC85qGDET6TY8PTKKGUCn-w8eaxhNreu0efXdFoeAcyY9YBDgpFhHPqI0sFqh_NvCHDTT75l5TPHjjLNQX0Qm6Qht4yUa8p7B0V_sd5ZuwqQ_yMThfAu8hbpYYULOCeLC3M"/>
+</div>
+<h1 class="text-2xl font-bold tracking-tighter text-red-700 dark:text-red-600">TableOS</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8 text-slate-500 font-['Inter'] font-semibold text-lg tracking-tight">
+<span class="hover:bg-gray-50 transition-colors px-3 py-1 rounded cursor-pointer">Floor</span>
+<span class="text-red-700 hover:bg-gray-50 transition-colors px-3 py-1 rounded cursor-pointer">Service</span>
+<span class="hover:bg-gray-50 transition-colors px-3 py-1 rounded cursor-pointer">Metrics</span>
+</div>
+<button class="material-symbols-outlined text-slate-500 hover:bg-gray-50 p-2 rounded-full transition-colors active:scale-95 duration-150">notifications</button>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-6 py-8 pb-32">
+<!-- Sticky Sub-Header -->
+<div class="sticky top-[72px] z-40 bg-background/80 backdrop-blur-md py-4 mb-8">
+<div class="flex items-end justify-between">
+<div>
+<span class="font-mono text-[12px] tracking-[0.05em] text-secondary uppercase">Operational Queue</span>
+<h2 class="text-4xl font-bold tracking-tight text-on-surface mt-1">Needs Attention</h2>
+</div>
+<div class="flex gap-2">
+<span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-low text-secondary font-medium text-sm">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+                        2 Tasks Pending
+                    </span>
+</div>
+</div>
+</div>
+<!-- High-Density Work Area -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+<!-- Card 1: Cleaning Task -->
+<div class="bg-surface-container-lowest rounded-xl p-6 cleaning-border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4">
+<span class="font-mono text-[12px] bg-slate-100 text-slate-600 px-3 py-1 rounded-full">BUSSING</span>
+</div>
+<div class="flex items-start gap-4">
+<div class="p-3 bg-slate-50 rounded-lg">
+<span class="material-symbols-outlined text-slate-500" style="font-variation-settings: 'FILL' 0;">mop</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-on-surface">T11 — Needs Cleaning</h3>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2 text-secondary text-sm">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>Served at 2:15 PM</span>
+</div>
+<div class="flex items-center gap-2 text-error font-semibold text-sm">
+<span class="material-symbols-outlined text-[18px]">timer</span>
+<span>Waiting: 12 mins</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex gap-3">
+<button class="flex-1 h-[52px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined">check_circle</span>
+                        Mark Clean ✓
+                    </button>
+<button class="w-[52px] h-[52px] flex items-center justify-center text-slate-400 hover:bg-slate-50 rounded-lg">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Payment Task -->
+<div class="bg-surface-container-lowest rounded-xl p-6 payment-pending-border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4">
+<span class="font-mono text-[12px] bg-amber-50 text-amber-700 px-3 py-1 rounded-full">PAYMENT</span>
+</div>
+<div class="flex items-start gap-4">
+<div class="p-3 bg-amber-50 rounded-lg">
+<span class="material-symbols-outlined text-amber-600" style="font-variation-settings: 'FILL' 1;">payments</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-on-surface">T07 — Payment Pending</h3>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2 text-secondary text-sm">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span class="font-mono">Total: ₹3,850</span>
+</div>
+<div class="flex items-center gap-2 text-amber-600 font-semibold text-sm">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+<span>Waiting: 8 mins</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex gap-3">
+<button class="flex-1 h-[52px] bg-primary-container hover:bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">point_of_sale</span>
+                        Process Payment
+                    </button>
+<button class="w-[52px] h-[52px] flex items-center justify-center text-slate-400 hover:bg-slate-50 rounded-lg">
+<span class="material-symbols-outlined">print</span>
+</button>
+</div>
+</div>
+<!-- Intelligence Rail / Sidebar Content (Visual Balance) -->
+<div class="md:col-span-2 mt-12">
+<h4 class="font-mono text-[11px] uppercase tracking-widest text-slate-400 mb-4 px-2">Recent Turnaround Times</h4>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<p class="text-secondary text-xs font-medium">Avg. Bussing</p>
+<p class="font-mono text-2xl font-bold text-on-surface">4m 12s</p>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<p class="text-secondary text-xs font-medium">Avg. Checkout</p>
+<p class="font-mono text-2xl font-bold text-on-surface">2m 45s</p>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<p class="text-secondary text-xs font-medium">Table Efficiency</p>
+<p class="font-mono text-2xl font-bold text-primary">94%</p>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<p class="text-secondary text-xs font-medium">Daily Revenue</p>
+<p class="font-mono text-2xl font-bold text-on-surface">₹84,200</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-20 px-4 pb-safe bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl z-50">
+<div class="flex flex-col items-center justify-center text-slate-500 py-2">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Floor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-red-700 dark:text-red-500 border-l-4 border-red-600 bg-red-50 dark:bg-red-900/20 py-2 px-4">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 py-2">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Inventory</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 py-2">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Metrics</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 py-2">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Settings</span>
+</div>
+</nav>
+</body></html>

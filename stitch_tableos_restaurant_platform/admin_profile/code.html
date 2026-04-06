@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#ffdad7",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "tertiary-fixed": "#c0e8ff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f2",
+                    "tertiary-container": "#006d8f",
+                    "surface-container": "#eceeef",
+                    "on-primary-fixed-variant": "#930015",
+                    "tertiary": "#00536e",
+                    "surface-dim": "#d8dadb",
+                    "outline-variant": "#e3bebb",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#f2f4f5",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary-fixed-dim": "#ffb3ae",
+                    "tertiary-fixed-dim": "#83d0f6",
+                    "background": "#f8fafb",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-primary-container": "#ffdad7",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#ffb3ae",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "inverse-surface": "#2e3132",
+                    "surface-tint": "#b72028",
+                    "on-primary-fixed": "#410004",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#c0272d",
+                    "on-surface-variant": "#5a403e",
+                    "surface-container-high": "#e6e8e9",
+                    "surface": "#f8fafb",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary": "#9d0518",
+                    "on-tertiary-fixed": "#001e2b",
+                    "on-tertiary-container": "#c1e9ff",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "surface-bright": "#f8fafb",
+                    "secondary": "#515f74",
+                    "on-background": "#191c1d",
+                    "outline": "#8f706d",
+                    "on-secondary-container": "#57657a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .tap-highlight-transparent {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-white dark:bg-gray-950 shadow-[0_12px_32px_-8px_rgba(157,5,24,0.08)] flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img alt="Admin Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a professional South Asian restaurant owner in a white linen shirt with a soft blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE9Md7fGL4Ci_vvRlKxIoT_oyTj0p3t1JcXD33joR_1wtmWn9Yz_dlshWX3JRp5BeHPDFCY-d5R_svxIM6_56Ti4uyO03SS_MgqAquEzwB1L9cvW96LqI5ca9qCeOalqj1N6HKuCSjRu8oezrIEQ8On0nN_YxWToJIdExi5_icH8qNDQ8UUk2AGOZ2K26G8aHt1QfDEHx_UypKEzAF5UxaZyDIpLTgtzV-FlqE_qDKh_bIa4OgwYzFj2KwYPv-_OM9OsuI6NjRoyk"/>
+</div>
+<h1 class="text-2xl font-bold tracking-tighter text-red-700 dark:text-red-600">TableOS</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 dark:text-slate-400 p-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors active:scale-95 duration-150" data-icon="notifications">notifications</button>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-6 pt-8 pb-32 space-y-8">
+<!-- Profile Hero Section -->
+<section class="bg-surface-container-lowest rounded-xl p-8 flex flex-col items-center text-center space-y-4">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-4 border-surface overflow-hidden shadow-lg">
+<img alt="Vikram Sharma" class="w-full h-full object-cover" data-alt="Portrait of Vikram Sharma, a professional restaurant owner, confident expression, sharp lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUOPeD0lbi3vR7-cT0WR81rvMBt5flxdb2TK_g7j7Xnf2Loy9z32bZjrDc3FywwZZ6eUjA9hU9Wmyx3ngQzkXbJBCehS-BQaD-r4F9EO2WZZpDylZO6OTFRDu5gXiusePPiCeIeL6is734jy-VJLTw3ZZZLZfqpYwym78p7ocmvvKqrpu2SR-q9tCZhtll5tEzfy_MFOp6Hwtbgnpyenh2FQVwc2nPkVBOYjU8xc5q6N2t67eePofvTA7eizW_AgqwCzJVcusUAb0"/>
+</div>
+<div class="absolute bottom-0 right-0 bg-primary p-1.5 rounded-full border-2 border-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[12px]" data-icon="edit">edit</span>
+</div>
+</div>
+<div>
+<h2 class="text-3xl font-bold tracking-tight text-on-surface">Vikram Sharma</h2>
+<p class="text-secondary font-medium mt-1">Owner · The Grand Spice</p>
+<div class="mt-4">
+<span class="bg-red-50 text-red-700 text-[10px] font-bold px-3 py-1 rounded-full border border-red-100 tracking-widest uppercase">PRO PLAN</span>
+</div>
+</div>
+</section>
+<!-- Subscription/Plan Section -->
+<section class="bg-red-50 dark:bg-red-900/10 border-l-4 border-primary-container rounded-xl p-6 flex items-center justify-between">
+<div class="space-y-1">
+<h3 class="text-[10px] font-bold tracking-widest text-primary uppercase">PLAN</h3>
+<p class="text-on-surface font-semibold text-lg">PRO PLAN ACTIVE</p>
+<p class="text-secondary text-xs">Billed annually. Next renewal Sept 2024.</p>
+</div>
+<button class="bg-primary-container text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:opacity-90 transition-opacity active:scale-95">
+                Upgrade to Enterprise
+            </button>
+</section>
+<!-- Restaurant Info -->
+<section class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<div class="px-6 py-4 bg-surface-container-low border-b border-surface-variant/30">
+<h3 class="text-[10px] font-bold tracking-widest text-secondary uppercase">RESTAURANT</h3>
+</div>
+<div class="divide-y divide-surface-container-low">
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="storefront">storefront</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Name</p>
+<p class="text-sm font-medium">The Grand Spice</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="location_on">location_on</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Location</p>
+<p class="text-sm font-medium">South Extension II, New Delhi</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="schedule">schedule</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Operating Hours</p>
+<p class="text-sm font-medium">11:00 AM – 11:30 PM</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="grid_view">grid_view</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Tables</p>
+<div class="flex items-center gap-2">
+<span class="text-sm font-medium">42 Configured</span>
+<span class="text-xs font-mono bg-surface-container p-1 rounded">JetBrains Mono: T42</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Account Settings -->
+<section class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<div class="px-6 py-4 bg-surface-container-low border-b border-surface-variant/30">
+<h3 class="text-[10px] font-bold tracking-widest text-secondary uppercase">ACCOUNT</h3>
+</div>
+<div class="divide-y divide-surface-container-low">
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="mail">mail</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Email</p>
+<p class="text-sm font-medium">vikram@thegrandspice.com</p>
+</div>
+</div>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="call">call</span>
+<div>
+<p class="text-xs text-secondary mb-0.5">Phone</p>
+<p class="text-sm font-medium font-mono text-[13px]">+91 98100 23456</p>
+</div>
+</div>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="lock_reset">lock_reset</span>
+<div>
+<p class="text-sm font-medium">Change Password</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="print">print</span>
+<div>
+<p class="text-sm font-medium">Printer Settings</p>
+<p class="text-[10px] text-primary-container font-medium uppercase tracking-tight">3 KOT PRINTERS CONNECTED</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-dim" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Actions -->
+<section class="flex flex-col items-center gap-4 pt-4 pb-12">
+<button class="w-full max-w-sm h-[52px] border-2 border-primary text-primary font-bold rounded-lg hover:bg-primary/5 transition-colors active:scale-95 duration-150">
+                Sign Out
+            </button>
+<button class="text-[11px] text-slate-400 font-medium tracking-tight hover:text-error transition-colors uppercase">
+                Delete Account
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 right-0 flex justify-around items-center h-20 px-4 pb-safe bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl shadow-[0_-8px_24px_-6px_rgba(157,5,24,0.05)] z-50">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 tap-highlight-transparent transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Floor</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 tap-highlight-transparent transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 tap-highlight-transparent transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Inventory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-2 tap-highlight-transparent transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Metrics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-red-700 dark:text-red-500 border-l-4 border-red-600 bg-red-50 dark:bg-red-900/20 py-2 tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

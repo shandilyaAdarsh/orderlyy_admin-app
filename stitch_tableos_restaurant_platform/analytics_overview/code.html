@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TableOS Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#d8dadb",
+                        "on-surface": "#191c1d",
+                        "outline": "#8f706d",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#410004",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#00536e",
+                        "surface-container": "#eceeef",
+                        "secondary": "#515f74",
+                        "primary": "#9d0518",
+                        "inverse-surface": "#2e3132",
+                        "surface-bright": "#f8fafb",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "secondary-container": "#d5e3fc",
+                        "inverse-on-surface": "#eff1f2",
+                        "secondary-fixed": "#d5e3fc",
+                        "tertiary-container": "#006d8f",
+                        "outline-variant": "#e3bebb",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "on-primary-fixed-variant": "#930015",
+                        "surface-container-high": "#e6e8e9",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#ffb3ae",
+                        "primary-fixed-dim": "#ffb3ae",
+                        "primary-container": "#c0272d",
+                        "surface": "#f8fafb",
+                        "on-primary-container": "#ffdad7",
+                        "surface-tint": "#b72028",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#57657a",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#5a403e",
+                        "background": "#f8fafb",
+                        "tertiary-fixed": "#c0e8ff",
+                        "primary-fixed": "#ffdad7",
+                        "on-background": "#191c1d",
+                        "tertiary-fixed-dim": "#83d0f6",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "on-tertiary-container": "#c1e9ff",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-container-low": "#f2f4f5",
+                        "on-tertiary-fixed": "#001e2b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar Shell -->
+<header class="sticky top-0 w-full z-40 bg-[#F8FAFB] dark:bg-slate-950 flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#C0272D] dark:text-red-500" data-icon="analytics">analytics</span>
+<h1 class="font-['Inter'] font-bold text-3xl tracking-tight text-[#C0272D] dark:text-red-500">Analytics</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-[#F2F4F5] dark:hover:bg-slate-800 transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-secondary" data-icon="filter_list">filter_list</span>
+</button>
+</div>
+</header>
+<main class="pb-24">
+<!-- Date Filter Tabs -->
+<div class="px-6 py-4 flex gap-2 overflow-x-auto hide-scrollbar">
+<button class="px-6 py-2 rounded-full bg-primary-container text-on-primary font-semibold text-sm transition-colors shadow-[0_4px_12px_-4px_rgba(157,5,24,0.3)]">TODAY</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-secondary font-semibold text-sm hover:bg-surface-container-high transition-colors">WEEK</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-secondary font-semibold text-sm hover:bg-surface-container-high transition-colors">MONTH</button>
+</div>
+<!-- Section 1: Revenue Chart -->
+<section class="px-6 mb-8">
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/20">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-secondary text-sm font-medium mb-1">Total Revenue</p>
+<h2 class="text-3xl font-bold font-headline text-on-surface">₹24,680.00</h2>
+</div>
+<div class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                        12.5%
+                    </div>
+</div>
+<div class="h-48 w-full relative">
+<!-- Faux Line Chart Graphic -->
+<div class="absolute inset-0 flex items-end">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 400 100">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="5%" stop-color="#C0272D" stop-opacity="0.3"></stop>
+<stop offset="95%" stop-color="#C0272D" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,80 Q50,20 100,60 T200,40 T300,70 T400,10 L400,100 L0,100 Z" fill="url(#chartGradient)"></path>
+<path d="M0,80 Q50,20 100,60 T200,40 T300,70 T400,10" fill="none" stroke="#C0272D" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<!-- Minimal Axes Labels -->
+<div class="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-secondary font-mono pt-2">
+<span>08:00</span>
+<span>12:00</span>
+<span>16:00</span>
+<span>20:00</span>
+<span>00:00</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: KPI Strip -->
+<section class="mb-8">
+<div class="flex gap-4 px-6 overflow-x-auto hide-scrollbar">
+<div class="min-w-[160px] bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20">
+<p class="text-xs text-secondary font-medium mb-2">Total Revenue</p>
+<p class="text-lg font-bold font-mono text-primary-container">₹24,680</p>
+</div>
+<div class="min-w-[160px] bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20">
+<p class="text-xs text-secondary font-medium mb-2">Total Orders</p>
+<p class="text-lg font-bold font-mono text-on-surface">47</p>
+</div>
+<div class="min-w-[160px] bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20">
+<p class="text-xs text-secondary font-medium mb-2">Avg Order Value</p>
+<p class="text-lg font-bold font-mono text-on-surface">₹524</p>
+</div>
+<div class="min-w-[160px] bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20">
+<p class="text-xs text-secondary font-medium mb-2">Table Turnover</p>
+<p class="text-lg font-bold font-mono text-on-surface">1.2h</p>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-6 mb-8">
+<!-- Section 3: Best Sellers -->
+<section>
+<h3 class="text-xs font-black tracking-widest text-secondary mb-4">BEST SELLERS</h3>
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/20 space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between items-center text-sm">
+<span class="font-semibold text-on-surface">Wagyu Burger</span>
+<span class="font-mono text-secondary">82 items</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-sm">
+<span class="font-semibold text-on-surface">Dal Makhani</span>
+<span class="font-mono text-secondary">64 items</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 64%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-sm">
+<span class="font-semibold text-on-surface">Paneer Tikka</span>
+<span class="font-mono text-secondary">45 items</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 45%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Station Distribution -->
+<section>
+<h3 class="text-xs font-black tracking-widest text-secondary mb-4">STATION DISTRIBUTION</h3>
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/20">
+<div class="flex items-center gap-8">
+<div class="relative w-32 h-32">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#F2F4F5" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#C0272D" stroke-dasharray="45 100" stroke-dashoffset="0" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#9D0518" stroke-dasharray="30 100" stroke-dashoffset="-45" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#515F74" stroke-dasharray="25 100" stroke-dashoffset="-75" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-xs font-bold text-secondary">VOLUME</span>
+</div>
+</div>
+<div class="space-y-3 flex-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-[#C0272D]"></div>
+<span class="text-sm font-medium">Grill</span>
+</div>
+<span class="text-sm font-mono font-bold">45%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-[#9D0518]"></div>
+<span class="text-sm font-medium">Curry</span>
+</div>
+<span class="text-sm font-mono font-bold">30%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-[#515F74]"></div>
+<span class="text-sm font-medium">Tandoor</span>
+</div>
+<span class="text-sm font-mono font-bold">25%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Section 5: Peak Hours Heatmap -->
+<section class="px-6 mb-8">
+<h3 class="text-xs font-black tracking-widest text-secondary mb-4">PEAK HOURS HEATMAP</h3>
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/20 overflow-x-auto">
+<div class="min-w-[600px]">
+<div class="grid grid-cols-8 gap-2">
+<!-- Header Empty Corner -->
+<div></div>
+<div class="text-center text-[10px] font-bold text-secondary">MON</div>
+<div class="text-center text-[10px] font-bold text-secondary">TUE</div>
+<div class="text-center text-[10px] font-bold text-secondary">WED</div>
+<div class="text-center text-[10px] font-bold text-secondary">THU</div>
+<div class="text-center text-[10px] font-bold text-secondary">FRI</div>
+<div class="text-center text-[10px] font-bold text-secondary">SAT</div>
+<div class="text-center text-[10px] font-bold text-secondary">SUN</div>
+<!-- Lunch Row -->
+<div class="text-[10px] font-bold text-secondary flex items-center">LUNCH</div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-200"></div>
+<div class="aspect-square rounded-md bg-red-300"></div>
+<div class="aspect-square rounded-md bg-red-300"></div>
+<!-- Post-Lunch -->
+<div class="text-[10px] font-bold text-secondary flex items-center">POST-L</div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-50"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-200"></div>
+<div class="aspect-square rounded-md bg-red-200"></div>
+<!-- Evening -->
+<div class="text-[10px] font-bold text-secondary flex items-center">EVENING</div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-200"></div>
+<div class="aspect-square rounded-md bg-red-400"></div>
+<div class="aspect-square rounded-md bg-red-500"></div>
+<div class="aspect-square rounded-md bg-red-500"></div>
+<!-- Peak -->
+<div class="text-[10px] font-bold text-secondary flex items-center">PEAK</div>
+<div class="aspect-square rounded-md bg-red-300"></div>
+<div class="aspect-square rounded-md bg-red-300"></div>
+<div class="aspect-square rounded-md bg-red-400"></div>
+<div class="aspect-square rounded-md bg-red-500"></div>
+<div class="aspect-square rounded-md bg-red-700"></div>
+<div class="aspect-square rounded-md bg-red-900"></div>
+<div class="aspect-square rounded-md bg-red-900"></div>
+<!-- Late Night -->
+<div class="text-[10px] font-bold text-secondary flex items-center">LATE</div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-100"></div>
+<div class="aspect-square rounded-md bg-red-200"></div>
+<div class="aspect-square rounded-md bg-red-300"></div>
+<div class="aspect-square rounded-md bg-red-400"></div>
+<div class="aspect-square rounded-md bg-red-400"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center bg-white/80 backdrop-blur-md px-2 pb-safe z-50 border-t border-[#F2F4F5] dark:border-slate-800 shadow-[0_-4px_20px_-4px_rgba(157,5,24,0.08)]">
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 py-2 tap-highlight-transparent active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] font-medium text-[11px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 py-2 tap-highlight-transparent active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Inter'] font-medium text-[11px]">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 py-2 tap-highlight-transparent active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['Inter'] font-medium text-[11px]">Tables</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 py-2 tap-highlight-transparent active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Inter'] font-medium text-[11px]">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#C0272D] dark:text-red-400 border-l-4 border-[#C0272D] bg-red-50/50 dark:bg-red-950/20 py-2 tap-highlight-transparent active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+<span class="font-['Inter'] font-medium text-[11px]">More</span>
+</a>
+</nav>
+</body></html>
