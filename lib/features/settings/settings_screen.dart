@@ -77,8 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 100.h),
+      body: LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 100.h),
         children: [
           Text(
             'Settings',
@@ -194,23 +195,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Display ─────────────────────────────────────────────────────────
           _sectionLabel('DISPLAY'),
           SizedBox(height: 10.h),
-          Row(
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: constraints.maxWidth > 600 ? 3 : 2,
+            crossAxisSpacing: 12.w,
+            mainAxisSpacing: 12.h,
+            childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 1.6,
             children: [
-              Expanded(
-                child: _DisplayTile(
-                  label: 'Currency',
-                  value: '₹ INR',
-                  mono: true,
-                ),
+              _DisplayTile(
+                label: 'Currency',
+                value: '₹ INR',
+                mono: true,
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _DisplayTile(label: 'Language', value: 'English (US)'),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _DisplayTile(label: 'Timezone', value: 'IST (UTC+5:30)'),
-              ),
+              _DisplayTile(label: 'Language', value: 'English (US)'),
+              _DisplayTile(label: 'Timezone', value: 'IST (UTC+5:30)'),
             ],
           ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
           SizedBox(height: 24.h),
@@ -268,7 +267,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   width: 2.h,
                                 ),
                               ),
-                              contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 12.h,
+                                horizontal: 12.w,
+                              ),
                             ),
                           ),
                         ],
@@ -317,7 +319,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   width: 2.h,
                                 ),
                               ),
-                              contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 12.h,
+                                horizontal: 12.w,
+                              ),
                             ),
                           ),
                         ],
@@ -426,8 +431,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _sectionLabel(String text, {Color color = AppTheme.secondary}) {
     return Text(
@@ -632,7 +638,7 @@ class _DisplayTile extends StatelessWidget {
                     ? Text(
                         value,
                         style: GoogleFonts.jetBrainsMono(
-                          fontSize: 14.sp, // Scaled down for mobile grids
+                          fontSize: 13.sp, // Scaled down for mobile grids
                           fontWeight: FontWeight.w700,
                           color: AppTheme.onSurface,
                         ),
@@ -642,7 +648,7 @@ class _DisplayTile extends StatelessWidget {
                     : Text(
                         value,
                         style: GoogleFonts.inter(
-                          fontSize: 12.sp, // Scaled down for mobile grids
+                          fontSize: 11.sp, // Scaled down for mobile grids
                           fontWeight: FontWeight.w500,
                           color: AppTheme.onSurface,
                         ),

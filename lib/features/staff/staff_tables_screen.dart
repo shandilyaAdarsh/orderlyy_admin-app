@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_theme.dart';
 
 // ── Table Status ──────────────────────────────────────────────────────────────
@@ -23,6 +24,75 @@ class TableData {
   });
 }
 
+// ── Static floor layout (IDs + capacity — status comes from Supabase) ─────────
+const _floorLayout = [
+  (id: 'T01', capacity: 4),
+  (id: 'T02', capacity: 4),
+  (id: 'T03', capacity: 2),
+  (id: 'T04', capacity: 4),
+  (id: 'T05', capacity: 6),
+  (id: 'T06', capacity: 6),
+  (id: 'T07', capacity: 4),
+  (id: 'T08', capacity: 4),
+  (id: 'T09', capacity: 2),
+  (id: 'T10', capacity: 4),
+  (id: 'T11', capacity: 6),
+  (id: 'T12', capacity: 4),
+];
+
+// Derive TableData list from live orders
+List<TableData> _deriveTableData(List<Map<String, dynamic>> orders) {
+  // Group active orders by table_id
+  final Map<String, List<Map<String, dynamic>>> byTable = {};
+  for (final o in orders) {
+    final tid = o['table_id']?.toString();
+    if (tid == null) continue;
+    byTable.putIfAbsent(tid, () => []).add(o);
+  }
+
+  return _floorLayout.map((t) {
+    final tableOrders = byTable[t.id] ?? [];
+
+    // Check statuses
+    final hasActive = tableOrders.any((o) {
+      final s = (o['status'] ?? '').toString().toLowerCase();
+      return s == 'pending' || s == 'cooking' || s == 'ready';
+    });
+    final hasServedUnpaid = tableOrders.any((o) {
+      final s = (o['status'] ?? '').toString().toLowerCase();
+      return s == 'served';
+    });
+
+    TableStatus status;
+    if (hasActive) {
+      status = TableStatus.occupied;
+    } else if (hasServedUnpaid) {
+      status = TableStatus.payment;
+    } else {
+      status = TableStatus.vacant;
+    }
+
+    // Compute bill
+    String? bill;
+    if (status == TableStatus.occupied || status == TableStatus.payment) {
+      final total = tableOrders.fold<double>(
+          0, (s, o) => s + ((o['total_amount'] as num?)?.toDouble() ?? 0));
+      if (total > 0) {
+        bill = total >= 1000
+            ? '₹${(total / 1000).toStringAsFixed(1)}k'
+            : '₹${total.toStringAsFixed(0)}';
+      }
+    }
+
+    return TableData(
+      id: t.id,
+      status: status,
+      capacity: t.capacity,
+      billAmount: bill,
+    );
+  }).toList();
+}
+
 class StaffTablesScreen extends StatefulWidget {
   const StaffTablesScreen({super.key});
 
@@ -31,26 +101,25 @@ class StaffTablesScreen extends StatefulWidget {
 }
 
 class _StaffTablesScreenState extends State<StaffTablesScreen> {
-
-  static const _tables = [
-    TableData(id: 'T01', status: TableStatus.vacant, capacity: 4),
-    TableData(id: 'T02', status: TableStatus.occupied, capacity: 4, timer: '24:10', billAmount: '₹2,410'),
-    TableData(id: 'T03', status: TableStatus.payment, capacity: 2, billAmount: '₹1,850'),
-    TableData(id: 'T04', status: TableStatus.cleaning, capacity: 4),
-    TableData(id: 'T05', status: TableStatus.vacant, capacity: 6),
-    TableData(id: 'T06', status: TableStatus.occupied, capacity: 6, timer: '58:45', billAmount: '₹4,200'),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('orders').stream(primaryKey: ['id']),
+      builder: (context, snapshot) {
+        final orders = snapshot.data ?? [];
+        final tables = _deriveTableData(orders);
+        final occupiedCount =
+            tables.where((t) => t.status == TableStatus.occupied).length;
+
+        return Scaffold(
+          backgroundColor: AppTheme.background,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => Stack(
+                children: [
+                  CustomScrollView(
+                    slivers: [
+
                   // ── Top App Bar ───────────────────────────────────────────────
                   SliverAppBar(
                     pinned: true,
@@ -93,7 +162,7 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                '15 TABLES',
+                                '${tables.length} TABLES · $occupiedCount OCC.',
                                 style: GoogleFonts.inter(
                                   fontSize: 9.sp,
                                   fontWeight: FontWeight.w500,
@@ -138,9 +207,9 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
                             mainAxisSpacing: 12.h,
                             childAspectRatio: constraints.maxWidth > 600 ? 1.5 : 0.95,
                           ),
-                          itemCount: _tables.length,
+                          itemCount: tables.length,
                           itemBuilder: (context, i) {
-                            return _TableCard(table: _tables[i])
+                            return _TableCard(table: tables[i])
                                 .animate(delay: Duration(milliseconds: 60 * i))
                                 .fadeIn(duration: 350.ms)
                                 .slideY(begin: 0.15, curve: Curves.easeOut);
@@ -182,10 +251,12 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
                       curve: Curves.easeOutBack,
                     ),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

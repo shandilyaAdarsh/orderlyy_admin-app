@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_theme.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -16,117 +17,197 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   int _periodIndex = 0;
   static const _periods = ['TODAY', 'WEEK', 'MONTH'];
 
+
+
+  static List<Map<String, dynamic>> _filterByPeriod(
+      List<Map<String, dynamic>> orders, int periodIdx) {
+    final now = DateTime.now();
+    late DateTime cutoff;
+    switch (periodIdx) {
+      case 1:
+        cutoff = now.subtract(const Duration(days: 7));
+        break;
+      case 2:
+        cutoff = DateTime(now.year, now.month, 1);
+        break;
+      default:
+        cutoff = DateTime(now.year, now.month, now.day);
+    }
+    return orders.where((o) {
+      final raw = o['created_at'];
+      if (raw == null) return false;
+      try {
+        return DateTime.parse(raw.toString()).toLocal().isAfter(cutoff);
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: AppTheme.surfaceContainerLowest,
-        surfaceTintColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        toolbarHeight: 64.h,
-        title: Text(
-          'Orderlli',
-          style: GoogleFonts.inter(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.w900,
-            color: AppTheme.primary,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: AppTheme.secondary,
-              size: 24.r,
-            ),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 100.h),
-        children: [
-          // Title + filter pills
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Analytics',
-                  style: GoogleFonts.inter(
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.onSurface,
-                    letterSpacing: -0.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('orders').stream(primaryKey: ['id']),
+      builder: (context, snapshot) {
+        final allOrders = snapshot.data ?? [];
+        final orders = _filterByPeriod(allOrders, _periodIndex);
+
+        // ── Aggregate KPIs ────────────────────────────────────────────────
+        final revenue = orders.fold<double>(
+            0, (s, o) => s + ((o['total_amount'] as num?)?.toDouble() ?? 0));
+        final orderCount = orders.length;
+        final avgOrder = orderCount > 0 ? revenue / orderCount : 0.0;
+
+        // ── Best sellers ──────────────────────────────────────────────────
+        final Map<String, int> itemCounts = {};
+        for (final o in orders) {
+          final items = o['items'];
+          if (items is List) {
+            for (final item in items) {
+              if (item is Map) {
+                final name = (item['name'] ?? 'Unknown').toString();
+                final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+                itemCounts[name] = (itemCounts[name] ?? 0) + qty;
+              }
+            }
+          }
+        }
+        final sortedItems = itemCounts.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        final top4 = sortedItems.take(4).toList();
+        final maxCount = top4.isNotEmpty ? top4.first.value : 1;
+
+        final isLoading =
+            snapshot.connectionState == ConnectionState.waiting && allOrders.isEmpty;
+
+        return Scaffold(
+          backgroundColor: AppTheme.background,
+          appBar: AppBar(
+            backgroundColor: AppTheme.surfaceContainerLowest,
+            surfaceTintColor: Colors.transparent,
+            automaticallyImplyLeading: false,
+            toolbarHeight: 64.h,
+            title: Text('Orderlli',
+                style: GoogleFonts.inter(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primary)),
+            actions: [
+              if (isLoading)
+                Padding(
+                  padding: EdgeInsets.only(right: 16.w),
+                  child: SizedBox(
+                      width: 18.r,
+                      height: 18.r,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppTheme.primaryContainer)),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Row(
-                children: List.generate(_periods.length, (i) {
-                  final active = _periodIndex == i;
-                  return GestureDetector(
-                    onTap: () => setState(() => _periodIndex = i),
-                    child: AnimatedContainer(
-                      duration: 200.ms,
-                      margin: EdgeInsets.only(left: 6.w),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 7.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: active
-                            ? AppTheme.primaryContainer
-                            : AppTheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        _periods[i],
-                        style: GoogleFonts.inter(
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w700,
-                          color: active ? Colors.white : AppTheme.secondary,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
             ],
           ),
-          SizedBox(height: 20.h),
+          body: ListView(
+            padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 100.h),
+            children: [
+              // ── Title + period pills ──────────────────────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text('Analytics',
+                        style: GoogleFonts.inter(
+                            fontSize: 28.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onSurface,
+                            letterSpacing: -0.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  SizedBox(width: 8.w),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: List.generate(_periods.length, (i) {
+                        final active = _periodIndex == i;
+                        return GestureDetector(
+                          onTap: () => setState(() => _periodIndex = i),
+                          child: AnimatedContainer(
+                            duration: 200.ms,
+                            margin: EdgeInsets.only(left: 6.w),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12.w, vertical: 7.h),
+                            decoration: BoxDecoration(
+                              color: active
+                                  ? AppTheme.primaryContainer
+                                  : AppTheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Text(_periods[i],
+                                style: GoogleFonts.inter(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: active
+                                        ? Colors.white
+                                        : AppTheme.secondary,
+                                    letterSpacing: 0.8)),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.h),
 
-          // Revenue chart
-          const _RevenueChart().animate().fadeIn(duration: 400.ms),
-          SizedBox(height: 16.h),
+              // ── Revenue Hero Card ─────────────────────────────────────────
+              _RevenueHeroCard(revenue: revenue, orderCount: orderCount)
+                  .animate()
+                  .fadeIn(duration: 400.ms),
+              SizedBox(height: 16.h),
 
-          // KPI horizontal scroll
-          const _KpiStrip().animate(delay: 100.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 24.h),
+              // ── KPI Strip ────────────────────────────────────────────────
+              _LiveKpiStrip(
+                      revenue: revenue,
+                      orderCount: orderCount,
+                      avgOrder: avgOrder)
+                  .animate(delay: 100.ms)
+                  .fadeIn(duration: 400.ms),
+              SizedBox(height: 24.h),
 
-          // Best Sellers
-          const _BestSellersCard().animate(delay: 150.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 16.h),
+              // ── Best Sellers ──────────────────────────────────────────────
+              _LiveBestSellersCard(top4: top4, maxCount: maxCount)
+                  .animate(delay: 150.ms)
+                  .fadeIn(duration: 400.ms),
+              SizedBox(height: 16.h),
 
-          // Station Distribution
-          const _StationDonutCard().animate(delay: 200.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 16.h),
+              // ── Station Distribution (visual placeholder) ─────────────────
+              const _StationDonutCard()
+                  .animate(delay: 200.ms)
+                  .fadeIn(duration: 400.ms),
+              SizedBox(height: 16.h),
 
-          // Peak Hours Heatmap
-          const _PeakHoursCard().animate(delay: 250.ms).fadeIn(duration: 400.ms),
-        ],
-      ),
+              // ── Peak Hours (visual placeholder) ──────────────────────────
+              const _PeakHoursCard()
+                  .animate(delay: 250.ms)
+                  .fadeIn(duration: 400.ms),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-// ── Revenue Chart ─────────────────────────────────────────────────────────────
-class _RevenueChart extends StatelessWidget {
-  const _RevenueChart();
+// ── Revenue Hero Card (live) ──────────────────────────────────────────────────
+class _RevenueHeroCard extends StatelessWidget {
+  final double revenue;
+  final int orderCount;
+  const _RevenueHeroCard({required this.revenue, required this.orderCount});
+
+  String _fmt(double v) {
+    if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}k';
+    return '₹${v.toStringAsFixed(0)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,57 +228,45 @@ class _RevenueChart extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Revenue Today',
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        color: AppTheme.secondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text('Revenue',
+                        style: GoogleFonts.inter(
+                            fontSize: 12.sp,
+                            color: AppTheme.secondary,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                     SizedBox(height: 4.h),
-                    Text(
-                      '₹48,240',
-                      style: GoogleFonts.inter(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.onSurface,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(_fmt(revenue),
+                          style: GoogleFonts.inter(
+                              fontSize: 28.sp,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.onSurface)),
                     ),
                   ],
                 ),
               ),
               SizedBox(width: 12.w),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 6.h,
-                ),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
+                  color: AppTheme.primaryContainer.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.trending_up_rounded,
-                      color: const Color(0xFF059669),
-                      size: 14.r,
-                    ),
+                    Icon(Icons.receipt_long_rounded,
+                        color: AppTheme.primaryContainer, size: 14.r),
                     SizedBox(width: 4.w),
-                    Text(
-                      '+12.4%',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF059669),
-                      ),
-                    ),
+                    Text('$orderCount orders',
+                        style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryContainer)),
                   ],
                 ),
               ),
@@ -206,26 +275,20 @@ class _RevenueChart extends StatelessWidget {
           SizedBox(height: 24.h),
           SizedBox(
             height: 140.h,
-            child: CustomPaint(painter: _RevenuePainter(), size: Size.infinite),
+            child: CustomPaint(
+                painter: _RevenuePainter(), size: Size.infinite),
           ),
           SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              for (final h in [
-                '8AM',
-                '10AM',
-                '12PM',
-                '2PM',
-                '4PM',
-                '6PM',
-                '8PM',
-              ])
-                Text(
-                  h,
-                  style: GoogleFonts.inter(
-                    fontSize: 9.sp,
-                    color: AppTheme.secondary,
+              for (final h in ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'])
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(h,
+                        style: GoogleFonts.inter(
+                            fontSize: 9.sp, color: AppTheme.secondary)),
                   ),
                 ),
             ],
@@ -244,7 +307,6 @@ class _RevenuePainter extends CustomPainter {
     final h = size.height;
     final path = Path();
     final fillPath = Path();
-
     for (var i = 0; i < pts.length; i++) {
       final x = w * i / (pts.length - 1);
       final y = h * (1 - pts[i] * 0.85);
@@ -257,28 +319,23 @@ class _RevenuePainter extends CustomPainter {
         fillPath.lineTo(x, y);
       }
     }
-
-    fillPath
-      ..lineTo(w, h)
-      ..close();
-
-    final fillPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0x22C0272D), Color(0x00C0272D)],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromLTWH(0, 0, w, h));
-    canvas.drawPath(fillPath, fillPaint);
-
-    final linePaint = Paint()
-      ..color = AppTheme.primaryContainer
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(path, linePaint);
-
-    // Draw dots
+    fillPath..lineTo(w, h)..close();
+    canvas.drawPath(
+        fillPath,
+        Paint()
+          ..shader = const LinearGradient(
+                  colors: [Color(0x22C0272D), Color(0x00C0272D)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter)
+              .createShader(Rect.fromLTWH(0, 0, w, h)));
+    canvas.drawPath(
+        path,
+        Paint()
+          ..color = AppTheme.primaryContainer
+          ..strokeWidth = 2.5
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round);
     final dotPaint = Paint()
       ..color = AppTheme.primaryContainer
       ..style = PaintingStyle.fill;
@@ -297,26 +354,37 @@ class _RevenuePainter extends CustomPainter {
   bool shouldRepaint(_) => false;
 }
 
-// ── KPI Strip ─────────────────────────────────────────────────────────────────
-class _KpiStrip extends StatelessWidget {
-  const _KpiStrip();
+// ── Live KPI Strip ────────────────────────────────────────────────────────────
+class _LiveKpiStrip extends StatelessWidget {
+  final double revenue;
+  final int orderCount;
+  final double avgOrder;
+  const _LiveKpiStrip(
+      {required this.revenue,
+      required this.orderCount,
+      required this.avgOrder});
+
+  String _fmt(double v) {
+    if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}k';
+    return '₹${v.toStringAsFixed(0)}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    const kpis = [
-      ('Revenue', '₹48,240', '+12.4%', true),
-      ('Orders', '147', '+8.1%', true),
-      ('Avg Order', '₹328', '-2.3%', false),
-      ('Turnover', '1.8x', '+0.3x', true),
+    final kpis = [
+      ('Revenue', _fmt(revenue), ''),
+      ('Orders', '$orderCount', ''),
+      ('Avg Order', _fmt(avgOrder), ''),
     ];
     return SizedBox(
-      height: 125.h,
+      height: 105.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: kpis.length,
-        separatorBuilder: (context, index) => SizedBox(width: 12.w),
+        separatorBuilder: (_, _) => SizedBox(width: 12.w),
         itemBuilder: (context, i) {
-          final (label, value, delta, positive) = kpis[i];
+          final (label, value, _) = kpis[i];
           return Container(
             width: 130.w,
             padding: EdgeInsets.all(14.r),
@@ -324,45 +392,28 @@ class _KpiStrip extends StatelessWidget {
               color: AppTheme.surfaceContainerLowest,
               borderRadius: AppTheme.radiusMd,
               border: Border(
-                bottom: BorderSide(
-                  color: AppTheme.surfaceContainerHigh,
-                  width: 2.h,
-                ),
-              ),
+                  bottom: BorderSide(
+                      color: AppTheme.surfaceContainerHigh, width: 2.h)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 10.sp,
-                    color: AppTheme.secondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  value,
-                  style: GoogleFonts.inter(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  delta,
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w600,
-                    color: positive ? const Color(0xFF059669) : AppTheme.error,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Text(label,
+                    style: GoogleFonts.inter(
+                        fontSize: 10.sp,
+                        color: AppTheme.secondary,
+                        fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(value,
+                      style: GoogleFonts.inter(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.onSurface)),
                 ),
               ],
             ),
@@ -373,18 +424,14 @@ class _KpiStrip extends StatelessWidget {
   }
 }
 
-// ── Best Sellers ──────────────────────────────────────────────────────────────
-class _BestSellersCard extends StatelessWidget {
-  const _BestSellersCard();
+// ── Live Best Sellers ─────────────────────────────────────────────────────────
+class _LiveBestSellersCard extends StatelessWidget {
+  final List<MapEntry<String, int>> top4;
+  final int maxCount;
+  const _LiveBestSellersCard({required this.top4, required this.maxCount});
 
   @override
   Widget build(BuildContext context) {
-    const items = [
-      ('Mutton Rogan Josh', 0.92, '147 orders'),
-      ('Paneer Tikka', 0.78, '124 orders'),
-      ('Garlic Naan', 0.71, '113 orders'),
-      ('Mango Lassi', 0.58, '93 orders'),
-    ];
     return Container(
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
@@ -395,71 +442,69 @@ class _BestSellersCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Best Sellers',
-            style: GoogleFonts.inter(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          ...List.generate(items.length, (i) {
-            final (name, ratio, orders) = items[i];
-            return Padding(
-              padding: EdgeInsets.only(bottom: 16.h),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: GoogleFonts.inter(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        orders,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11.sp,
-                          color: AppTheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(9999.r),
-                    child: LinearProgressIndicator(
-                      value: ratio,
-                      backgroundColor: AppTheme.surfaceContainer,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppTheme.primaryContainer.withValues(
-                          alpha: 0.5 + 0.5 * ratio,
-                        ),
-                      ),
-                      minHeight: 8.h,
-                    ),
-                  ),
-                ],
+          Text('Best Sellers',
+              style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface)),
+          SizedBox(height: 16.h),
+          if (top4.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: Text('No order data yet',
+                    style: GoogleFonts.inter(
+                        fontSize: 13.sp, color: AppTheme.secondary)),
               ),
-            );
-          }),
+            )
+          else
+            ...top4.map((entry) {
+              final ratio = maxCount > 0 ? entry.value / maxCount : 0.0;
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(entry.key,
+                              style: GoogleFonts.inter(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.onSurface),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        SizedBox(width: 12.w),
+                        Text('${entry.value} orders',
+                            style: GoogleFonts.jetBrainsMono(
+                                fontSize: 11.sp, color: AppTheme.secondary)),
+                      ],
+                    ),
+                    SizedBox(height: 8.h),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(9999.r),
+                      child: LinearProgressIndicator(
+                        value: ratio,
+                        backgroundColor: AppTheme.surfaceContainer,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.primaryContainer
+                                .withValues(alpha: 0.5 + 0.5 * ratio)),
+                        minHeight: 8.h,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
   }
 }
 
-// ── Station Donut ─────────────────────────────────────────────────────────────
+// ── Station Donut (visual) ────────────────────────────────────────────────────
 class _StationDonutCard extends StatelessWidget {
   const _StationDonutCard();
 
@@ -481,99 +526,80 @@ class _StationDonutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Station Distribution',
-            style: GoogleFonts.inter(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.onSurface,
-            ),
-          ),
+          Text('Station Distribution',
+              style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface)),
           SizedBox(height: 20.h),
           Row(
             children: [
-              SizedBox(
-                width: 130.r,
-                height: 130.r,
-                child: CustomPaint(
-                  painter: _DonutPainter(
-                    stations.map((s) => (s.$2, s.$3)).toList(),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '147',
-                          style: GoogleFonts.inter(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          'ORDERS',
-                          style: GoogleFonts.inter(
-                            fontSize: 8.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.secondary,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
+              Flexible(
+                flex: 2,
+                child: SizedBox(
+                  width: 130.r,
+                  height: 130.r,
+                  child: CustomPaint(
+                    painter: _DonutPainter(
+                        stations.map((s) => (s.$2, s.$3)).toList()),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('—',
+                              style: GoogleFonts.inter(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.onSurface)),
+                          Text('STATIONS',
+                              style: GoogleFonts.inter(
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.secondary,
+                                  letterSpacing: 1)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: 20.w),
+              SizedBox(width: 16.w),
               Expanded(
+                flex: 3,
                 child: Column(
                   children: stations
-                      .map(
-                        (s) => Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6.h),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
+                      .map((s) => Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6.h),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(children: [
                                     Container(
-                                      width: 10.r,
-                                      height: 10.r,
-                                      decoration: BoxDecoration(
-                                        color: s.$3,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
+                                        width: 10.r,
+                                        height: 10.r,
+                                        decoration: BoxDecoration(
+                                            color: s.$3,
+                                            shape: BoxShape.circle)),
                                     SizedBox(width: 8.w),
                                     Expanded(
-                                      child: Text(
-                                        s.$1,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12.sp,
-                                          color: AppTheme.secondary,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
+                                        child: Text(s.$1,
+                                            style: GoogleFonts.inter(
+                                                fontSize: 12.sp,
+                                                color: AppTheme.secondary),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis)),
+                                  ]),
                                 ),
-                              ),
-                              SizedBox(width: 8.w),
-                              Text(
-                                '${(s.$2 * 100).toInt()}%',
-                                style: GoogleFonts.jetBrainsMono(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
+                                SizedBox(width: 8.w),
+                                Text('${(s.$2 * 100).toInt()}%',
+                                    style: GoogleFonts.jetBrainsMono(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.onSurface)),
+                              ],
+                            ),
+                          ))
                       .toList(),
                 ),
               ),
@@ -595,7 +621,6 @@ class _DonutPainter extends CustomPainter {
     final radius = size.width / 2 - 4.r;
     final strokeWidth = 22.0.r;
     const gap = 0.04;
-
     var startAngle = -pi / 2;
     for (final (ratio, color) in segments) {
       final sweep = 2 * pi * ratio - gap;
@@ -618,7 +643,7 @@ class _DonutPainter extends CustomPainter {
   bool shouldRepaint(_) => false;
 }
 
-// ── Peak Hours Heatmap ────────────────────────────────────────────────────────
+// ── Peak Hours (visual) ───────────────────────────────────────────────────────
 class _PeakHoursCard extends StatelessWidget {
   const _PeakHoursCard();
 
@@ -644,112 +669,79 @@ class _PeakHoursCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Peak Hours',
-            style: GoogleFonts.inter(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.onSurface,
-            ),
-          ),
+          Text('Peak Hours',
+              style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface)),
           SizedBox(height: 4.h),
-          Text(
-            'Order density by hour and day',
-            style: GoogleFonts.inter(fontSize: 12.sp, color: AppTheme.secondary),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text('Order density by hour and day',
+              style:
+                  GoogleFonts.inter(fontSize: 12.sp, color: AppTheme.secondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           SizedBox(height: 20.h),
-          // Hour labels
           Padding(
             padding: EdgeInsets.only(left: 36.w),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: _hours
-                  .map(
-                    (h) => Text(
-                      h,
+                  .map((h) => Text(h,
                       style: GoogleFonts.inter(
-                        fontSize: 8.sp,
-                        color: AppTheme.secondary,
-                      ),
-                    ),
-                  )
+                          fontSize: 8.sp, color: AppTheme.secondary)))
                   .toList(),
             ),
           ),
           SizedBox(height: 8.h),
-          // Grid
           ...List.generate(
             _days.length,
             (row) => Padding(
               padding: EdgeInsets.only(bottom: 6.h),
-              child: Row(
-                children: [
-                  SizedBox(
+              child: Row(children: [
+                SizedBox(
                     width: 30.w,
-                    child: Text(
-                      _days[row],
-                      style: GoogleFonts.inter(
-                        fontSize: 10.sp,
-                        color: AppTheme.secondary,
+                    child: Text(_days[row],
+                        style: GoogleFonts.inter(
+                            fontSize: 10.sp, color: AppTheme.secondary))),
+                ...List.generate(_hours.length, (col) {
+                  final v = _heat[row][col];
+                  return Expanded(
+                    child: Container(
+                      height: 22.h,
+                      margin: EdgeInsets.symmetric(horizontal: 2.w),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryContainer
+                            .withValues(alpha: v * 0.85 + 0.05),
+                        borderRadius: BorderRadius.circular(4.r),
                       ),
                     ),
-                  ),
-                  ...List.generate(_hours.length, (col) {
-                    final v = _heat[row][col];
-                    return Expanded(
-                      child: Container(
-                        height: 22.h,
-                        margin: EdgeInsets.symmetric(horizontal: 2.w),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryContainer.withValues(
-                            alpha: v * 0.85 + 0.05,
-                          ),
-                          borderRadius: BorderRadius.circular(4.r),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
+                  );
+                }),
+              ]),
             ),
           ),
           SizedBox(height: 12.h),
-          // Legend
-          Row(
-            children: [
-              Text(
-                'Less',
-                style: GoogleFonts.inter(
-                  fontSize: 9.sp,
-                  color: AppTheme.secondary,
-                ),
+          Row(children: [
+            Text('Less',
+                style:
+                    GoogleFonts.inter(fontSize: 9.sp, color: AppTheme.secondary)),
+            SizedBox(width: 8.w),
+            ...List.generate(
+              5,
+              (i) => Container(
+                width: 20.w,
+                height: 12.h,
+                margin: EdgeInsets.only(right: 2.w),
+                decoration: BoxDecoration(
+                    color: AppTheme.primaryContainer
+                        .withValues(alpha: 0.1 + i * 0.2)),
               ),
-              SizedBox(width: 8.w),
-              ...List.generate(
-                5,
-                (i) => Container(
-                  width: 20.w,
-                  height: 12.h,
-                  margin: EdgeInsets.only(right: 2.w),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryContainer.withValues(
-                      alpha: 0.1 + i * 0.2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'More',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  color: AppTheme.secondary,
-                ),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(width: 8.w),
+            Text('More',
+                style:
+                    GoogleFonts.inter(fontSize: 9.sp, color: AppTheme.secondary)),
+          ]),
         ],
       ),
     );

@@ -84,9 +84,7 @@ class _BottomNav extends StatelessWidget {
                   children: [
                     Icon(
                       item.icon,
-                      color: active
-                          ? AppTheme.primaryContainer
-                          : AppTheme.secondary,
+                      color: active ? AppTheme.primaryContainer : AppTheme.secondary,
                       size: 22.r,
                     ),
                     SizedBox(height: 2.h),
@@ -95,15 +93,12 @@ class _BottomNav extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 10.sp,
                         fontWeight: FontWeight.w600,
-                        color: active
-                            ? AppTheme.primaryContainer
-                            : AppTheme.secondary,
+                        color: active ? AppTheme.primaryContainer : AppTheme.secondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 2.h),
-                    // Active dot
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: active ? 4.r : 0,
@@ -130,43 +125,18 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-// ── More Tab (quick links to Analytics, Staff, Inventory, Profile) ────────────
+// ── More Tab ──────────────────────────────────────────────────────────────────
 class _MoreTab extends StatelessWidget {
   const _MoreTab();
 
   @override
   Widget build(BuildContext context) {
     final links = [
-      (
-        icon: Icons.bar_chart_rounded,
-        label: 'Analytics',
-        route: '/admin/analytics',
-        color: const Color(0xFF7C3AED),
-      ),
-      (
-        icon: Icons.group_rounded,
-        label: 'Staff',
-        route: '/admin/staff',
-        color: const Color(0xFF2563EB),
-      ),
-      (
-        icon: Icons.inventory_2_rounded,
-        label: 'Inventory',
-        route: '/admin/inventory',
-        color: const Color(0xFF059669),
-      ),
-      (
-        icon: Icons.person_rounded,
-        label: 'Profile',
-        route: '/admin/profile',
-        color: const Color(0xFFC0272D),
-      ),
-      (
-        icon: Icons.settings_rounded,
-        label: 'Settings',
-        route: '/admin/settings',
-        color: const Color(0xFF64748B),
-      ),
+      (icon: Icons.bar_chart_rounded, label: 'Analytics', route: '/admin/analytics', color: const Color(0xFF7C3AED)),
+      (icon: Icons.group_rounded, label: 'Staff', route: '/admin/staff', color: const Color(0xFF2563EB)),
+      (icon: Icons.inventory_2_rounded, label: 'Inventory', route: '/admin/inventory', color: const Color(0xFF059669)),
+      (icon: Icons.person_rounded, label: 'Profile', route: '/admin/profile', color: const Color(0xFFC0272D)),
+      (icon: Icons.settings_rounded, label: 'Settings', route: '/admin/settings', color: const Color(0xFF64748B)),
     ];
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -175,95 +145,57 @@ class _MoreTab extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
         toolbarHeight: 64.h,
-        title: Text(
-          'More',
-          style: GoogleFonts.inter(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.onSurface,
-          ),
-        ),
+        title: Text('More', style: GoogleFonts.inter(fontSize: 20.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => ListView(
-            padding: EdgeInsets.all(16.r),
-            children: [
-              ...links.map(
-                (link) =>
-                    GestureDetector(
-                          onTap: () => context.push(link.route),
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: 12.h),
-                            padding: EdgeInsets.all(16.r),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceContainerLowest,
-                              borderRadius: AppTheme.radiusMd,
-                              border: Border.all(
-                                color: AppTheme.surfaceContainerHigh,
-                                width: 1.w,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 44.r,
-                                  height: 44.r,
-                                  decoration: BoxDecoration(
-                                    color: link.color.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10.r),
-                                  ),
-                                  child: Icon(
-                                    link.icon,
-                                    color: link.color,
-                                    size: 22.r,
-                                  ),
-                                ),
-                                SizedBox(width: 14.w),
-                                Expanded(
-                                  child: Text(
-                                    link.label,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.onSurface,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: AppTheme.secondary,
-                                  size: 24.r,
-                                ),
-                              ],
-                            ),
+        child: ListView(
+          padding: EdgeInsets.all(16.r),
+          children: [
+            ...links.map(
+              (link) => GestureDetector(
+                    onTap: () => context.push(link.route),
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 12.h),
+                      padding: EdgeInsets.all(16.r),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceContainerLowest,
+                        borderRadius: AppTheme.radiusMd,
+                        border: Border.all(color: AppTheme.surfaceContainerHigh, width: 1.w),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44.r, height: 44.r,
+                            decoration: BoxDecoration(color: link.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10.r)),
+                            child: Icon(link.icon, color: link.color, size: 22.r),
                           ),
-                        )
-                        .animate(
-                          delay: Duration(milliseconds: 50 * links.indexOf(link)),
-                        )
-                        .fadeIn(duration: 300.ms),
+                          SizedBox(width: 14.w),
+                          Expanded(child: Text(link.label, style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600, color: AppTheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                          Icon(Icons.chevron_right_rounded, color: AppTheme.secondary, size: 24.r),
+                        ],
+                      ),
+                    ),
+                  )
+                  .animate(delay: Duration(milliseconds: 50 * links.indexOf(link)))
+                  .fadeIn(duration: 300.ms),
+            ),
+            SizedBox(height: 24.h),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (context.mounted) context.go('/role-select');
+              },
+              icon: Icon(Icons.logout_rounded, size: 18.r),
+              label: Text('Sign Out', style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFEF2F2),
+                foregroundColor: AppTheme.error,
+                elevation: 0,
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusMd),
               ),
-              SizedBox(height: 24.h),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await Supabase.instance.client.auth.signOut();
-                  if (context.mounted) context.go('/role-select');
-                },
-                icon: Icon(Icons.logout_rounded, size: 18.r),
-                label: Text('Sign Out', style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFEF2F2),
-                  foregroundColor: AppTheme.error,
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                  shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusMd),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -279,7 +211,6 @@ class _DashboardHome extends ConsumerStatefulWidget {
 }
 
 class _DashboardHomeState extends ConsumerState<_DashboardHome> {
-
   String get _greeting {
     final h = DateTime.now().hour;
     if (h < 12) return 'Good morning';
@@ -287,156 +218,252 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
     return 'Good evening';
   }
 
+  // ── Notification Bell Bottom Sheet ─────────────────────────────────────────
+  void _showNotifications(BuildContext context, List<Map<String, dynamic>> urgentOrders) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _NotificationSheet(urgentOrders: urgentOrders),
+    );
+  }
+
+  // ── KPI helpers ───────────────────────────────────────────────────────────
+  static DateTime get _todayMidnight {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  static List<Map<String, dynamic>> _todayOrders(List<Map<String, dynamic>> all) {
+    return all.where((o) {
+      final raw = o['created_at'];
+      if (raw == null) return false;
+      try {
+        final dt = DateTime.parse(raw.toString()).toLocal();
+        return dt.isAfter(_todayMidnight);
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+  }
+
+  static String _fmtCurrency(double v) {
+    if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}k';
+    return '₹${v.toStringAsFixed(0)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
-    final List<_KpiData> kpis = [
-      _KpiData(
-        label: 'Revenue Today',
-        value: '₹24,680',
-        delta: '↑ 12% vs yest.',
-        deltaPositive: true,
-        showSparkline: true,
-      ),
-      _KpiData(
-        label: 'Total Orders',
-        value: '47',
-        delta: '↑ 8 more today',
-        deltaPositive: true,
-      ),
-      _KpiData(
-        label: 'Avg Order Value',
-        value: '₹524',
-        showBar: true,
-        barValue: 0.65,
-      ),
-      _KpiData(
-        label: 'Tables Active',
-        value: '6 / 15',
-        showDots: true,
-        activeDots: 6,
-        totalDots: 8,
-      ),
-    ];
 
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) => CustomScrollView(
-          slivers: [
-            // ── Top App Bar ─────────────────────────────────────────────────────
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: AppTheme.surfaceContainerLowest,
-              elevation: 1,
-              toolbarHeight: 64.h,
-              shadowColor: AppTheme.surfaceContainerHigh,
-              surfaceTintColor: Colors.transparent,
-              automaticallyImplyLeading: false,
-              title: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: AppTheme.surfaceContainer,
-                    child: Text(
-                      (user?.email?.isNotEmpty == true)
-                          ? user!.email![0].toUpperCase()
-                          : 'A',
-                      style: GoogleFonts.inter(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryContainer,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$_greeting, Admin',
-                          style: GoogleFonts.inter(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.onSurface,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        Text(
-                          'The Grand Spice',
-                          style: GoogleFonts.inter(
-                            fontSize: 11.sp,
-                            color: AppTheme.secondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('orders').stream(primaryKey: ['id']),
+      builder: (context, snapshot) {
+        final allOrders = snapshot.data ?? [];
+        final today = _todayOrders(allOrders);
 
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // ── KPI Grid ─────────────────────────────────────────────────
-                  _buildSectionHeader('Overview'),
-                  SizedBox(height: 12.h),
-                  _buildKpiGrid(kpis, constraints),
-                  SizedBox(height: 20.h),
+        // ── Compute KPIs ────────────────────────────────────────────────────
+        final totalSales = today.fold<double>(0, (sum, o) => sum + ((o['total_amount'] as num?)?.toDouble() ?? 0));
+        final totalOrders = today.length;
+        final avgOrderVal = totalOrders > 0 ? totalSales / totalOrders : 0.0;
 
-                  // ── Live Orders ───────────────────────────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        const activeStatuses = ['pending', 'cooking', 'ready'];
+        final occupiedTableIds = allOrders
+            .where((o) => activeStatuses.contains((o['status'] ?? '').toString().toLowerCase()))
+            .map((o) => o['table_id']?.toString())
+            .whereType<String>()
+            .toSet();
+        const totalActiveQr = 15; // from hardcoded floor map
+        final occupiedVsQr = '${occupiedTableIds.length} / $totalActiveQr';
+
+        final kpis = [
+          _KpiData(label: 'Total Sales', value: _fmtCurrency(totalSales)),
+          _KpiData(label: 'Total Orders', value: '$totalOrders'),
+          _KpiData(label: 'Avg Order Val', value: _fmtCurrency(avgOrderVal)),
+          _KpiData(label: 'Occupied vs Active QR', value: occupiedVsQr),
+        ];
+
+        // ── Urgent orders for bell badge ────────────────────────────────────
+        final urgentOrders = allOrders
+            .where((o) => activeStatuses.contains((o['status'] ?? '').toString().toLowerCase()))
+            .toList();
+        final hasUrgent = urgentOrders.isNotEmpty;
+
+        // ── Top 2 live orders ───────────────────────────────────────────────
+        final liveOrders = allOrders
+            .where((o) => (o['status'] ?? '').toString().toLowerCase() != 'served' &&
+                (o['status'] ?? '').toString().toLowerCase() != 'cancelled')
+            .toList()
+          ..sort((a, b) {
+            final ta = a['created_at']?.toString() ?? '';
+            final tb = b['created_at']?.toString() ?? '';
+            return tb.compareTo(ta);
+          });
+        final top2 = liveOrders.take(2).toList();
+
+        return SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => CustomScrollView(
+              slivers: [
+                // ── Top App Bar ───────────────────────────────────────────────
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: AppTheme.surfaceContainerLowest,
+                  elevation: 1,
+                  toolbarHeight: 64.h,
+                  shadowColor: AppTheme.surfaceContainerHigh,
+                  surfaceTintColor: Colors.transparent,
+                  automaticallyImplyLeading: false,
+                  title: Row(
                     children: [
-                      _buildSectionHeader('Live Orders'),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: Icon(Icons.arrow_forward_rounded, size: 14.r),
-                        label: Text(
-                          'See All',
-                          style: GoogleFonts.inter(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryContainer,
-                          ),
+                      CircleAvatar(
+                        radius: 18.r,
+                        backgroundColor: AppTheme.surfaceContainer,
+                        child: Text(
+                          (user?.email?.isNotEmpty == true) ? user!.email![0].toUpperCase() : 'A',
+                          style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppTheme.primaryContainer),
                         ),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.primaryContainer,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$_greeting, Admin',
+                                style: GoogleFonts.inter(fontSize: 13.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
+                                overflow: TextOverflow.ellipsis, maxLines: 1),
+                            Text('The Grand Spice',
+                                style: GoogleFonts.inter(fontSize: 11.sp, color: AppTheme.secondary),
+                                overflow: TextOverflow.ellipsis, maxLines: 1),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12.h),
-                  _buildOrderCard(),
-                  SizedBox(height: 20.h),
-                ]),
-              ),
+                  actions: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.notifications_none_rounded, color: AppTheme.onSurface, size: 24.r),
+                          onPressed: () => _showNotifications(context, urgentOrders),
+                        ),
+                        if (hasUrgent)
+                          Positioned(
+                            top: 14.h,
+                            right: 14.w,
+                            child: Container(
+                              width: 8.r,
+                              height: 8.r,
+                              decoration: BoxDecoration(
+                                color: AppTheme.error,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppTheme.surfaceContainerLowest, width: 1.5.w),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(width: 8.w),
+                  ],
+                ),
+
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // ── Today's Overview Header ─────────────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Today's Overview",
+                            style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
+                          ),
+                          TextButton(
+                            onPressed: () => context.push('/admin/analytics'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primaryContainer,
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                            ),
+                            child: Text('More →',
+                                style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppTheme.primaryContainer)),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+
+                      // ── KPI Grid ────────────────────────────────────────────
+                      _buildKpiGrid(kpis, constraints, snapshot.connectionState == ConnectionState.waiting && allOrders.isEmpty),
+                      SizedBox(height: 24.h),
+
+                      // ── Live Orders Header ──────────────────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Live Orders',
+                              style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
+                          TextButton(
+                            onPressed: () => ref.read(_currentNavIndexProvider.notifier).state = 1,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primaryContainer,
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                            ),
+                            child: Text('See All →',
+                                style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppTheme.primaryContainer)),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+
+                      // ── Live Order Cards ────────────────────────────────────
+                      if (snapshot.connectionState == ConnectionState.waiting && allOrders.isEmpty)
+                        Center(child: Padding(padding: EdgeInsets.all(20.r), child: CircularProgressIndicator(color: AppTheme.primaryContainer)))
+                      else if (top2.isEmpty)
+                        Container(
+                          padding: EdgeInsets.all(20.r),
+                          decoration: BoxDecoration(color: AppTheme.surfaceContainerLow, borderRadius: AppTheme.radiusMd),
+                          child: Center(child: Text('No active orders right now 🎉',
+                              style: GoogleFonts.inter(fontSize: 13.sp, color: AppTheme.secondary))),
+                        )
+                      else
+                        ...top2.asMap().entries.map((entry) {
+                          final o = entry.value;
+                          final tableId = o['table_id']?.toString() ?? 'T-?';
+                          final orderId = (o['id']?.toString() ?? 'ORD').substring(0, 6).toUpperCase();
+                          final status = (o['status'] ?? 'PENDING').toString().toUpperCase();
+                          final isUrgent = (o['status'] ?? '').toString().toLowerCase() == 'pending';
+                          List<dynamic> items = o['items'] is List ? o['items'] : [];
+                          final itemSummary = items.isEmpty
+                              ? 'No item details'
+                              : items.take(2).map((i) => i is Map ? '${i['name'] ?? 'Item'} x${i['quantity'] ?? 1}' : i.toString()).join(' · ');
+
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 12.h),
+                            child: _buildOrderCard(
+                              table: 'T$tableId',
+                              orderId: orderId,
+                              status: status,
+                              items: itemSummary,
+                              isUrgent: isUrgent,
+                            ),
+                          );
+                        }),
+                      SizedBox(height: 20.h),
+                    ]),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.inter(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w700,
-        color: AppTheme.onSurface,
-      ),
-    );
-  }
-
-  Widget _buildKpiGrid(List<_KpiData> kpis, BoxConstraints constraints) {
+  Widget _buildKpiGrid(List<_KpiData> kpis, BoxConstraints constraints, bool loading) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -444,11 +471,11 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
         maxCrossAxisExtent: 220.w,
         crossAxisSpacing: 12.w,
         mainAxisSpacing: 12.h,
-        childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 1.1,
+        childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 1.45,
       ),
       itemCount: kpis.length,
       itemBuilder: (context, i) {
-        return _KpiCard(data: kpis[i])
+        return _KpiCard(data: kpis[i], loading: loading)
             .animate(delay: Duration(milliseconds: 100 * i))
             .fadeIn(duration: 400.ms)
             .slideY(begin: 0.15, curve: Curves.easeOut);
@@ -456,155 +483,147 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
     );
   }
 
-  Widget _buildOrderCard() {
+  Widget _buildOrderCard({
+    required String table,
+    required String orderId,
+    required String status,
+    required String items,
+    bool isUrgent = false,
+  }) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
-        border: Border(
-          left: BorderSide(color: AppTheme.primaryContainer, width: 3.w),
-        ),
-        boxShadow: AppTheme.crimsonShadow,
+        border: Border(left: BorderSide(color: isUrgent ? AppTheme.error : AppTheme.primaryContainer, width: 3.w)),
+        boxShadow: AppTheme.crimsonShadowLight,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        'T03',
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '#1042',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11.sp,
-                              color: AppTheme.secondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.schedule_rounded,
-                                size: 10.r,
-                                color: AppTheme.error,
-                              ),
-                              SizedBox(width: 2.w),
-                              Flexible(
-                                child: Text(
-                                  '07:23 🔴',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10.sp,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.error,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              Text('$table · #$orderId',
+                  style: GoogleFonts.jetBrainsMono(fontSize: 13.sp, fontWeight: FontWeight.w800, color: AppTheme.onSurface)),
+              const Spacer(),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryFixed,
-                  borderRadius: BorderRadius.circular(9999.r),
+                  color: (isUrgent ? AppTheme.error : AppTheme.primaryContainer).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4.r),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6.r,
-                      height: 6.r,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'COOKING',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.onPrimaryFixedVariant,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
+                child: Text(status,
+                    style: GoogleFonts.inter(fontSize: 10.sp, fontWeight: FontWeight.w800,
+                        color: isUrgent ? AppTheme.error : AppTheme.primaryContainer)),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
-          Text(
-            'Wagyu Burger x1 · Dal Makhani x2',
-            style: GoogleFonts.inter(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.onSurface,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 12.h),
-          Divider(color: AppTheme.surfaceContainer, thickness: 1.h, height: 1.h),
-          SizedBox(height: 12.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Order Total',
-                style: GoogleFonts.inter(
-                  fontSize: 12.sp,
-                  color: AppTheme.secondary,
-                ),
-              ),
-              Text(
-                '₹2,410',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.onSurface,
-                ),
-              ),
-            ],
-          ),
+          SizedBox(height: 8.h),
+          Text(items,
+              style: GoogleFonts.inter(fontSize: 12.sp, color: AppTheme.onSurface.withValues(alpha: 0.7)),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1);
+    );
+  }
+}
+
+// ── Notification Bottom Sheet ─────────────────────────────────────────────────
+class _NotificationSheet extends StatelessWidget {
+  final List<Map<String, dynamic>> urgentOrders;
+  const _NotificationSheet({required this.urgentOrders});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 32.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40.w, height: 4.h,
+              decoration: BoxDecoration(color: AppTheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(2.r)),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Icon(Icons.notifications_active_rounded, color: AppTheme.error, size: 20.r),
+              SizedBox(width: 8.w),
+              Text('Urgent Attention',
+                  style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                decoration: BoxDecoration(color: AppTheme.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20.r)),
+                child: Text('${urgentOrders.length}',
+                    style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppTheme.error)),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          if (urgentOrders.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.h),
+              child: Center(child: Text('No urgent alerts right now ✅',
+                  style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary))),
+            )
+          else
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 320.h),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: urgentOrders.length,
+                separatorBuilder: (_, _) => SizedBox(height: 10.h),
+                itemBuilder: (context, i) {
+                  final o = urgentOrders[i];
+                  final tableId = o['table_id']?.toString() ?? '?';
+                  final status = (o['status'] ?? 'PENDING').toString().toUpperCase();
+                  final amount = o['total_amount']?.toString() ?? '0';
+                  return Container(
+                    padding: EdgeInsets.all(12.r),
+                    decoration: BoxDecoration(
+                      color: AppTheme.error.withValues(alpha: 0.04),
+                      borderRadius: AppTheme.radiusSm,
+                      border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40.r, height: 40.r,
+                          decoration: BoxDecoration(color: AppTheme.error.withValues(alpha: 0.1), shape: BoxShape.circle),
+                          child: Center(child: Text('T$tableId',
+                              style: GoogleFonts.jetBrainsMono(fontSize: 10.sp, fontWeight: FontWeight.w800, color: AppTheme.error))),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Table $tableId — $status',
+                                  style: GoogleFonts.inter(fontSize: 13.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('₹$amount pending',
+                                  style: GoogleFonts.inter(fontSize: 11.sp, color: AppTheme.secondary)),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios_rounded, size: 14.r, color: AppTheme.secondary),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -612,33 +631,14 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
 class _KpiData {
   final String label;
   final String value;
-  final String? delta;
-  final bool deltaPositive;
-  final bool showSparkline;
-  final bool showBar;
-  final double barValue;
-  final bool showDots;
-  final int activeDots;
-  final int totalDots;
-
-  const _KpiData({
-    required this.label,
-    required this.value,
-    this.delta,
-    this.deltaPositive = true,
-    this.showSparkline = false,
-    this.showBar = false,
-    this.barValue = 0,
-    this.showDots = false,
-    this.activeDots = 0,
-    this.totalDots = 8,
-  });
+  const _KpiData({required this.label, required this.value});
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 class _KpiCard extends StatelessWidget {
   final _KpiData data;
-  const _KpiCard({required this.data});
+  final bool loading;
+  const _KpiCard({required this.data, this.loading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -653,138 +653,27 @@ class _KpiCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            data.label,
-            style: GoogleFonts.inter(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.secondary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.value,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.onSurface,
-                  letterSpacing: -0.5,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          Text(data.label,
+              style: GoogleFonts.inter(fontSize: 11.sp, fontWeight: FontWeight.w500, color: AppTheme.secondary),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          if (loading)
+            Container(
+              width: 60.w, height: 22.h,
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(4.r),
               ),
-              if (data.delta != null)
-                Text(
-                  data.delta!,
-                  style: GoogleFonts.inter(
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.w700,
-                    color: data.deltaPositive
-                        ? const Color(0xFF059669)
-                        : AppTheme.error,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              if (data.showSparkline) _buildSparkline(),
-              if (data.showBar) _buildBar(),
-              if (data.showDots) _buildDots(),
-            ],
-          ),
+            )
+          else
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(data.value,
+                  style: GoogleFonts.jetBrainsMono(
+                      fontSize: 22.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface, letterSpacing: -0.5)),
+            ),
         ],
       ),
     );
   }
-
-  Widget _buildSparkline() {
-    return Padding(
-      padding: EdgeInsets.only(top: 8.h),
-      child: SizedBox(
-        height: 28.h,
-        child: CustomPaint(
-          painter: _SparklinePainter(),
-          child: const SizedBox.expand(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBar() {
-    return Padding(
-      padding: EdgeInsets.only(top: 12.h),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(9999.r),
-        child: LinearProgressIndicator(
-          value: data.barValue,
-          backgroundColor: AppTheme.surfaceContainer,
-          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          minHeight: 4.h,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDots() {
-    return Padding(
-      padding: EdgeInsets.only(top: 8.h),
-      child: Wrap(
-        spacing: 4.w,
-        runSpacing: 4.h,
-        children: List.generate(data.totalDots, (i) {
-          final active = i < data.activeDots;
-          return Container(
-            width: 6.r,
-            height: 6.r,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active ? AppTheme.primary : AppTheme.surfaceContainer,
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-// ── Sparkline Painter ─────────────────────────────────────────────────────────
-class _SparklinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppTheme.primary.withValues(alpha: 0.5)
-      ..strokeWidth = 1.5.w
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final points = [
-      Offset(0, size.height * 0.85),
-      Offset(size.width * 0.2, size.height * 0.72),
-      Offset(size.width * 0.4, size.height * 0.30),
-      Offset(size.width * 0.6, size.height * 0.55),
-      Offset(size.width * 0.8, size.height * 0.15),
-      Offset(size.width, size.height * 0.38),
-    ];
-
-    final path = Path();
-    path.moveTo(points[0].dx, points[0].dy);
-    for (int i = 0; i < points.length - 1; i++) {
-      final midX = (points[i].dx + points[i + 1].dx) / 2;
-      path.cubicTo(
-        midX,
-        points[i].dy,
-        midX,
-        points[i + 1].dy,
-        points[i + 1].dx,
-        points[i + 1].dy,
-      );
-    }
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
