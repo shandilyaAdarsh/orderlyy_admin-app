@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// TableOS Design System — "The Culinary Architect"
-/// Based on Stitch tableos_crimson design tokens.
+/// Orderlli Design System — "The Culinary Architect"
+/// Based on Stitch orderlli_crimson design tokens.
 class AppTheme {
   // ── Primary Palette ───────────────────────────────────────────────────────
   static const Color primary = Color(0xFF9D0518);

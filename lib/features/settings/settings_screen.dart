@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -34,64 +35,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppTheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
+        toolbarHeight: 64.h,
         title: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 38.r,
+              height: 38.r,
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerHigh,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.person_rounded,
-                size: 18,
+                size: 18.r,
                 color: AppTheme.secondary,
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              'TableOS',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.primary,
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'Orderlli',
+                style: GoogleFonts.inter(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_outlined,
               color: AppTheme.secondary,
+              size: 24.r,
             ),
             onPressed: () {},
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
+        padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 100.h),
         children: [
           Text(
             'Settings',
             style: GoogleFonts.inter(
-              fontSize: 28,
+              fontSize: 28.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
               letterSpacing: -0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             'Manage your restaurant operations and system preferences.',
-            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.secondary),
+            style: GoogleFonts.inter(fontSize: 13.sp, color: AppTheme.secondary),
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: 28.h),
 
           // ── Notifications ───────────────────────────────────────────────────
           _sectionLabel('NOTIFICATIONS'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           _card(
             children: [
               _ToggleRow(
@@ -124,13 +133,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ).animate().fadeIn(duration: 400.ms),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // ── Ordering ────────────────────────────────────────────────────────
           _sectionLabel('ORDERING'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               color: AppTheme.surfaceContainerLowest,
               borderRadius: AppTheme.radiusMd,
@@ -140,9 +149,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _OrderingRow(
                   icon: Icons.auto_awesome_rounded,
                   label: 'Auto-accept',
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.chevron_right_rounded,
                     color: AppTheme.surfaceDim,
+                    size: 20.r,
                   ),
                   highlight: true,
                 ),
@@ -150,18 +160,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.volume_up_rounded,
                   label: 'Confirmation Sound',
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
                       'BEEP_01',
                       style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         color: AppTheme.secondary,
                       ),
                     ),
@@ -170,20 +180,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _OrderingRow(
                   icon: Icons.qr_code_2_rounded,
                   label: 'QR Auto-assign',
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.toggle_on_rounded,
                     color: AppTheme.primaryContainer,
-                    size: 28,
+                    size: 28.r,
                   ),
                 ),
               ],
             ),
           ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // ── Display ─────────────────────────────────────────────────────────
           _sectionLabel('DISPLAY'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Row(
             children: [
               Expanded(
@@ -193,23 +203,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mono: true,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: _DisplayTile(label: 'Language', value: 'English (US)'),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: _DisplayTile(label: 'Timezone', value: 'IST (UTC+5:30)'),
               ),
             ],
           ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // ── Billing ─────────────────────────────────────────────────────────
           _sectionLabel('BILLING'),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
               color: AppTheme.surfaceContainerLowest,
               borderRadius: AppTheme.radiusMd,
@@ -226,45 +236,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'GST Number',
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 10,
+                              fontSize: 10.sp,
                               color: AppTheme.secondary,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           TextField(
                             controller: _gstController,
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: AppTheme.onSurface,
                             ),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               filled: true,
                               fillColor: AppTheme.surfaceContainerLow,
                               border: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.surfaceContainerHigh,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.surfaceContainerHigh,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
                               focusedBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.primaryContainer,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
-                              contentPadding: EdgeInsets.symmetric(vertical: 8),
+                              contentPadding: EdgeInsets.symmetric(vertical: 8.h),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,42 +282,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'Tax Rate (%)',
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 10,
+                              fontSize: 10.sp,
                               color: AppTheme.secondary,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           TextField(
                             controller: _taxController,
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: AppTheme.onSurface,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               filled: true,
                               fillColor: AppTheme.surfaceContainerLow,
                               border: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.surfaceContainerHigh,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.surfaceContainerHigh,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
                               focusedBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: AppTheme.primaryContainer,
-                                  width: 2,
+                                  width: 2.h,
                                 ),
                               ),
-                              contentPadding: EdgeInsets.symmetric(vertical: 8),
+                              contentPadding: EdgeInsets.symmetric(vertical: 8.h),
                             ),
                           ),
                         ],
@@ -315,38 +325,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                const Divider(height: 32, color: AppTheme.surfaceContainerLow),
+                Divider(height: 32.h, color: AppTheme.surfaceContainerLow),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.print_rounded,
-                          color: AppTheme.secondary,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Print Receipt',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.onSurface,
-                              ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.print_rounded,
+                            color: AppTheme.secondary,
+                            size: 24.r,
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Print Receipt',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'Thermal printer auto-trigger',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11.sp,
+                                    color: AppTheme.secondary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            Text(
-                              'Automatically trigger thermal printer on payment',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: AppTheme.secondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                     Switch(
                       value: _printReceipt,
@@ -358,11 +377,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 40),
+          SizedBox(height: 40.h),
 
           // ── Danger Zone ─────────────────────────────────────────────────────
           _sectionLabel('DANGER ZONE', color: AppTheme.error),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Container(
             decoration: BoxDecoration(
               color: AppTheme.error.withValues(alpha: 0.04),
@@ -375,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _DangerRow(
                   label: 'Reset All Orders',
                   subtitle:
-                      'Permanently delete active and historical order data',
+                      'Permanently delete all order data',
                   icon: Icons.warning_rounded,
                 ),
                 Divider(
@@ -386,20 +405,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _DangerRow(
                   label: 'Clear Menu Items',
                   subtitle:
-                      'Wipe all categories, dishes, and pricing from the system',
+                      'Wipe all dishes and categories',
                   icon: Icons.delete_forever_rounded,
                 ),
               ],
             ),
           ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 32),
+          SizedBox(height: 32.h),
 
           // ── Version ─────────────────────────────────────────────────────────
           Center(
             child: Text(
-              'TableOS Enterprise v4.2.0-STABLE',
+              'Orderlli Admin v4.2.0-STABLE',
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 10,
+                fontSize: 10.sp,
                 color: AppTheme.secondary.withValues(alpha: 0.5),
                 letterSpacing: 1,
               ),
@@ -414,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Text(
       text,
       style: GoogleFonts.inter(
-        fontSize: 11,
+        fontSize: 11.sp,
         fontWeight: FontWeight.w700,
         color: color,
         letterSpacing: 1.5,
@@ -454,7 +473,7 @@ class _ToggleRow extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -465,23 +484,27 @@ class _ToggleRow extends StatelessWidget {
                     Text(
                       title,
                       style: GoogleFonts.inter(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
                         color: AppTheme.onSurface,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     Text(
                       subtitle,
                       style: GoogleFonts.inter(
-                        fontSize: 11,
+                        fontSize: 11.sp,
                         color: AppTheme.secondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Switch(
                 value: value,
                 onChanged: onChanged,
@@ -491,7 +514,7 @@ class _ToggleRow extends StatelessWidget {
           ),
         ),
         if (divider)
-          Divider(color: AppTheme.surfaceContainerLow, thickness: 1, height: 1),
+          Divider(color: AppTheme.surfaceContainerLow, thickness: 1, height: 1.h),
       ],
     );
   }
@@ -518,13 +541,13 @@ class _OrderingRow extends StatelessWidget {
         onTap: () {},
         borderRadius: AppTheme.radiusSm,
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(14.r),
           decoration: highlight
-              ? const BoxDecoration(
+              ? BoxDecoration(
                   border: Border(
                     left: BorderSide(
                       color: AppTheme.primaryContainer,
-                      width: 3,
+                      width: 3.w,
                     ),
                   ),
                 )
@@ -532,23 +555,29 @@ class _OrderingRow extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    icon,
-                    color: highlight ? AppTheme.primary : AppTheme.secondary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.onSurface,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      color: highlight ? AppTheme.primary : AppTheme.secondary,
+                      size: 20.r,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.inter(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               trailing,
             ],
@@ -572,12 +601,12 @@ class _DisplayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
-        border: const Border(
-          bottom: BorderSide(color: AppTheme.surfaceContainerHigh, width: 2),
+        border: Border(
+          bottom: BorderSide(color: AppTheme.surfaceContainerHigh, width: 2.h),
         ),
       ),
       child: Column(
@@ -586,13 +615,15 @@ class _DisplayTile extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 9,
+              fontSize: 9.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.secondary,
               letterSpacing: 1,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -601,25 +632,28 @@ class _DisplayTile extends StatelessWidget {
                     ? Text(
                         value,
                         style: GoogleFonts.jetBrainsMono(
-                          fontSize: 16,
+                          fontSize: 14.sp, // Scaled down for mobile grids
                           fontWeight: FontWeight.w700,
                           color: AppTheme.onSurface,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       )
                     : Text(
                         value,
                         style: GoogleFonts.inter(
-                          fontSize: 13,
+                          fontSize: 12.sp, // Scaled down for mobile grids
                           fontWeight: FontWeight.w500,
                           color: AppTheme.onSurface,
                         ),
                         overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
               ),
-              const Icon(
+              Icon(
                 Icons.unfold_more_rounded,
                 color: AppTheme.secondary,
-                size: 16,
+                size: 16.r,
               ),
             ],
           ),
@@ -644,31 +678,38 @@ class _DangerRow extends StatelessWidget {
     return InkWell(
       onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.error,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.error,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: AppTheme.error.withValues(alpha: 0.7),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.sp,
+                      color: AppTheme.error.withValues(alpha: 0.7),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            Icon(icon, color: AppTheme.error, size: 22),
+            SizedBox(width: 12.w),
+            Icon(icon, color: AppTheme.error, size: 22.r),
           ],
         ),
       ),

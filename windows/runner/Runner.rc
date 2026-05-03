@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.tableos" "\0"
-            VALUE "FileDescription", "tableos_admin" "\0"
+            VALUE "CompanyName", "com.orderlli" "\0"
+            VALUE "FileDescription", "orderlli_admin" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "tableos_admin" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.tableos. All rights reserved." "\0"
-            VALUE "OriginalFilename", "tableos_admin.exe" "\0"
-            VALUE "ProductName", "tableos_admin" "\0"
+            VALUE "InternalName", "orderlli_admin" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.orderlli. All rights reserved." "\0"
+            VALUE "OriginalFilename", "orderlli_admin.exe" "\0"
+            VALUE "ProductName", "orderlli_admin" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

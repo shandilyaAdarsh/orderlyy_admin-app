@@ -40,7 +40,7 @@ class ManagerDashboardScreen extends StatelessWidget {
           IconButton(icon: const Icon(Icons.notifications_outlined, color: AppTheme.secondary), onPressed: () {}),
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Text('TableOS',
+            child: Text('Orderlli',
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.primary)),
           ),
         ],

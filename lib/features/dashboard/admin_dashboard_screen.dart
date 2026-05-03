@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -48,7 +49,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
+    final items = [
       _NavItem(icon: Icons.dashboard_rounded, label: 'Home'),
       _NavItem(icon: Icons.receipt_long_rounded, label: 'Orders'),
       _NavItem(icon: Icons.deck_rounded, label: 'Tables'),
@@ -57,14 +58,14 @@ class _BottomNav extends StatelessWidget {
     ];
 
     return Container(
-      height: 64 + MediaQuery.of(context).padding.bottom,
+      height: 64.h + MediaQuery.of(context).padding.bottom,
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest.withValues(alpha: 0.92),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primary.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            blurRadius: 20.r,
+            offset: Offset(0, -4.h),
           ),
         ],
       ),
@@ -86,25 +87,27 @@ class _BottomNav extends StatelessWidget {
                       color: active
                           ? AppTheme.primaryContainer
                           : AppTheme.secondary,
-                      size: 22,
+                      size: 22.r,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     Text(
                       item.label,
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.w600,
                         color: active
                             ? AppTheme.primaryContainer
                             : AppTheme.secondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     // Active dot
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      width: active ? 4 : 0,
-                      height: active ? 4 : 0,
+                      width: active ? 4.r : 0,
+                      height: active ? 4.r : 0,
                       decoration: const BoxDecoration(
                         color: AppTheme.primaryContainer,
                         shape: BoxShape.circle,
@@ -171,71 +174,97 @@ class _MoreTab extends StatelessWidget {
         backgroundColor: AppTheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
+        toolbarHeight: 64.h,
         title: Text(
           'More',
           style: GoogleFonts.inter(
-            fontSize: 20,
+            fontSize: 20.sp,
             fontWeight: FontWeight.w700,
             color: AppTheme.onSurface,
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          ...links.map(
-            (link) =>
-                GestureDetector(
-                      onTap: () => context.push(link.route),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceContainerLowest,
-                          borderRadius: AppTheme.radiusMd,
-                          border: Border.all(
-                            color: AppTheme.surfaceContainerHigh,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => ListView(
+            padding: EdgeInsets.all(16.r),
+            children: [
+              ...links.map(
+                (link) =>
+                    GestureDetector(
+                          onTap: () => context.push(link.route),
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: 12.h),
+                            padding: EdgeInsets.all(16.r),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceContainerLowest,
+                              borderRadius: AppTheme.radiusMd,
+                              border: Border.all(
+                                color: AppTheme.surfaceContainerHigh,
+                                width: 1.w,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 44.r,
+                                  height: 44.r,
+                                  decoration: BoxDecoration(
+                                    color: link.color.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10.r),
+                                  ),
+                                  child: Icon(
+                                    link.icon,
+                                    color: link.color,
+                                    size: 22.r,
+                                  ),
+                                ),
+                                SizedBox(width: 14.w),
+                                Expanded(
+                                  child: Text(
+                                    link.label,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.onSurface,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppTheme.secondary,
+                                  size: 24.r,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: link.color.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                link.icon,
-                                color: link.color,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Text(
-                              link.label,
-                              style: GoogleFonts.inter(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.onSurface,
-                              ),
-                            ),
-                            const Spacer(),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppTheme.secondary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .animate(
-                      delay: Duration(milliseconds: 50 * links.indexOf(link)),
-                    )
-                    .fadeIn(duration: 300.ms),
+                        )
+                        .animate(
+                          delay: Duration(milliseconds: 50 * links.indexOf(link)),
+                        )
+                        .fadeIn(duration: 300.ms),
+              ),
+              SizedBox(height: 24.h),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await Supabase.instance.client.auth.signOut();
+                  if (context.mounted) context.go('/role-select');
+                },
+                icon: Icon(Icons.logout_rounded, size: 18.r),
+                label: Text('Sign Out', style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  foregroundColor: AppTheme.error,
+                  elevation: 0,
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusMd),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -250,22 +279,6 @@ class _DashboardHome extends ConsumerStatefulWidget {
 }
 
 class _DashboardHomeState extends ConsumerState<_DashboardHome> {
-  late String _timeString;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTime();
-  }
-
-  void _updateTime() {
-    final now = DateTime.now();
-    _timeString =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    Future.delayed(const Duration(minutes: 1), () {
-      if (mounted) setState(_updateTime);
-    });
-  }
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -277,12 +290,6 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
-    final List<_QuickAction> quickActions = [
-      const _QuickAction(icon: Icons.block_rounded, label: '86 LIST'),
-      const _QuickAction(icon: Icons.group_rounded, label: 'STAFF'),
-      const _QuickAction(icon: Icons.qr_code_2_rounded, label: 'QR'),
-      const _QuickAction(icon: Icons.query_stats_rounded, label: 'STATS'),
-    ];
     final List<_KpiData> kpis = [
       _KpiData(
         label: 'Revenue Today',
@@ -312,244 +319,132 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
       ),
     ];
 
-    return CustomScrollView(
-      slivers: [
-        // ── Top App Bar ─────────────────────────────────────────────────────
-        SliverAppBar(
-          pinned: true,
-          backgroundColor: AppTheme.surfaceContainerLowest,
-          elevation: 1,
-          shadowColor: AppTheme.surfaceContainerHigh,
-          surfaceTintColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppTheme.surfaceContainer,
-                child: Text(
-                  (user?.email?.isNotEmpty == true)
-                      ? user!.email![0].toUpperCase()
-                      : 'A',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryContainer,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) => CustomScrollView(
+          slivers: [
+            // ── Top App Bar ─────────────────────────────────────────────────────
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppTheme.surfaceContainerLowest,
+              elevation: 1,
+              toolbarHeight: 64.h,
+              shadowColor: AppTheme.surfaceContainerHigh,
+              surfaceTintColor: Colors.transparent,
+              automaticallyImplyLeading: false,
+              title: Row(
                 children: [
-                  Text(
-                    '$_greeting, Admin',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    'The Grand Spice',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: AppTheme.secondary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_rounded,
-                    color: AppTheme.secondary,
-                    size: 24,
-                  ),
-                  onPressed: () {},
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppTheme.surfaceContainerLowest,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              // ── Live Banner ──────────────────────────────────────────────
-              _buildLiveBanner(),
-              const SizedBox(height: 20),
-
-              // ── KPI Grid ─────────────────────────────────────────────────
-              _buildSectionHeader('Overview'),
-              const SizedBox(height: 12),
-              _buildKpiGrid(kpis),
-              const SizedBox(height: 20),
-
-              // ── Live Orders ───────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildSectionHeader('Live Orders'),
-                  TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 14),
-                    label: Text(
-                      'See All',
+                  CircleAvatar(
+                    radius: 18.r,
+                    backgroundColor: AppTheme.surfaceContainer,
+                    child: Text(
+                      (user?.email?.isNotEmpty == true)
+                          ? user!.email![0].toUpperCase()
+                          : 'A',
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.primaryContainer,
                       ),
                     ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primaryContainer,
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$_greeting, Admin',
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onSurface,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        Text(
+                          'The Grand Spice',
+                          style: GoogleFonts.inter(
+                            fontSize: 11.sp,
+                            color: AppTheme.secondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              _buildOrderCard(),
-              const SizedBox(height: 20),
-
-              // ── Quick Actions ─────────────────────────────────────────────
-              _buildQuickActions(quickActions),
-              const SizedBox(height: 24),
-
-              // Sign-out row
-              TextButton.icon(
-                onPressed: () async {
-                  await Supabase.instance.client.auth.signOut();
-                  if (context.mounted) context.go('/role-select');
-                },
-                icon: const Icon(Icons.logout_rounded, size: 16),
-                label: const Text('Sign out'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppTheme.secondary,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLiveBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0x08C0272D), // 5% crimson tint
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(12),
-          bottomRight: Radius.circular(12),
-        ),
-        border: const Border(
-          left: BorderSide(color: AppTheme.primaryContainer, width: 3),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              // Pulsing dot
-              SizedBox(
-                width: 12,
-                height: 12,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                        .animate(onPlay: (c) => c.repeat())
-                        .fadeOut(duration: 900.ms, curve: Curves.easeOut),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'LIVE · 4 active orders',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primaryContainer,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            _timeString,
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.secondary,
             ),
-          ),
-        ],
+
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // ── KPI Grid ─────────────────────────────────────────────────
+                  _buildSectionHeader('Overview'),
+                  SizedBox(height: 12.h),
+                  _buildKpiGrid(kpis, constraints),
+                  SizedBox(height: 20.h),
+
+                  // ── Live Orders ───────────────────────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader('Live Orders'),
+                      TextButton.icon(
+                        onPressed: () {},
+                        icon: Icon(Icons.arrow_forward_rounded, size: 14.r),
+                        label: Text(
+                          'See All',
+                          style: GoogleFonts.inter(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryContainer,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryContainer,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildOrderCard(),
+                  SizedBox(height: 20.h),
+                ]),
+              ),
+            ),
+          ],
+        ),
       ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05);
+    );
   }
 
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
       style: GoogleFonts.inter(
-        fontSize: 16,
+        fontSize: 16.sp,
         fontWeight: FontWeight.w700,
         color: AppTheme.onSurface,
       ),
     );
   }
 
-  Widget _buildKpiGrid(List<_KpiData> kpis) {
+  Widget _buildKpiGrid(List<_KpiData> kpis, BoxConstraints constraints) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.35,
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 220.w,
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
+        childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 1.1,
       ),
       itemCount: kpis.length,
       itemBuilder: (context, i) {
@@ -563,12 +458,12 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
 
   Widget _buildOrderCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
-        border: const Border(
-          left: BorderSide(color: AppTheme.primaryContainer, width: 3),
+        border: Border(
+          left: BorderSide(color: AppTheme.primaryContainer, width: 3.w),
         ),
         boxShadow: AppTheme.crimsonShadow,
       ),
@@ -578,80 +473,91 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'T03',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '#1042',
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11,
-                          color: AppTheme.secondary,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.schedule_rounded,
-                            size: 10,
-                            color: AppTheme.error,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '07:23 🔴',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryFixed,
-                  borderRadius: BorderRadius.circular(9999),
-                ),
+              Expanded(
                 child: Row(
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        'T03',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '#1042',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11.sp,
+                              color: AppTheme.secondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 10.r,
+                                color: AppTheme.error,
+                              ),
+                              SizedBox(width: 2.w),
+                              Flexible(
+                                child: Text(
+                                  '07:23 🔴',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.error,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryFixed,
+                  borderRadius: BorderRadius.circular(9999.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6.r,
+                      height: 6.r,
                       decoration: const BoxDecoration(
                         color: AppTheme.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     Text(
                       'COOKING',
                       style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.onPrimaryFixedVariant,
                         letterSpacing: 0.5,
@@ -662,32 +568,34 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Text(
             'Wagyu Burger x1 · Dal Makhani x2',
             style: GoogleFonts.inter(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w500,
               color: AppTheme.onSurface,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 12),
-          Divider(color: AppTheme.surfaceContainer, thickness: 1, height: 1),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
+          Divider(color: AppTheme.surfaceContainer, thickness: 1.h, height: 1.h),
+          SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Order Total',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: AppTheme.secondary,
                 ),
               ),
               Text(
                 '₹2,410',
                 style: GoogleFonts.jetBrainsMono(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.onSurface,
                 ),
@@ -697,25 +605,6 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
         ],
       ),
     ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1);
-  }
-
-  Widget _buildQuickActions(List<_QuickAction> actions) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: AppTheme.radiusMd,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: actions.asMap().entries.map((entry) {
-          return _QuickActionButton(action: entry.value)
-              .animate(delay: Duration(milliseconds: 100 * entry.key))
-              .fadeIn(duration: 300.ms)
-              .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack);
-        }).toList(),
-      ),
-    );
   }
 }
 
@@ -754,7 +643,7 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
@@ -767,7 +656,7 @@ class _KpiCard extends StatelessWidget {
           Text(
             data.label,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w500,
               color: AppTheme.secondary,
             ),
@@ -780,22 +669,26 @@ class _KpiCard extends StatelessWidget {
               Text(
                 data.value,
                 style: GoogleFonts.jetBrainsMono(
-                  fontSize: 22,
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.onSurface,
                   letterSpacing: -0.5,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               if (data.delta != null)
                 Text(
                   data.delta!,
                   style: GoogleFonts.inter(
-                    fontSize: 10,
+                    fontSize: 10.sp,
                     fontWeight: FontWeight.w700,
                     color: data.deltaPositive
                         ? const Color(0xFF059669)
                         : AppTheme.error,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               if (data.showSparkline) _buildSparkline(),
               if (data.showBar) _buildBar(),
@@ -809,9 +702,9 @@ class _KpiCard extends StatelessWidget {
 
   Widget _buildSparkline() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: EdgeInsets.only(top: 8.h),
       child: SizedBox(
-        height: 28,
+        height: 28.h,
         child: CustomPaint(
           painter: _SparklinePainter(),
           child: const SizedBox.expand(),
@@ -822,14 +715,14 @@ class _KpiCard extends StatelessWidget {
 
   Widget _buildBar() {
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: EdgeInsets.only(top: 12.h),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(9999),
+        borderRadius: BorderRadius.circular(9999.r),
         child: LinearProgressIndicator(
           value: data.barValue,
           backgroundColor: AppTheme.surfaceContainer,
           valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          minHeight: 4,
+          minHeight: 4.h,
         ),
       ),
     );
@@ -837,15 +730,15 @@ class _KpiCard extends StatelessWidget {
 
   Widget _buildDots() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: EdgeInsets.only(top: 8.h),
       child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
+        spacing: 4.w,
+        runSpacing: 4.h,
         children: List.generate(data.totalDots, (i) {
           final active = i < data.activeDots;
           return Container(
-            width: 6,
-            height: 6,
+            width: 6.r,
+            height: 6.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: active ? AppTheme.primary : AppTheme.surfaceContainer,
@@ -863,7 +756,7 @@ class _SparklinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = AppTheme.primary.withValues(alpha: 0.5)
-      ..strokeWidth = 1.5
+      ..strokeWidth = 1.5.w
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -894,64 +787,4 @@ class _SparklinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ── Quick Action Data + Button ─────────────────────────────────────────────────
-class _QuickAction {
-  final IconData icon;
-  final String label;
-  const _QuickAction({required this.icon, required this.label});
-}
-
-class _QuickActionButton extends StatefulWidget {
-  final _QuickAction action;
-  const _QuickActionButton({required this.action});
-
-  @override
-  State<_QuickActionButton> createState() => _QuickActionButtonState();
-}
-
-class _QuickActionButtonState extends State<_QuickActionButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedOpacity(
-        opacity: _pressed ? 0.6 : 1.0,
-        duration: const Duration(milliseconds: 80),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                widget.action.icon,
-                color: AppTheme.primary,
-                size: 22,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.action.label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.secondary,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

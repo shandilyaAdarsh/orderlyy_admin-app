@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
@@ -15,11 +16,11 @@ class RoleSelectScreen extends StatelessWidget {
         children: [
           // ── Subtle glass orbs ─────────────────────────────────────────────
           Positioned(
-            top: -64,
-            right: -64,
+            top: -64.r,
+            right: -64.r,
             child: Container(
-              width: 256,
-              height: 256,
+              width: 256.r,
+              height: 256.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.primary.withValues(alpha: 0.05),
@@ -31,11 +32,11 @@ class RoleSelectScreen extends StatelessWidget {
                 curve: Curves.easeOut,
               ),
           Positioned(
-            bottom: -64,
-            left: -64,
+            bottom: -64.r,
+            left: -64.r,
             child: Container(
-              width: 256,
-              height: 256,
+              width: 256.r,
+              height: 256.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.tertiaryContainer.withValues(alpha: 0.05),
@@ -46,27 +47,28 @@ class RoleSelectScreen extends StatelessWidget {
           // ── Main content ──────────────────────────────────────────────────
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                   // ── Top section ──────────────────────────────────────────
-                  const SizedBox(height: 48),
+                  SizedBox(height: 48.h),
                   Icon(
                     Icons.restaurant_menu_rounded,
-                    size: 32,
+                    size: 32.r,
                     color: AppTheme.primary,
                   ).animate().fadeIn(duration: 500.ms).scale(
                         begin: const Offset(0.6, 0.6),
                         curve: Curves.easeOutBack,
                       ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
 
                   Text(
-                    'Welcome to TableOS',
+                    'Welcome to Orderlli',
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.onSurface,
                       letterSpacing: -0.3,
@@ -77,18 +79,7 @@ class RoleSelectScreen extends StatelessWidget {
                         curve: Curves.easeOut,
                       ),
 
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Who are you today?',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: AppTheme.secondary,
-                    ),
-                  ).animate(delay: 150.ms).fadeIn(duration: 500.ms),
-
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40.h),
 
                   // ── Role cards ────────────────────────────────────────────
                   // Admin / Owner card
@@ -106,7 +97,7 @@ class RoleSelectScreen extends StatelessWidget {
                         curve: Curves.easeOut,
                       ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   // Staff card
                   _RoleCard(
@@ -123,36 +114,37 @@ class RoleSelectScreen extends StatelessWidget {
                         curve: Curves.easeOut,
                       ),
 
-                  const Spacer(),
+                  SizedBox(height: 32.h),
 
                   // ── Footer ────────────────────────────────────────────────
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 32),
+                    padding: EdgeInsets.only(bottom: 32.h),
                     child: Column(
                       children: [
                         Text(
                           'POWERED BY',
                           style: GoogleFonts.inter(
-                            fontSize: 10,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w500,
                             color: AppTheme.secondary.withValues(alpha: 0.6),
                             letterSpacing: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2.h),
                         Text(
-                          'TableOS',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.secondary.withValues(alpha: 0.8),
-                            letterSpacing: -0.5,
+                            'Orderlli',
+                            style: GoogleFonts.inter(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.secondary.withValues(alpha: 0.8),
+                              letterSpacing: -0.5,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ).animate(delay: 500.ms).fadeIn(duration: 400.ms),
-                ],
+                        ],
+                      ),
+                    ).animate(delay: 500.ms).fadeIn(duration: 400.ms),
+                  ],
+                ),
               ),
             ),
           ),
@@ -204,12 +196,12 @@ class _RoleCardState extends State<_RoleCard> {
         scale: _pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 100),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: AppTheme.surfaceContainerLowest,
             borderRadius: AppTheme.radiusXl,
             border: Border(
-              left: BorderSide(color: widget.borderColor, width: 3),
+              left: BorderSide(color: widget.borderColor, width: 3.w),
             ),
             boxShadow: AppTheme.crimsonShadow,
           ),
@@ -217,15 +209,15 @@ class _RoleCardState extends State<_RoleCard> {
             children: [
               // Icon circle
               Container(
-                width: 48,
-                height: 48,
+                width: 48.r,
+                height: 48.r,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: widget.iconBgColor,
                 ),
-                child: Icon(widget.icon, color: widget.iconColor, size: 22),
+                child: Icon(widget.icon, color: widget.iconColor, size: 22.r),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: 20.w),
               // Text
               Expanded(
                 child: Column(
@@ -234,28 +226,33 @@ class _RoleCardState extends State<_RoleCard> {
                     Text(
                       widget.title,
                       style: GoogleFonts.inter(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.onSurface,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     Text(
                       widget.subtitle,
                       style: GoogleFonts.inter(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w400,
                         color: AppTheme.secondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
+              SizedBox(width: 8.w),
               // Arrow
               Icon(
                 Icons.arrow_forward_rounded,
                 color: widget.arrowColor,
-                size: 20,
+                size: 20.r,
               ),
             ],
           ),

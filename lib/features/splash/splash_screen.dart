@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/auth/app_context_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,7 +37,30 @@ class _SplashScreenState extends State<SplashScreen>
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      context.go('/admin/dashboard');
+      final container = ProviderScope.containerOf(context, listen: false);
+      final resolvedCtx = await container
+          .read(appContextProvider.notifier)
+          .resolveContext();
+      if (!mounted) return;
+
+      if (resolvedCtx == null) {
+        context.go('/role-select');
+        return;
+      }
+
+      final flags = resolvedCtx.flags;
+      if (flags.mustChangePassword) {
+        context.go('/change-password');
+      } else if (flags.subscriptionExpired) {
+        context.go('/subscription-expired');
+      } else if (!resolvedCtx.tenant.isActive) {
+        context.go('/account-suspended');
+      } else if (!resolvedCtx.onboarding.isComplete ||
+          flags.onboardingRequired) {
+        context.go('/onboarding');
+      } else {
+        context.go('/admin/dashboard');
+      }
     } else {
       context.go('/role-select');
     }
@@ -54,25 +80,25 @@ class _SplashScreenState extends State<SplashScreen>
         children: [
           // ── Decorative texture background icons ──────────────────────────
           Positioned(
-            top: 0,
-            right: 0,
+            top: -20.h,
+            right: -20.w,
             child: Padding(
-              padding: const EdgeInsets.all(48),
+              padding: EdgeInsets.all(48.r),
               child: Icon(
                 Icons.deck_outlined,
-                size: 200,
+                size: 200.r,
                 color: AppTheme.onSurface.withValues(alpha: 0.025),
               ),
             ),
           ),
           Positioned(
-            bottom: 0,
-            left: 0,
+            bottom: -20.h,
+            left: -20.w,
             child: Padding(
-              padding: const EdgeInsets.all(48),
+              padding: EdgeInsets.all(48.r),
               child: Icon(
                 Icons.receipt_long_outlined,
-                size: 160,
+                size: 160.r,
                 color: AppTheme.onSurface.withValues(alpha: 0.025),
               ),
             ),
@@ -85,59 +111,64 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // Logo mark
                 SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Outer ring (O)
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppTheme.primaryContainer.withValues(alpha: 0.1),
-                            width: 6,
+                      width: 64.r,
+                      height: 64.r,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer ring (O)
+                          Container(
+                            width: 64.r,
+                            height: 64.r,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppTheme.primaryContainer.withValues(
+                                  alpha: 0.1,
+                                ),
+                                width: 6.r,
+                              ),
+                            ),
                           ),
-                        ),
+                          // Icon
+                          Icon(
+                            Icons.restaurant_menu_rounded,
+                            size: 36.r,
+                            color: AppTheme.primaryContainer,
+                          ),
+                        ],
                       ),
-                      // Icon
-                      Icon(
-                        Icons.restaurant_menu_rounded,
-                        size: 36,
-                        color: AppTheme.primaryContainer,
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(duration: 600.ms).scale(
+                    )
+                    .animate()
+                    .fadeIn(duration: 600.ms)
+                    .scale(
                       begin: const Offset(0.8, 0.8),
                       curve: Curves.easeOutBack,
                     ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24.h),
 
                 // Wordmark
                 Text(
-                  'TableOS',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.onSurface,
-                    letterSpacing: -0.5,
-                  ),
-                ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(
-                      begin: 0.2,
-                      curve: Curves.easeOut,
-                    ),
+                      'Orderlli',
+                      style: GoogleFonts.inter(
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.onSurface,
+                        letterSpacing: -0.5,
+                      ),
+                    )
+                    .animate(delay: 200.ms)
+                    .fadeIn(duration: 500.ms)
+                    .slideY(begin: 0.2, curve: Curves.easeOut),
 
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
 
                 // Tagline
                 Text(
                   'RESTAURANT INTELLIGENCE PLATFORM',
                   style: GoogleFonts.inter(
-                    fontSize: 10,
+                    fontSize: 10.sp,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.secondary.withValues(alpha: 0.7),
                     letterSpacing: 2.0,
@@ -149,26 +180,25 @@ class _SplashScreenState extends State<SplashScreen>
 
           // ── Progress bar + version ────────────────────────────────────────
           Positioned(
-            bottom: 48,
+            bottom: 48.h,
             left: 0,
             right: 0,
             child: Center(
               child: SizedBox(
-                width: 240,
+                width: 240.w,
                 child: Column(
                   children: [
                     // Progress line
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(9999),
+                      borderRadius: BorderRadius.circular(9999.r),
                       child: SizedBox(
-                        height: 2,
+                        height: 2.h,
                         child: AnimatedBuilder(
                           animation: _progressController,
                           builder: (context, _) {
                             return LinearProgressIndicator(
                               value: _progressController.value,
-                              backgroundColor:
-                                  AppTheme.surfaceContainerHighest,
+                              backgroundColor: AppTheme.surfaceContainerHighest,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primaryContainer,
                               ),
@@ -177,12 +207,12 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     // Version
                     Text(
                       'v1.0.0',
                       style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         color: AppTheme.secondary.withValues(alpha: 0.5),
                         letterSpacing: 1.2,
                       ),

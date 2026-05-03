@@ -1,4 +1,4 @@
-package com.tableos.tableos_admin
+package com.orderlli.admin
 
 import io.flutter.embedding.android.FlutterActivity
 

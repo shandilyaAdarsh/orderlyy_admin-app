@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -31,7 +31,6 @@ class StaffTablesScreen extends StatefulWidget {
 }
 
 class _StaffTablesScreenState extends State<StaffTablesScreen> {
-  int _navIndex = 0;
 
   static const _tables = [
     TableData(id: 'T01', status: TableStatus.vacant, capacity: 4),
@@ -46,182 +45,173 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              // ── Top App Bar ───────────────────────────────────────────────
-              SliverAppBar(
-                pinned: true,
-                backgroundColor: AppTheme.surfaceContainerLowest,
-                elevation: 0,
-                shadowColor: const Color(0x149D0518),
-                surfaceTintColor: Colors.transparent,
-                automaticallyImplyLeading: false,
-                title: Row(
-                  children: [
-                    Text(
-                      'TableOS',
-                      style: GoogleFonts.inter(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 1,
-                      height: 20,
-                      color: AppTheme.surfaceContainerHighest,
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  // ── Top App Bar ───────────────────────────────────────────────
+                  SliverAppBar(
+                    pinned: true,
+                    backgroundColor: AppTheme.surfaceContainerLowest,
+                    elevation: 0,
+                    toolbarHeight: 64.h,
+                    shadowColor: const Color(0x149D0518),
+                    surfaceTintColor: Colors.transparent,
+                    automaticallyImplyLeading: false,
+                    title: Row(
                       children: [
                         Text(
-                          'Floor Map',
+                          'Orderlli',
                           style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.onSurface,
+                            fontSize: 22.sp,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primary,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                        Text(
-                          '15 TABLES',
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.secondary,
-                            letterSpacing: 1.5,
+                        SizedBox(width: 12.w),
+                        Container(
+                          width: 1.w,
+                          height: 20.h,
+                          color: AppTheme.surfaceContainerHighest,
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Floor Map',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.onSurface,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '15 TABLES',
+                                style: GoogleFonts.inter(
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.secondary,
+                                  letterSpacing: 1.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: AppTheme.secondary),
-                    onPressed: () {},
+                    actions: [
+                      Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: CircleAvatar(
+                          radius: 16.r,
+                          backgroundColor: AppTheme.surfaceContainerHigh,
+                          child: Icon(Icons.person_rounded, size: 18.r, color: AppTheme.secondary),
+                        ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppTheme.surfaceContainerHigh,
-                      child: Icon(Icons.person_rounded, size: 18, color: AppTheme.secondary),
+
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // ── Legend ──────────────────────────────────────────────
+                        _buildLegend(),
+                        SizedBox(height: 20.h),
+
+                        // ── Table Grid ──────────────────────────────────────────
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 220.w,
+                            crossAxisSpacing: 12.w,
+                            mainAxisSpacing: 12.h,
+                            childAspectRatio: constraints.maxWidth > 600 ? 1.5 : 0.95,
+                          ),
+                          itemCount: _tables.length,
+                          itemBuilder: (context, i) {
+                            return _TableCard(table: _tables[i])
+                                .animate(delay: Duration(milliseconds: 60 * i))
+                                .fadeIn(duration: 350.ms)
+                                .slideY(begin: 0.15, curve: Curves.easeOut);
+                          },
+                        ),
+                        SizedBox(height: 16.h),
+
+                        // ── Floor Intelligence Bento ─────────────────────────────
+                        _buildFloorIntelligence(constraints),
+                        SizedBox(height: 16.h),
+
+                        // ── Add Temp Table ───────────────────────────────────────
+                        _buildAddTempTable(),
+                        SizedBox(height: 32.h),
+                      ]),
                     ),
                   ),
                 ],
               ),
 
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // ── Legend ──────────────────────────────────────────────
-                    _buildLegend(),
-                    const SizedBox(height: 20),
-
-                    // ── Table Grid ──────────────────────────────────────────
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.9,
-                      ),
-                      itemCount: _tables.length,
-                      itemBuilder: (context, i) {
-                        return _TableCard(table: _tables[i])
-                            .animate(delay: Duration(milliseconds: 60 * i))
-                            .fadeIn(duration: 350.ms)
-                            .slideY(begin: 0.15, curve: Curves.easeOut);
-                      },
+              // ── FAB ─────────────────────────────────────────────────────────────
+              Positioned(
+                bottom: 20.h,
+                right: 16.w,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 56.r,
+                    height: 56.r,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryContainer,
+                      shape: BoxShape.circle,
+                      boxShadow: AppTheme.crimsonShadow,
                     ),
-                    const SizedBox(height: 16),
-
-                    // ── Floor Intelligence Bento ─────────────────────────────
-                    _buildFloorIntelligence(),
-                    const SizedBox(height: 16),
-
-                    // ── Add Temp Table ───────────────────────────────────────
-                    _buildAddTempTable(),
-                    const SizedBox(height: 96),
-                  ]),
-                ),
+                    child: Icon(Icons.search_rounded, color: Colors.white, size: 26.r),
+                  ),
+                ).animate(delay: 400.ms).scale(
+                      begin: const Offset(0, 0),
+                      curve: Curves.easeOutBack,
+                    ),
               ),
             ],
           ),
-
-          // ── FAB ─────────────────────────────────────────────────────────────
-          Positioned(
-            bottom: 88,
-            right: 16,
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryContainer,
-                  shape: BoxShape.circle,
-                  boxShadow: AppTheme.crimsonShadow,
-                ),
-                child: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
-              ),
-            ).animate(delay: 400.ms).scale(
-                  begin: const Offset(0, 0),
-                  curve: Curves.easeOutBack,
-                ),
-          ),
-
-          // ── Bottom Nav ──────────────────────────────────────────────────────
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _StaffBottomNav(
-              currentIndex: _navIndex,
-              onTap: (i) {
-                setState(() => _navIndex = i);
-                if (i == 1) context.push('/staff/orders');
-                if (i == 2) context.push('/staff/inventory');
-                if (i == 4) context.push('/admin/settings');
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildLegend() {
-    const items = [
-      (color: Color(0xFF059669), label: 'Vacant'),
+    final items = [
+      (color: const Color(0xFF059669), label: 'Vacant'),
       (color: AppTheme.primaryContainer, label: 'Occupied'),
-      (color: Color(0xFFD97706), label: 'Payment'),
-      (color: Color(0xFF94A3B8), label: 'Cleaning'),
+      (color: const Color(0xFFD97706), label: 'Payment'),
+      (color: const Color(0xFF94A3B8), label: 'Cleaning'),
     ];
     return Wrap(
-      spacing: 20,
-      runSpacing: 8,
+      spacing: 20.w,
+      runSpacing: 8.h,
       children: items.map((item) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 10,
-              height: 10,
+              width: 10.r,
+              height: 10.r,
               decoration: BoxDecoration(color: item.color, shape: BoxShape.circle),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6.w),
             Text(
               item.label,
-              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.secondary),
+              style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w500, color: AppTheme.secondary),
             ),
           ],
         );
@@ -229,9 +219,10 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
     );
   }
 
-  Widget _buildFloorIntelligence() {
+  Widget _buildFloorIntelligence(BoxConstraints constraints) {
+    final isSmall = constraints.maxWidth < 600;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLow,
         borderRadius: AppTheme.radiusMd,
@@ -242,81 +233,104 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
           Text(
             'FLOOR INTELLIGENCE',
             style: GoogleFonts.inter(
-              fontSize: 10, fontWeight: FontWeight.w700,
+              fontSize: 10.sp, fontWeight: FontWeight.w700,
               color: AppTheme.secondary, letterSpacing: 1.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              // Stats grid
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(child: _IntelligenceStat(label: 'Turnover Rate', value: '1.2h')),
-                    const SizedBox(width: 12),
-                    Expanded(child: _IntelligenceStat(label: 'Avg Bill', value: '₹2.8k')),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Top table card
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceContainerLowest,
-                    borderRadius: AppTheme.radiusSm,
-                    border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(height: 16.h),
+          if (isSmall) ...[
+            Row(
+              children: [
+                Expanded(child: _IntelligenceStat(label: 'Turnover Rate', value: '1.2h')),
+                SizedBox(width: 12.w),
+                Expanded(child: _IntelligenceStat(label: 'Avg Bill', value: '₹2.8k')),
+              ],
+            ),
+            SizedBox(height: 12.h),
+            _buildTopTableCard(),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Top Table Today',
-                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
-                          Text('+12%',
-                              style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.w500, color: const Color(0xFF059669))),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary.withValues(alpha: 0.06),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text('T02',
-                                  style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('₹18,450 Total',
-                                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
-                              Text('6 Sessions Served',
-                                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.secondary)),
-                            ],
-                          ),
-                        ],
-                      ),
+                      Expanded(child: _IntelligenceStat(label: 'Turnover Rate', value: '1.2h')),
+                      SizedBox(width: 12.w),
+                      Expanded(child: _IntelligenceStat(label: 'Avg Bill', value: '₹2.8k')),
                     ],
                   ),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(child: _buildTopTableCard()),
+              ],
+            ),
+        ],
+      ),
+    ).animate(delay: 300.ms).fadeIn(duration: 400.ms);
+  }
+
+  Widget _buildTopTableCard() {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: AppTheme.radiusSm,
+        border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text('Top Table Today',
+                    style: GoogleFonts.inter(fontSize: 10.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+              Text('+12%',
+                  style: GoogleFonts.jetBrainsMono(fontSize: 9.sp, fontWeight: FontWeight.w500, color: const Color(0xFF059669))),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Container(
+                width: 40.r,
+                height: 40.r,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text('T02',
+                      style: GoogleFonts.jetBrainsMono(fontSize: 11.sp, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('₹18,450 Total',
+                        style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    Text('6 Sessions Served',
+                        style: GoogleFonts.inter(fontSize: 10.sp, color: AppTheme.secondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
                 ),
               ),
             ],
           ),
         ],
       ),
-    ).animate(delay: 300.ms).fadeIn(duration: 400.ms);
+    );
   }
 
   Widget _buildAddTempTable() {
@@ -324,21 +338,23 @@ class _StaffTablesScreenState extends State<StaffTablesScreen> {
       onTap: () {},
       borderRadius: AppTheme.radiusMd,
       child: Container(
-        height: 80,
+        height: 80.h,
         decoration: BoxDecoration(
           color: const Color(0x08059669),
           borderRadius: AppTheme.radiusMd,
-          border: Border.all(color: const Color(0x40059669), width: 2, style: BorderStyle.solid),
+          border: Border.all(color: const Color(0x40059669), width: 2.w, style: BorderStyle.solid),
         ),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF059669), size: 28),
-              const SizedBox(height: 4),
+              Icon(Icons.add_circle_outline_rounded, color: const Color(0xFF059669), size: 28.r),
+              SizedBox(height: 4.h),
               Text(
                 'ADD TEMP TABLE',
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.secondary, letterSpacing: 1.5),
+                style: GoogleFonts.inter(fontSize: 10.sp, fontWeight: FontWeight.w700, color: AppTheme.secondary, letterSpacing: 1.5),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -387,13 +403,13 @@ class _TableCard extends StatelessWidget {
     final isCleaning = table.status == TableStatus.cleaning;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: _bgColor,
         borderRadius: AppTheme.radiusMd,
         border: isOccupied
-            ? Border.all(color: _statusColor, width: 2)
-            : Border.all(color: _statusColor.withValues(alpha: 0.4), width: 1),
+            ? Border.all(color: _statusColor, width: 2.w)
+            : Border.all(color: _statusColor.withValues(alpha: 0.4), width: 1.w),
         boxShadow: isOccupied ? AppTheme.crimsonShadowLight : null,
       ),
       child: Column(
@@ -405,44 +421,54 @@ class _TableCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Table ID
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    table.id,
-                    style: GoogleFonts.inter(
-                      fontSize: 22, fontWeight: FontWeight.w800,
-                      color: isCleaning ? AppTheme.secondary : AppTheme.onSurface,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      table.id,
+                      style: GoogleFonts.inter(
+                        fontSize: 22.sp, fontWeight: FontWeight.w800,
+                        color: isCleaning ? AppTheme.secondary : AppTheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  if (isOccupied)
-                    Row(
-                      children: [
-                        Icon(Icons.timer_rounded, size: 12, color: _statusColor),
-                        const SizedBox(width: 3),
-                        Text(table.timer!,
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11, fontWeight: FontWeight.w600, color: _statusColor,
-                            )),
-                      ],
-                    )
-                  else if (isCleaning)
-                    Text('Ready soon',
-                        style: GoogleFonts.jetBrainsMono(fontSize: 10, color: const Color(0xFF94A3B8)))
-                  else
-                    Row(
-                      children: [
-                        Icon(Icons.group_rounded, size: 12, color: AppTheme.secondary),
-                        const SizedBox(width: 3),
-                        Text('${table.capacity}',
-                            style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppTheme.secondary)),
-                      ],
-                    ),
-                ],
+                    if (isOccupied)
+                      Row(
+                        children: [
+                          Icon(Icons.timer_rounded, size: 12.r, color: _statusColor),
+                          SizedBox(width: 3.w),
+                          Flexible(
+                            child: Text(table.timer!,
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 11.sp, fontWeight: FontWeight.w600, color: _statusColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      )
+                    else if (isCleaning)
+                      Text('Ready soon',
+                          style: GoogleFonts.jetBrainsMono(fontSize: 10.sp, color: const Color(0xFF94A3B8)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis)
+                    else
+                      Row(
+                        children: [
+                          Icon(Icons.group_rounded, size: 12.r, color: AppTheme.secondary),
+                          SizedBox(width: 3.w),
+                          Text('${table.capacity}',
+                              style: GoogleFonts.jetBrainsMono(fontSize: 11.sp, color: AppTheme.secondary)),
+                        ],
+                      ),
+                  ],
+                ),
               ),
               // Status badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   color: _statusColor.withValues(alpha: 0.1),
                   borderRadius: AppTheme.radiusFull,
@@ -450,11 +476,11 @@ class _TableCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 5, height: 5, decoration: BoxDecoration(color: _statusColor, shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
+                    Container(width: 5.r, height: 5.r, decoration: BoxDecoration(color: _statusColor, shape: BoxShape.circle)),
+                    SizedBox(width: 4.w),
                     Text(_statusLabel,
                         style: GoogleFonts.inter(
-                          fontSize: 8, fontWeight: FontWeight.w800,
+                          fontSize: 8.sp, fontWeight: FontWeight.w800,
                           color: _statusColor, letterSpacing: 0.8,
                         )),
                   ],
@@ -466,39 +492,45 @@ class _TableCard extends StatelessWidget {
           const Spacer(),
 
           // Bottom row
-          Divider(color: _statusColor.withValues(alpha: 0.12), thickness: 1),
-          const SizedBox(height: 8),
+          Divider(color: _statusColor.withValues(alpha: 0.12), thickness: 1.h),
+          SizedBox(height: 8.h),
           if (isOccupied || isPayment) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isPayment ? 'PENDING' : 'TOTAL BILL',
-                      style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1),
-                    ),
-                    Text(
-                      table.billAmount!,
-                      style: GoogleFonts.jetBrainsMono(fontSize: 16, fontWeight: FontWeight.w700, color: _statusColor),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isPayment ? 'PENDING' : 'TOTAL BILL',
+                        style: GoogleFonts.inter(fontSize: 8.sp, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        table.billAmount!,
+                        style: GoogleFonts.jetBrainsMono(fontSize: 16.sp, fontWeight: FontWeight.w700, color: _statusColor),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(
-                  height: 32,
+                  height: 32.h,
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _statusColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
                       minimumSize: Size.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                       elevation: 0,
                     ),
                     child: Text(
                       isPayment ? 'Settle' : 'Details',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: GoogleFonts.inter(fontSize: 11.sp, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
                 ),
@@ -506,7 +538,7 @@ class _TableCard extends StatelessWidget {
             ),
           ] else if (isCleaning)
             SizedBox(
-              height: 32,
+              height: 32.h,
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {},
@@ -514,10 +546,10 @@ class _TableCard extends StatelessWidget {
                   minimumSize: Size.zero,
                   padding: EdgeInsets.zero,
                   side: BorderSide(color: _statusColor.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                 ),
                 child: Text('Mark Clean',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.secondary)),
+                    style: GoogleFonts.inter(fontSize: 11.sp, fontWeight: FontWeight.w700, color: AppTheme.secondary)),
               ),
             )
           else
@@ -526,12 +558,12 @@ class _TableCard extends StatelessWidget {
               child: TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   minimumSize: Size.zero,
                 ),
                 child: Text('Assign Table',
                     style: GoogleFonts.inter(
-                      fontSize: 11, fontWeight: FontWeight.w700,
+                      fontSize: 11.sp, fontWeight: FontWeight.w700,
                       color: AppTheme.primary, letterSpacing: 0.5,
                     )),
               ),
@@ -551,7 +583,7 @@ class _IntelligenceStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusSm,
@@ -559,72 +591,18 @@ class _IntelligenceStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppTheme.secondary)),
-          const SizedBox(height: 4),
-          Text(value, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.primaryContainer)),
+          Text(label, 
+              style: GoogleFonts.jetBrainsMono(fontSize: 9.sp, color: AppTheme.secondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          SizedBox(height: 4.h),
+          Text(value, 
+              style: GoogleFonts.inter(fontSize: 22.sp, fontWeight: FontWeight.w700, color: AppTheme.primaryContainer),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );
   }
 }
 
-// ── Staff Bottom Nav ────────────────────────────────────────────────────────
-class _StaffBottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-  const _StaffBottomNav({required this.currentIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (icon: Icons.layers_rounded, label: 'Floor'),
-      (icon: Icons.restaurant_menu_rounded, label: 'Orders'),
-      (icon: Icons.inventory_2_rounded, label: 'Inventory'),
-      (icon: Icons.bar_chart_rounded, label: 'Metrics'),
-      (icon: Icons.settings_rounded, label: 'Settings'),
-    ];
-    return Container(
-      height: 72 + MediaQuery.of(context).padding.bottom,
-      decoration: const BoxDecoration(
-        color: Color(0xCCFFFFFF),
-        boxShadow: [BoxShadow(color: Color(0x0D9D0518), blurRadius: 24, offset: Offset(0, -8))],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: List.generate(items.length, (i) {
-            final active = currentIndex == i;
-            final item = items[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => onTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  decoration: BoxDecoration(
-                    color: active ? AppTheme.primary.withValues(alpha: 0.06) : Colors.transparent,
-                    border: active ? const Border(left: BorderSide(color: AppTheme.primaryContainer, width: 3)) : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(item.icon,
-                          color: active ? AppTheme.primaryContainer : AppTheme.secondary,
-                          size: 22),
-                      const SizedBox(height: 2),
-                      Text(item.label,
-                          style: GoogleFonts.inter(
-                            fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 0.8,
-                            color: active ? AppTheme.primaryContainer : AppTheme.secondary,
-                          )),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_constants.dart';
 import 'core/router/app_router.dart';
@@ -13,21 +14,26 @@ Future<void> main() async {
     anonKey: SupabaseConstants.supabaseAnonKey,
   );
 
-  runApp(const ProviderScope(child: TableOSApp()));
+  runApp(const ProviderScope(child: OrderlliApp()));
 }
 
-class TableOSApp extends ConsumerWidget {
-  const TableOSApp({super.key});
+class OrderlliApp extends ConsumerWidget {
+  const OrderlliApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'TableOS',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      routerConfig: router,
+    return ScreenUtilInit(
+      designSize: const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) => MaterialApp.router(
+        title: 'Orderlli',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        routerConfig: router,
+      ),
     );
   }
 }

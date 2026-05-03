@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -201,14 +202,15 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
       appBar: AppBar(
         backgroundColor: AppTheme.surfaceContainerLowest,
         elevation: 0,
+        toolbarHeight: 64.h,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.secondary),
+          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.secondary, size: 24.r),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Staff Login',
           style: GoogleFonts.inter(
-            fontSize: 18,
+            fontSize: 18.sp,
             fontWeight: FontWeight.w700,
             color: AppTheme.onSurface,
           ),
@@ -223,24 +225,24 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
             child: TabBar(
               controller: _tabController,
               indicatorColor: AppTheme.primaryContainer,
-              indicatorWeight: 2,
+              indicatorWeight: 2.h,
               labelColor: AppTheme.primaryContainer,
               unselectedLabelColor: AppTheme.secondary,
               labelStyle:
-                  GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+                  GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w600),
               unselectedLabelStyle:
-                  GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
+                  GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w500),
               dividerColor: AppTheme.surfaceContainerHighest,
-              tabs: const [
+              tabs: [
                 Tab(
-                  icon: Icon(Icons.qr_code_scanner_rounded, size: 18),
+                  icon: Icon(Icons.qr_code_scanner_rounded, size: 18.r),
                   text: 'Scan QR',
-                  iconMargin: EdgeInsets.only(bottom: 4),
+                  iconMargin: EdgeInsets.only(bottom: 4.h),
                 ),
                 Tab(
-                  icon: Icon(Icons.keyboard_rounded, size: 18),
+                  icon: Icon(Icons.keyboard_rounded, size: 18.r),
                   text: 'Enter Code',
-                  iconMargin: EdgeInsets.only(bottom: 4),
+                  iconMargin: EdgeInsets.only(bottom: 4.h),
                 ),
               ],
             ),
@@ -261,12 +263,12 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
   Widget _buildScanTab() {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       children: [
         if (!_restaurantConfirmed) ...[
           // ── Camera viewfinder ────────────────────────────────────────────
           ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             child: AspectRatio(
               aspectRatio: 1,
               child: Stack(
@@ -274,7 +276,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                   MobileScanner(onDetect: _onQrDetected),
                   Positioned.fill(
                     child: Padding(
-                      padding: const EdgeInsets.all(64),
+                      padding: EdgeInsets.all(64.r),
                       child: _QrBrackets(),
                     ),
                   ),
@@ -282,15 +284,15 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                     top: 0, bottom: 0, left: 0, right: 0,
                     child: Center(
                       child: Container(
-                        height: 2,
+                        height: 2.h,
                         decoration: BoxDecoration(
                           color: AppTheme.primaryContainer
                               .withValues(alpha: 0.4),
                           boxShadow: [
                             BoxShadow(
                               color: AppTheme.primary.withValues(alpha: 0.6),
-                              blurRadius: 15,
-                              spreadRadius: 2,
+                              blurRadius: 15.r,
+                              spreadRadius: 2.r,
                             ),
                           ],
                         ),
@@ -301,16 +303,16 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
               ),
             ),
           ).animate().fadeIn(duration: 400.ms),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'Point camera at restaurant QR code',
             style: GoogleFonts.inter(
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
                 color: AppTheme.secondary),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
         ],
 
         if (_isLoading && !_restaurantConfirmed)
@@ -320,7 +322,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
         if (_restaurantConfirmed) ...[
           _buildRestaurantConfirmedCard(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           _buildPinSection(),
         ],
       ],
@@ -329,33 +331,33 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
   Widget _buildCodeTab() {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       children: [
         if (!_restaurantConfirmed) ...[
           Text(
             'Enter Restaurant Code',
             style: GoogleFonts.inter(
-                fontSize: 20,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.onSurface),
           ).animate().fadeIn(duration: 400.ms),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'Ask your admin for the restaurant code',
-            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.secondary),
+            style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           if (_errorMessage.isNotEmpty) ...[
             _buildErrorBanner(),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
           ],
 
           TextFormField(
             controller: _codeController,
             keyboardType: TextInputType.text,
             style: GoogleFonts.jetBrainsMono(
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 2,
                 color: AppTheme.onSurface),
@@ -363,33 +365,33 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
             decoration: InputDecoration(
               hintText: 'my-restaurant',
               hintStyle: GoogleFonts.jetBrainsMono(
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   letterSpacing: 2,
                   color: AppTheme.secondary.withValues(alpha: 0.4)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               filled: true,
               fillColor: AppTheme.surface,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                    color: AppTheme.surfaceContainerHigh, width: 2),
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh, width: 2.w),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                    color: AppTheme.surfaceContainerHigh, width: 2),
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh, width: 2.w),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 borderSide:
-                    const BorderSide(color: AppTheme.primaryContainer, width: 2),
+                    BorderSide(color: AppTheme.primaryContainer, width: 2.w),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           SizedBox(
-            height: 52,
+            height: 52.h,
             child: ElevatedButton(
               onPressed: _isLoading
                   ? null
@@ -398,19 +400,20 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                 backgroundColor: AppTheme.primaryContainer,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10.r)),
+                elevation: 0,
               ),
               child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
+                  ? SizedBox(
+                      height: 20.r,
+                      width: 20.r,
+                      child: const CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white),
                     )
                   : Text(
                       'Confirm Restaurant',
                       style: GoogleFonts.inter(
-                          fontSize: 15, fontWeight: FontWeight.w600),
+                          fontSize: 15.sp, fontWeight: FontWeight.w600),
                     ),
             ),
           ),
@@ -418,7 +421,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
         if (_restaurantConfirmed) ...[
           _buildRestaurantConfirmedCard(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           _buildPinSection(),
         ],
       ],
@@ -427,22 +430,22 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
   Widget _buildErrorBanner() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
             color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 16),
-          const SizedBox(width: 8),
+          Icon(Icons.error_outline, color: const Color(0xFFEF4444), size: 16.r),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               _errorMessage,
               style:
-                  const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                  TextStyle(color: const Color(0xFFEF4444), fontSize: 13.sp),
             ),
           ),
         ],
@@ -452,28 +455,28 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 
   Widget _buildRestaurantConfirmedCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
-        border: const Border(
-          left: BorderSide(color: Color(0xFF10B981), width: 4),
+        border: Border(
+          left: BorderSide(color: const Color(0xFF10B981), width: 4.w),
         ),
         boxShadow: AppTheme.crimsonShadow,
       ),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 40.r,
+            height: 40.r,
             decoration: const BoxDecoration(
               color: Color(0xFFECFDF5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF10B981), size: 22),
+            child: Icon(Icons.check_circle_rounded,
+                color: const Color(0xFF10B981), size: 22.r),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,17 +484,21 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                 Text(
                   _tenantName,
                   style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.onSurface),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'Slug: $_tenantSlug',
                   style: GoogleFonts.jetBrainsMono(
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.secondary,
                       letterSpacing: 0.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -507,22 +514,22 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
         Text(
           'Enter your PIN',
           style: GoogleFonts.inter(
-              fontSize: 24,
+              fontSize: 24.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
               letterSpacing: -0.3),
         ).animate().fadeIn(duration: 300.ms),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           '4-digit PIN given by your admin',
-          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.secondary),
+          style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28.h),
 
         // Error
         if (_errorMessage.isNotEmpty) ...[
           _buildErrorBanner(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
         ],
 
         // PIN dots
@@ -531,9 +538,9 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           children: List.generate(_pinLength, (i) {
             final filled = i < _pin.length;
             return Container(
-              width: 16,
-              height: 16,
-              margin: const EdgeInsets.symmetric(horizontal: 12),
+              width: 16.r,
+              height: 16.r,
+              margin: EdgeInsets.symmetric(horizontal: 12.w),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: filled
@@ -543,8 +550,8 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                     ? [
                         BoxShadow(
                           color: AppTheme.primary.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          spreadRadius: 2,
+                          blurRadius: 8.r,
+                          spreadRadius: 2.r,
                         )
                       ]
                     : null,
@@ -552,19 +559,19 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
             );
           }),
         ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
-        const SizedBox(height: 36),
+        SizedBox(height: 36.h),
 
         // Keypad
         _isLoading
             ? const CircularProgressIndicator()
             : SizedBox(
-                width: 280,
+                width: 280.w,
                 child: GridView.count(
                   crossAxisCount: 3,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 20,
-                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20.h,
+                  crossAxisSpacing: 20.w,
                   children: [
                     ...[
                       '1', '2', '3',
@@ -584,13 +591,13 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                 ),
               ).animate().fadeIn(duration: 300.ms, delay: 150.ms),
 
-        const SizedBox(height: 24),
+        SizedBox(height: 24.h),
         TextButton(
           onPressed: _startOver,
           child: Text(
             'Wrong restaurant? Start over',
             style: GoogleFonts.inter(
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.primaryContainer),
           ),
@@ -604,10 +611,10 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
 class _QrBrackets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    const bracketSize = 48.0;
-    const strokeWidth = 4.0;
+    final bracketSize = 48.r;
+    final strokeWidth = 4.w;
     const color = AppTheme.primaryContainer;
-    const radius = Radius.circular(8);
+    final radius = Radius.circular(8.r);
 
     return Stack(
       children: [
@@ -615,7 +622,7 @@ class _QrBrackets extends StatelessWidget {
           top: 0, left: 0,
           child: Container(
             width: bracketSize, height: bracketSize,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: color, width: strokeWidth),
                 left: BorderSide(color: color, width: strokeWidth),
@@ -628,7 +635,7 @@ class _QrBrackets extends StatelessWidget {
           top: 0, right: 0,
           child: Container(
             width: bracketSize, height: bracketSize,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: color, width: strokeWidth),
                 right: BorderSide(color: color, width: strokeWidth),
@@ -641,7 +648,7 @@ class _QrBrackets extends StatelessWidget {
           bottom: 0, left: 0,
           child: Container(
             width: bracketSize, height: bracketSize,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(color: color, width: strokeWidth),
                 left: BorderSide(color: color, width: strokeWidth),
@@ -654,7 +661,7 @@ class _QrBrackets extends StatelessWidget {
           bottom: 0, right: 0,
           child: Container(
             width: bracketSize, height: bracketSize,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(color: color, width: strokeWidth),
                 right: BorderSide(color: color, width: strokeWidth),
@@ -700,8 +707,8 @@ class _KeypadButtonState extends State<_KeypadButton> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 80),
-        width: 72,
-        height: 72,
+        width: 72.r,
+        height: 72.r,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: widget.isBackspace
@@ -714,11 +721,11 @@ class _KeypadButtonState extends State<_KeypadButton> {
         ),
         child: Center(
           child: widget.icon != null
-              ? Icon(widget.icon, color: AppTheme.primary, size: 26)
+              ? Icon(widget.icon, color: AppTheme.primary, size: 26.r)
               : Text(
                   widget.label!,
                   style: GoogleFonts.inter(
-                    fontSize: 24,
+                    fontSize: 24.sp,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF0F172A),
                   ),

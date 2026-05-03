@@ -8,6 +8,10 @@ import '../../features/splash/splash_screen.dart';
 import '../../features/auth/role_select_screen.dart';
 import '../../features/auth/admin_login_screen.dart';
 import '../../features/auth/staff_login_screen.dart';
+import '../../features/auth/change_password_screen.dart';
+import '../../features/auth/subscription_expired_screen.dart';
+import '../../features/auth/account_suspended_screen.dart';
+import '../../features/onboarding/onboarding_wizard_screen.dart';
 import '../../features/dashboard/admin_dashboard_screen.dart';
 import '../../features/staff/staff_tables_screen.dart';
 import '../../features/staff/manager_dashboard_screen.dart';
@@ -44,10 +48,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Debug route always accessible
       if (loc == '/debug') return null;
 
-      const publicRoutes = {'/splash', '/role-select', '/admin/login', '/staff/login'};
-      final isPublicRoute = publicRoutes.contains(loc);
+      // Post-login gated routes — require auth but are not the main dashboard
+      const postLoginRoutes = {
+        '/change-password',
+        '/subscription-expired',
+        '/account-suspended',
+        '/onboarding',
+      };
 
-      // Logged-in admin on auth screen → admin dashboard
+      const publicRoutes = {
+        '/splash',
+        '/role-select',
+        '/admin/login',
+        '/staff/login',
+      };
+
+      final isPublicRoute = publicRoutes.contains(loc);
+      final isPostLoginRoute = postLoginRoutes.contains(loc);
+
+      // Splash performs live resolve-context routing; do not short-circuit it
+      if (loc == '/splash') return null;
+
+      // Logged-in admin on public auth screens → post-login flow handles routing
       if (isPublicRoute && isAdminLoggedIn) {
         return '/admin/dashboard';
       }
@@ -59,6 +81,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (role == 'manager') return '/manager/dashboard';
         return '/admin/dashboard';
       }
+
+      // Post-login routes require a logged-in admin — if not, send to role-select
+      if (isPostLoginRoute && !isAdminLoggedIn) return '/role-select';
 
       // On protected admin routes without any session → role select
       const protectedAdminRoutes = {
@@ -104,6 +129,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/login',
         name: 'admin-login',
         builder: (context, state) => const AdminLoginScreen(),
+      ),
+
+      // ── Post-Login Gated Routes ──────────────────────────────────────────
+      GoRoute(
+        path: '/change-password',
+        name: 'change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '/subscription-expired',
+        name: 'subscription-expired',
+        builder: (context, state) => const SubscriptionExpiredScreen(),
+      ),
+      GoRoute(
+        path: '/account-suspended',
+        name: 'account-suspended',
+        builder: (context, state) => const AccountSuspendedScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingWizardScreen(),
       ),
 
       // ── Admin App ───────────────────────────────────────────────────────

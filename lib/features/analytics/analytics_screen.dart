@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -23,45 +24,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         backgroundColor: AppTheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
+        toolbarHeight: 64.h,
         title: Text(
-          'TableOS',
+          'Orderlli',
           style: GoogleFonts.inter(
-            fontSize: 20,
+            fontSize: 20.sp,
             fontWeight: FontWeight.w900,
             color: AppTheme.primary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_outlined,
               color: AppTheme.secondary,
+              size: 24.r,
             ),
             onPressed: () {},
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 100.h),
         children: [
           // Title + filter pills
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Analytics',
-                    style: GoogleFonts.inter(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
+              Expanded(
+                child: Text(
+                  'Analytics',
+                  style: GoogleFonts.inter(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onSurface,
+                    letterSpacing: -0.5,
                   ),
-                ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              SizedBox(width: 8.w),
               Row(
                 children: List.generate(_periods.length, (i) {
                   final active = _periodIndex == i;
@@ -69,21 +72,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     onTap: () => setState(() => _periodIndex = i),
                     child: AnimatedContainer(
                       duration: 200.ms,
-                      margin: const EdgeInsets.only(left: 6),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
+                      margin: EdgeInsets.only(left: 6.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 7.h,
                       ),
                       decoration: BoxDecoration(
                         color: active
                             ? AppTheme.primaryContainer
                             : AppTheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                       child: Text(
                         _periods[i],
                         style: GoogleFonts.inter(
-                          fontSize: 10,
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.w700,
                           color: active ? Colors.white : AppTheme.secondary,
                           letterSpacing: 0.8,
@@ -95,26 +98,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
 
           // Revenue chart
-          _RevenueChart().animate().fadeIn(duration: 400.ms),
-          const SizedBox(height: 16),
+          const _RevenueChart().animate().fadeIn(duration: 400.ms),
+          SizedBox(height: 16.h),
 
           // KPI horizontal scroll
-          _KpiStrip().animate(delay: 100.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 24),
+          const _KpiStrip().animate(delay: 100.ms).fadeIn(duration: 400.ms),
+          SizedBox(height: 24.h),
 
           // Best Sellers
-          _BestSellersCard().animate(delay: 150.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 16),
+          const _BestSellersCard().animate(delay: 150.ms).fadeIn(duration: 400.ms),
+          SizedBox(height: 16.h),
 
           // Station Distribution
-          _StationDonutCard().animate(delay: 200.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 16),
+          const _StationDonutCard().animate(delay: 200.ms).fadeIn(duration: 400.ms),
+          SizedBox(height: 16.h),
 
           // Peak Hours Heatmap
-          _PeakHoursCard().animate(delay: 250.ms).fadeIn(duration: 400.ms),
+          const _PeakHoursCard().animate(delay: 250.ms).fadeIn(duration: 400.ms),
         ],
       ),
     );
@@ -128,7 +131,7 @@ class _RevenueChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
@@ -140,49 +143,57 @@ class _RevenueChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Revenue Today',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppTheme.secondary,
-                      fontWeight: FontWeight.w500,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Revenue Today',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        color: AppTheme.secondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '₹48,240',
-                    style: GoogleFonts.inter(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.onSurface,
+                    SizedBox(height: 4.h),
+                    Text(
+                      '₹48,240',
+                      style: GoogleFonts.inter(
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              SizedBox(width: 12.w),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 6.h,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.trending_up_rounded,
-                      color: Color(0xFF059669),
-                      size: 14,
+                      color: const Color(0xFF059669),
+                      size: 14.r,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     Text(
                       '+12.4%',
                       style: GoogleFonts.jetBrainsMono(
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF059669),
                       ),
@@ -192,12 +203,12 @@ class _RevenueChart extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           SizedBox(
-            height: 140,
+            height: 140.h,
             child: CustomPaint(painter: _RevenuePainter(), size: Size.infinite),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -213,7 +224,7 @@ class _RevenueChart extends StatelessWidget {
                 Text(
                   h,
                   style: GoogleFonts.inter(
-                    fontSize: 9,
+                    fontSize: 9.sp,
                     color: AppTheme.secondary,
                   ),
                 ),
@@ -277,8 +288,8 @@ class _RevenuePainter extends CustomPainter {
     for (var i = 0; i < pts.length; i++) {
       final x = w * i / (pts.length - 1);
       final y = h * (1 - pts[i] * 0.85);
-      canvas.drawCircle(Offset(x, y), 5, dotBorder);
-      canvas.drawCircle(Offset(x, y), 3.5, dotPaint);
+      canvas.drawCircle(Offset(x, y), 5.r, dotBorder);
+      canvas.drawCircle(Offset(x, y), 3.5.r, dotPaint);
     }
   }
 
@@ -299,23 +310,23 @@ class _KpiStrip extends StatelessWidget {
       ('Turnover', '1.8x', '+0.3x', true),
     ];
     return SizedBox(
-      height: 90,
+      height: 125.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: kpis.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        separatorBuilder: (context, index) => SizedBox(width: 12.w),
         itemBuilder: (context, i) {
           final (label, value, delta, positive) = kpis[i];
           return Container(
-            width: 130,
-            padding: const EdgeInsets.all(14),
+            width: 130.w,
+            padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
               color: AppTheme.surfaceContainerLowest,
               borderRadius: AppTheme.radiusMd,
-              border: const Border(
+              border: Border(
                 bottom: BorderSide(
                   color: AppTheme.surfaceContainerHigh,
-                  width: 2,
+                  width: 2.h,
                 ),
               ),
             ),
@@ -326,26 +337,32 @@ class _KpiStrip extends StatelessWidget {
                 Text(
                   label,
                   style: GoogleFonts.inter(
-                    fontSize: 10,
+                    fontSize: 10.sp,
                     color: AppTheme.secondary,
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   value,
                   style: GoogleFonts.inter(
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.onSurface,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   delta,
                   style: GoogleFonts.jetBrainsMono(
-                    fontSize: 11,
+                    fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
                     color: positive ? const Color(0xFF059669) : AppTheme.error,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -369,7 +386,7 @@ class _BestSellersCard extends StatelessWidget {
       ('Mango Lassi', 0.58, '93 orders'),
     ];
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
@@ -381,41 +398,46 @@ class _BestSellersCard extends StatelessWidget {
           Text(
             'Best Sellers',
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           ...List.generate(items.length, (i) {
             final (name, ratio, orders) = items[i];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.only(bottom: 16.h),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.onSurface,
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      SizedBox(width: 12.w),
                       Text(
                         orders,
                         style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11,
+                          fontSize: 11.sp,
                           color: AppTheme.secondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(9999),
+                    borderRadius: BorderRadius.circular(9999.r),
                     child: LinearProgressIndicator(
                       value: ratio,
                       backgroundColor: AppTheme.surfaceContainer,
@@ -424,7 +446,7 @@ class _BestSellersCard extends StatelessWidget {
                           alpha: 0.5 + 0.5 * ratio,
                         ),
                       ),
-                      minHeight: 8,
+                      minHeight: 8.h,
                     ),
                   ),
                 ],
@@ -450,7 +472,7 @@ class _StationDonutCard extends StatelessWidget {
       ('Cold Station', 0.15, Color(0xFFE2E8F0)),
     ];
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
@@ -462,17 +484,17 @@ class _StationDonutCard extends StatelessWidget {
           Text(
             'Station Distribution',
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           Row(
             children: [
               SizedBox(
-                width: 130,
-                height: 130,
+                width: 130.r,
+                height: 130.r,
                 child: CustomPaint(
                   painter: _DonutPainter(
                     stations.map((s) => (s.$2, s.$3)).toList(),
@@ -484,7 +506,7 @@ class _StationDonutCard extends StatelessWidget {
                         Text(
                           '147',
                           style: GoogleFonts.inter(
-                            fontSize: 20,
+                            fontSize: 20.sp,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.onSurface,
                           ),
@@ -492,7 +514,7 @@ class _StationDonutCard extends StatelessWidget {
                         Text(
                           'ORDERS',
                           style: GoogleFonts.inter(
-                            fontSize: 8,
+                            fontSize: 8.sp,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.secondary,
                             letterSpacing: 1,
@@ -503,40 +525,47 @@ class _StationDonutCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: 20.w),
               Expanded(
                 child: Column(
                   children: stations
                       .map(
                         (s) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: EdgeInsets.symmetric(vertical: 6.h),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color: s.$3,
-                                      shape: BoxShape.circle,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 10.r,
+                                      height: 10.r,
+                                      decoration: BoxDecoration(
+                                        color: s.$3,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    s.$1,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: AppTheme.secondary,
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Text(
+                                        s.$1,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12.sp,
+                                          color: AppTheme.secondary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              SizedBox(width: 8.w),
                               Text(
                                 '${(s.$2 * 100).toInt()}%',
                                 style: GoogleFonts.jetBrainsMono(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.onSurface,
                                 ),
@@ -563,8 +592,8 @@ class _DonutPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 4;
-    const strokeWidth = 22.0;
+    final radius = size.width / 2 - 4.r;
+    final strokeWidth = 22.0.r;
     const gap = 0.04;
 
     var startAngle = -pi / 2;
@@ -606,7 +635,7 @@ class _PeakHoursCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusMd,
@@ -618,20 +647,22 @@ class _PeakHoursCard extends StatelessWidget {
           Text(
             'Peak Hours',
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             'Order density by hour and day',
-            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondary),
+            style: GoogleFonts.inter(fontSize: 12.sp, color: AppTheme.secondary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           // Hour labels
           Padding(
-            padding: const EdgeInsets.only(left: 36),
+            padding: EdgeInsets.only(left: 36.w),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: _hours
@@ -639,7 +670,7 @@ class _PeakHoursCard extends StatelessWidget {
                     (h) => Text(
                       h,
                       style: GoogleFonts.inter(
-                        fontSize: 8,
+                        fontSize: 8.sp,
                         color: AppTheme.secondary,
                       ),
                     ),
@@ -647,20 +678,20 @@ class _PeakHoursCard extends StatelessWidget {
                   .toList(),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Grid
           ...List.generate(
             _days.length,
             (row) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.only(bottom: 6.h),
               child: Row(
                 children: [
                   SizedBox(
-                    width: 30,
+                    width: 30.w,
                     child: Text(
                       _days[row],
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         color: AppTheme.secondary,
                       ),
                     ),
@@ -669,13 +700,13 @@ class _PeakHoursCard extends StatelessWidget {
                     final v = _heat[row][col];
                     return Expanded(
                       child: Container(
-                        height: 22,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        height: 22.h,
+                        margin: EdgeInsets.symmetric(horizontal: 2.w),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryContainer.withValues(
                             alpha: v * 0.85 + 0.05,
                           ),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(4.r),
                         ),
                       ),
                     );
@@ -684,29 +715,28 @@ class _PeakHoursCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           // Legend
           Row(
             children: [
               Text(
                 'Less',
                 style: GoogleFonts.inter(
-                  fontSize: 9,
+                  fontSize: 9.sp,
                   color: AppTheme.secondary,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               ...List.generate(
                 5,
                 (i) => Container(
-                  width: 20,
-                  height: 12,
-                  margin: const EdgeInsets.only(right: 2),
+                  width: 20.w,
+                  height: 12.h,
+                  margin: EdgeInsets.only(right: 2.w),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryContainer.withValues(
                       alpha: 0.1 + i * 0.2,
                     ),
-                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),

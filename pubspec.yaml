@@ -1,5 +1,5 @@
-name: tableos_admin
-description: "TableOS Admin — Restaurant management app powered by Supabase."
+name: orderlli_admin
+description: "Orderlli Admin — Restaurant management app powered by Supabase."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -52,6 +52,9 @@ dependencies:
 
   # Animations
   flutter_animate: ^4.5.2
+
+  # Responsive design
+  flutter_screenutil: ^5.9.0
 
   # QR Scanner
   mobile_scanner: ^6.0.5

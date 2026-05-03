@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/auth/auth_provider.dart';
+import '../../core/auth/app_context_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
@@ -23,8 +25,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   // Phone OTP form
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
-  bool _showPhonePanel = false;
-  bool _showOTPField = false;
+  final bool _showPhonePanel = false;
 
   // Shared state
   bool _isLoading = false;
@@ -53,67 +54,53 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         _passwordController.text,
       );
       if (response.user != null) {
-        if (mounted) context.go('/admin/dashboard');
+        // Step 2: resolve tenant context immediately after login
+        final ctx = await ref
+            .read(appContextProvider.notifier)
+            .resolveContext();
+        if (ctx == null) {
+          if (mounted) {
+            context.go('/admin/login');
+          }
+          return;
+        }
+        if (mounted) {
+          _routeFromFlags(
+            ctx.flags.mustChangePassword,
+            ctx.flags.subscriptionExpired,
+            !ctx.tenant.isActive,
+            ctx.flags.onboardingRequired,
+          );
+        }
       } else {
         setState(() => _errorMessage = 'Login failed. Please try again.');
       }
     } catch (e) {
-      setState(() =>
-          _errorMessage = e.toString().replaceAll('AuthApiException: ', ''));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ── Send Phone OTP ─────────────────────────────────────────────────────────
-  Future<void> _sendOTP() async {
-    if (_phoneController.text.isEmpty) {
-      setState(() => _errorMessage = 'Please enter phone number');
-      return;
-    }
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-    try {
-      final authService = ref.read(authServiceProvider);
-      await authService.sendOTP('+91${_phoneController.text.trim()}');
-      setState(() => _showOTPField = true);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('OTP sent successfully'),
-            backgroundColor: Color(0xFF059669),
-          ),
-        );
-      }
-    } catch (e) {
       setState(
-          () => _errorMessage = 'Failed to send OTP. Check phone number.');
+        () => _errorMessage = e.toString().replaceAll('AuthApiException: ', ''),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ── Verify Phone OTP ───────────────────────────────────────────────────────
-  Future<void> _verifyOTP() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-    try {
-      final authService = ref.read(authServiceProvider);
-      final response = await authService.verifyOTP(
-        '+91${_phoneController.text.trim()}',
-        _otpController.text.trim(),
-      );
-      if (response.user != null) {
-        if (mounted) context.go('/admin/dashboard');
-      }
-    } catch (e) {
-      setState(() => _errorMessage = 'Invalid OTP. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+  // ── Route helper based on flags ────────────────────────────────────────────
+  void _routeFromFlags(
+    bool mustChangePw,
+    bool subExpired,
+    bool suspended,
+    bool onboardRequired,
+  ) {
+    if (mustChangePw) {
+      context.go('/change-password');
+    } else if (subExpired) {
+      context.go('/subscription-expired');
+    } else if (suspended) {
+      context.go('/account-suspended');
+    } else if (onboardRequired) {
+      context.go('/onboarding');
+    } else {
+      context.go('/admin/dashboard');
     }
   }
 
@@ -125,26 +112,27 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         backgroundColor: AppTheme.surfaceContainerLowest,
         elevation: 1,
         shadowColor: AppTheme.surfaceContainerHigh,
+        toolbarHeight: 64.h,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: Icon(Icons.arrow_back_rounded, size: 24.r),
           onPressed: () => context.pop(),
           color: AppTheme.secondary,
         ),
         title: Text(
           'Admin Login',
           style: GoogleFonts.inter(
-            fontSize: 18,
+            fontSize: 18.sp,
             fontWeight: FontWeight.w700,
             color: AppTheme.primaryContainer,
           ),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: 16.w),
             child: Text(
-              'TableOS',
+              'Orderlli',
               style: GoogleFonts.inter(
-                fontSize: 20,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.primaryContainer,
               ),
@@ -152,38 +140,29 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            children: [
-              // ── Branding ──────────────────────────────────────────────────
-              _buildBrandingSection(),
-              const SizedBox(height: 32),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // ── Branding ──────────────────────────────────────────────────
+                    _buildBrandingSection(),
+                    SizedBox(height: 32.h),
+                    // ── ID + Password form ─────────────────────────────────────────
+                    _buildIdPasswordCard(),
+                    SizedBox(height: 24.h),
 
-              // ── Login method cards ─────────────────────────────────────────
-              _buildGoogleButton(),
-              const SizedBox(height: 12),
-              _buildPhoneButton(),
-              const SizedBox(height: 24),
-
-              // ── Phone OTP panel ────────────────────────────────────────────
-              if (_showPhonePanel) ...[
-                _buildPhoneOtpCard(),
-                const SizedBox(height: 24),
-              ],
-
-              // ── OR Divider ────────────────────────────────────────────────
-              _buildDivider(),
-              const SizedBox(height: 24),
-
-              // ── ID + Password form ─────────────────────────────────────────
-              _buildIdPasswordCard(),
-              const SizedBox(height: 24),
-
-              // ── Footer ────────────────────────────────────────────────────
-              _buildFooter(),
-            ],
+                    // ── Footer ────────────────────────────────────────────────────
+                    _buildFooter(),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -194,323 +173,58 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(
-            Icons.shield_rounded,
-            size: 48,
-            color: AppTheme.primaryContainer,
-          ),
-        ).animate().fadeIn(duration: 500.ms).scale(
-              begin: const Offset(0.8, 0.8),
-              curve: Curves.easeOutBack,
-            ),
-        const SizedBox(height: 16),
+              width: 80.r,
+              height: 80.r,
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Icon(
+                Icons.shield_rounded,
+                size: 48.r,
+                color: AppTheme.primaryContainer,
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
+        SizedBox(height: 16.h),
         Text(
           'Welcome back',
           style: GoogleFonts.inter(
-            fontSize: 30,
+            fontSize: 26.sp,
             fontWeight: FontWeight.w700,
             color: AppTheme.onSurface,
             letterSpacing: -0.5,
           ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           'Sign in to manage your restaurant',
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: 13.sp,
             fontWeight: FontWeight.w500,
             color: AppTheme.secondary,
           ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
       ],
     );
   }
 
-  Widget _buildGoogleButton() {
-    return _MethodButton(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Google sign-in coming soon')),
-        );
-      },
-      child: Row(
-        children: [
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: Image.network(
-              'https://www.google.com/favicon.ico',
-              width: 20,
-              height: 20,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.g_mobiledata_rounded,
-                color: Color(0xFF4285F4),
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            'Continue with Google',
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
-        ],
-      ),
-    ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1);
-  }
-
-  Widget _buildPhoneButton() {
-    return _MethodButton(
-      onTap: () {
-        setState(() {
-          _showPhonePanel = !_showPhonePanel;
-          _errorMessage = '';
-        });
-      },
-      child: Row(
-        children: [
-          Icon(
-            Icons.smartphone_rounded,
-            color: _showPhonePanel
-                ? AppTheme.primaryContainer
-                : AppTheme.secondary,
-            size: 22,
-          ),
-          const SizedBox(width: 16),
-          Text(
-            _showPhonePanel
-                ? 'Hide Phone Login'
-                : 'Continue with Phone Number',
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
-        ],
-      ),
-    ).animate(delay: 250.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1);
-  }
-
-  Widget _buildPhoneOtpCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: AppTheme.radiusXl,
-        border: Border(
-          left: BorderSide(color: const Color(0xFF059669), width: 3),
-        ),
-        boxShadow: AppTheme.crimsonShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.phone_rounded,
-                  color: Color(0xFF059669), size: 20),
-              const SizedBox(width: 10),
-              Text(
-                'Phone OTP Login',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Error banner
-          if (_errorMessage.isNotEmpty) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                    color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline,
-                      color: Color(0xFFEF4444), size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage,
-                      style: const TextStyle(
-                          color: Color(0xFFEF4444), fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
-          // Phone field
-          Text(
-            'Mobile Number',
-            style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.secondary),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            style: GoogleFonts.jetBrainsMono(
-                fontSize: 14, color: AppTheme.onSurface),
-            decoration: InputDecoration(
-              prefixText: '+91 ',
-              prefixStyle: GoogleFonts.jetBrainsMono(
-                  fontSize: 14, color: AppTheme.onSurface),
-              hintText: '9876543210',
-              hintStyle: GoogleFonts.jetBrainsMono(
-                  fontSize: 14,
-                  color: AppTheme.secondary.withValues(alpha: 0.5)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              filled: true,
-              fillColor: AppTheme.surface,
-              border: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: AppTheme.surfaceContainerHigh, width: 2)),
-              enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: AppTheme.surfaceContainerHigh, width: 2)),
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Color(0xFF059669), width: 2)),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // OTP field (shown after OTP sent)
-          if (_showOTPField) ...[
-            Text(
-              'Enter OTP',
-              style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.secondary),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              style: GoogleFonts.jetBrainsMono(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 6,
-                  color: AppTheme.onSurface),
-              textAlign: TextAlign.center,
-              decoration: InputDecoration(
-                counterText: '',
-                hintText: '------',
-                hintStyle: GoogleFonts.jetBrainsMono(
-                    fontSize: 18,
-                    letterSpacing: 6,
-                    color: AppTheme.secondary.withValues(alpha: 0.4)),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                filled: true,
-                fillColor: AppTheme.surface,
-                border: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF059669), width: 2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _isLoading
-                  ? null
-                  : (_showOTPField ? _verifyOTP : _sendOTP),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF059669),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                elevation: 0,
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(
-                      _showOTPField ? 'Verify OTP' : 'Send OTP',
-                      style: GoogleFonts.inter(
-                          fontSize: 15, fontWeight: FontWeight.w600),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.05);
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(height: 1, color: AppTheme.surfaceContainerHighest),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'or',
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF94A3B8),
-              letterSpacing: 1.5,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(height: 1, color: AppTheme.surfaceContainerHighest),
-        ),
-      ],
-    ).animate(delay: 300.ms).fadeIn(duration: 400.ms);
-  }
-
   Widget _buildIdPasswordCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusXl,
         border: Border(
-          left: BorderSide(color: AppTheme.primaryContainer, width: 3),
+          left: BorderSide(color: AppTheme.primaryContainer, width: 3.w),
         ),
         boxShadow: AppTheme.crimsonShadow,
       ),
@@ -522,42 +236,54 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             // Card header
             Row(
               children: [
-                const Icon(Icons.key_rounded,
-                    color: AppTheme.primaryContainer, size: 20),
-                const SizedBox(width: 10),
-                Text(
-                  'Login with Email & Password',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.onSurface,
+                Icon(
+                  Icons.key_rounded,
+                  color: AppTheme.primaryContainer,
+                  size: 20.r,
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Text(
+                    'Email & Password',
+                    style: GoogleFonts.inter(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Error banner
             if (_errorMessage.isNotEmpty && !_showPhonePanel) ...[
               Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
+                margin: EdgeInsets.only(bottom: 16.h),
+                padding: EdgeInsets.all(12.r),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(8.r),
                   border: Border.all(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: Color(0xFFEF4444), size: 16),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.error_outline,
+                      color: const Color(0xFFEF4444),
+                      size: 16.r,
+                    ),
+                    SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
                         _errorMessage,
-                        style: const TextStyle(
-                            color: Color(0xFFEF4444), fontSize: 13),
+                        style: TextStyle(
+                          color: const Color(0xFFEF4444),
+                          fontSize: 13.sp,
+                        ),
                       ),
                     ),
                   ],
@@ -569,34 +295,49 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             Text(
               'Email Address',
               style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.secondary),
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.secondary,
+              ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               style: GoogleFonts.jetBrainsMono(
-                  fontSize: 14, color: AppTheme.onSurface),
+                fontSize: 14.sp,
+                color: AppTheme.onSurface,
+              ),
               decoration: InputDecoration(
-                hintText: 'admin@tableos.in',
+                hintText: 'admin@orderlli.in',
                 hintStyle: GoogleFonts.jetBrainsMono(
-                    fontSize: 14,
-                    color: AppTheme.secondary.withValues(alpha: 0.5)),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  fontSize: 14.sp,
+                  color: AppTheme.secondary.withValues(alpha: 0.5),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 14.h,
+                ),
                 filled: true,
                 fillColor: AppTheme.surface,
-                border: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: AppTheme.primaryContainer, width: 2)),
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh,
+                    width: 2.w,
+                  ),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh,
+                    width: 2.w,
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.primaryContainer,
+                    width: 2.w,
+                  ),
+                ),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Please enter email';
@@ -604,7 +345,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Password
             Row(
@@ -613,9 +354,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 Text(
                   'Password',
                   style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.secondary),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.secondary,
+                  ),
                 ),
                 TextButton(
                   onPressed: () {},
@@ -627,7 +369,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   child: Text(
                     'Forgot?',
                     style: GoogleFonts.inter(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.primaryContainer,
                       letterSpacing: -0.2,
@@ -636,28 +378,41 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurface),
+              style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.onSurface),
               decoration: InputDecoration(
                 hintText: '••••••••',
                 hintStyle: GoogleFonts.inter(
-                    color: AppTheme.secondary.withValues(alpha: 0.5)),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  fontSize: 14.sp,
+                  color: AppTheme.secondary.withValues(alpha: 0.5),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 14.h,
+                ),
                 filled: true,
                 fillColor: AppTheme.surface,
-                border: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: AppTheme.surfaceContainerHigh, width: 2)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: AppTheme.primaryContainer, width: 2)),
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh,
+                    width: 2.w,
+                  ),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.surfaceContainerHigh,
+                    width: 2.w,
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppTheme.primaryContainer,
+                    width: 2.w,
+                  ),
+                ),
                 suffixIcon: IconButton(
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
@@ -666,7 +421,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
                     color: AppTheme.secondary,
-                    size: 20,
+                    size: 20.r,
                   ),
                 ),
               ),
@@ -677,27 +432,28 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               },
               onFieldSubmitted: (_) => _loginWithPassword(),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Submit button
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 52.h,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _loginWithPassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryContainer,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
                   elevation: 0,
                   shadowColor: AppTheme.primary.withValues(alpha: 0.3),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        width: 20.r,
+                        height: 20.r,
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
@@ -705,15 +461,18 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Login to Dashboard',
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: Text(
+                              'Login to Dashboard',
+                              style: GoogleFonts.inter(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.login_rounded, size: 18),
+                          SizedBox(width: 8.w),
+                          Icon(Icons.login_rounded, size: 18.r),
                         ],
                       ),
               ),
@@ -727,7 +486,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   Widget _buildFooter() {
     return Text.rich(
       TextSpan(
-        style: GoogleFonts.inter(fontSize: 14, color: AppTheme.secondary),
+        style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
         children: [
           const TextSpan(text: 'Having trouble? '),
           TextSpan(
@@ -736,8 +495,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               fontWeight: FontWeight.w600,
               color: AppTheme.primaryContainer,
               decoration: TextDecoration.underline,
-              decorationColor:
-                  AppTheme.primaryContainer.withValues(alpha: 0.4),
+              decorationColor: AppTheme.primaryContainer.withValues(alpha: 0.4),
               decorationThickness: 2,
             ),
           ),
@@ -779,8 +537,8 @@ class _MethodButtonState extends State<_MethodButton> {
           scale: _pressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 100),
           child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            height: 52.h,
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
             decoration: BoxDecoration(
               color: _hovered
                   ? AppTheme.surfaceContainerLow
