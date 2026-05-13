@@ -190,27 +190,27 @@ class AppTheme {
       ),
       textTheme: base.copyWith(
         displayLarge: GoogleFonts.inter(
-            fontSize: 32, fontWeight: FontWeight.w700, color: onSurface),
+            fontSize: 32, fontWeight: FontWeight.w900, color: onSurface, letterSpacing: -1.0),
         headlineLarge: GoogleFonts.inter(
-            fontSize: 28, fontWeight: FontWeight.w700, color: onSurface),
+            fontSize: 28, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.5),
         headlineMedium: GoogleFonts.inter(
-            fontSize: 24, fontWeight: FontWeight.w700, color: onSurface),
+            fontSize: 24, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.5),
         titleLarge: GoogleFonts.inter(
-            fontSize: 18, fontWeight: FontWeight.w700, color: onSurface),
+            fontSize: 20, fontWeight: FontWeight.w800, color: onSurface),
         titleMedium: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w600, color: onSurface),
+            fontSize: 16, fontWeight: FontWeight.w700, color: onSurface),
         titleSmall: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w600, color: onSurface),
+            fontSize: 14, fontWeight: FontWeight.w700, color: onSurface),
         bodyLarge: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w400, color: onSurface),
+            fontSize: 16, fontWeight: FontWeight.w500, color: onSurface),
         bodyMedium: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w400, color: onSurface),
+            fontSize: 14, fontWeight: FontWeight.w500, color: onSurface),
         bodySmall: GoogleFonts.inter(
             fontSize: 12, fontWeight: FontWeight.w400, color: secondary),
         labelLarge: GoogleFonts.inter(
-            fontSize: 12, fontWeight: FontWeight.w600, color: secondary),
+            fontSize: 12, fontWeight: FontWeight.w700, color: secondary),
         labelSmall: GoogleFonts.inter(
-            fontSize: 10, fontWeight: FontWeight.w600, color: secondary),
+            fontSize: 10, fontWeight: FontWeight.w700, color: secondary, letterSpacing: 0.5),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

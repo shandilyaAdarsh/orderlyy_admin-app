@@ -9,8 +9,7 @@ import '../../features/auth/role_select_screen.dart';
 import '../../features/auth/admin_login_screen.dart';
 import '../../features/auth/staff_login_screen.dart';
 import '../../features/auth/change_password_screen.dart';
-import '../../features/auth/subscription_expired_screen.dart';
-import '../../features/auth/account_suspended_screen.dart';
+import '../../features/auth/blocked_screens.dart';
 import '../../features/onboarding/onboarding_wizard_screen.dart';
 import '../../features/dashboard/admin_dashboard_screen.dart';
 import '../../features/staff/staff_tables_screen.dart';
@@ -23,7 +22,7 @@ import '../../features/orders/admin_orders_screen.dart';
 import '../../features/orders/waiter_orders_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
 import '../../features/menu/menu_management_screen.dart';
-import '../../features/staff_mgmt/staff_management_screen.dart';
+import '../../features/staff/staff_management_screen.dart';
 import '../../features/debug/debug_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();

@@ -13,102 +13,117 @@ class AdminProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileProvider);
     final user = Supabase.instance.client.auth.currentUser;
-    final email = user?.email ?? 'vikram@thegrandspice.com';
-    final initials = email.isNotEmpty ? email[0].toUpperCase() : 'V';
+    final email = user?.email ?? '';
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: AppTheme.surfaceContainerLowest,
-        surfaceTintColor: Colors.transparent,
-        toolbarHeight: 64.h,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.secondary, size: 24.r),
-          onPressed: () => context.pop(),
-        ),
-        title: Text('Orderlli',
-            style: GoogleFonts.inter(fontSize: 20.sp, fontWeight: FontWeight.w900, color: AppTheme.primary)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_outlined, color: AppTheme.secondary, size: 24.r),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 120.h),
-        children: [
-          // Hero
-          _HeroCard(initials: initials).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
-          SizedBox(height: 16.h),
-          // Plan banner
-          _PlanBanner().animate(delay: 100.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 16.h),
-          // Restaurant section
-          _Section(
-            title: 'RESTAURANT',
-            rows: [
-              _InfoRow(icon: Icons.storefront_rounded, label: 'Name', value: 'The Grand Spice'),
-              _InfoRow(icon: Icons.location_on_rounded, label: 'Location', value: 'South Extension II, New Delhi'),
-              _InfoRow(icon: Icons.schedule_rounded, label: 'Operating Hours', value: '11:00 AM – 11:30 PM'),
-              _InfoRow(icon: Icons.grid_view_rounded, label: 'Tables', value: '42 Configured', mono: true),
-            ],
-          ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 16.h),
-          // Account section
-          _Section(
-            title: 'ACCOUNT',
-            rows: [
-              _InfoRow(icon: Icons.mail_rounded, label: 'Email', value: email),
-              _InfoRow(icon: Icons.call_rounded, label: 'Phone', value: '+91 98100 23456', mono: true),
-              _InfoRow(icon: Icons.lock_reset_rounded, label: 'Change Password', value: '', tappable: true),
-              _InfoRow(
-                icon: Icons.print_rounded, label: 'Printer Settings',
-                value: '3 KOT PRINTERS CONNECTED',
-                valueColor: AppTheme.primaryContainer, tappable: true,
+    return profileAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      data: (profile) {
+        final tenant = profile?['tenants'] as Map<String, dynamic>?;
+        final name = profile?['name'] ?? 'Admin User';
+        final initials = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+        final restaurantName = tenant?['name'] ?? 'Your Restaurant';
+        final location = tenant?['address'] ?? 'Location not set';
+
+        return Scaffold(
+          backgroundColor: AppTheme.background,
+          appBar: AppBar(
+            backgroundColor: AppTheme.surfaceContainerLowest,
+            surfaceTintColor: Colors.transparent,
+            toolbarHeight: 64.h,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_rounded, color: AppTheme.secondary, size: 24.r),
+              onPressed: () => context.pop(),
+            ),
+            title: Text('Orderlli',
+                style: GoogleFonts.inter(fontSize: 20.sp, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.notifications_outlined, color: AppTheme.secondary, size: 24.r),
+                onPressed: () {},
               ),
             ],
-          ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 32.h),
-          // Sign out
-          SizedBox(
-            height: 52.h,
-            child: OutlinedButton(
-              onPressed: () async {
-                final authService = ref.read(authServiceProvider);
-                await authService.signOut();
-                if (context.mounted) context.go('/role-select');
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primary,
-                side: BorderSide(color: AppTheme.primary, width: 2.w),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-              ),
-              child: Text('Sign Out',
-                  style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w700)),
-            ),
-          ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
-          SizedBox(height: 12.h),
-          Center(
-            child: TextButton(
-              onPressed: () {},
-              child: Text('DELETE ACCOUNT',
-                  style: GoogleFonts.inter(
-                    fontSize: 11.sp, fontWeight: FontWeight.w500,
-                    color: AppTheme.secondary.withValues(alpha: 0.6), letterSpacing: 0.5,
-                  )),
-            ),
           ),
-        ],
-      ),
+          body: ListView(
+            padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 120.h),
+            children: [
+              // Hero
+              _HeroCard(name: name, role: 'Owner · $restaurantName', initials: initials)
+                  .animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+              SizedBox(height: 16.h),
+              // Plan banner
+              _PlanBanner().animate(delay: 100.ms).fadeIn(duration: 400.ms),
+              SizedBox(height: 16.h),
+              // Restaurant section
+              _Section(
+                title: 'RESTAURANT',
+                rows: [
+                  _InfoRow(icon: Icons.storefront_rounded, label: 'Name', value: restaurantName),
+                  _InfoRow(icon: Icons.location_on_rounded, label: 'Location', value: location),
+                  _InfoRow(icon: Icons.schedule_rounded, label: 'Operating Hours', value: '11:00 AM – 11:30 PM'),
+                  _InfoRow(icon: Icons.grid_view_rounded, label: 'Tables', value: 'Active System', mono: true),
+                ],
+              ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
+              SizedBox(height: 16.h),
+              // Account section
+              _Section(
+                title: 'ACCOUNT',
+                rows: [
+                  _InfoRow(icon: Icons.mail_rounded, label: 'Email', value: email),
+                  _InfoRow(icon: Icons.call_rounded, label: 'Phone', value: profile?['phone'] ?? 'Not set', mono: true),
+                  _InfoRow(icon: Icons.lock_reset_rounded, label: 'Change Password', value: '', tappable: true),
+                  _InfoRow(
+                    icon: Icons.print_rounded, label: 'Printer Settings',
+                    value: 'CLoud Printing Active',
+                    valueColor: AppTheme.primaryContainer, tappable: true,
+                  ),
+                ],
+              ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
+              SizedBox(height: 32.h),
+              // Sign out
+              SizedBox(
+                height: 52.h,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final authService = ref.read(authServiceProvider);
+                    await authService.signOut();
+                    if (context.mounted) context.go('/role-select');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    side: BorderSide(color: AppTheme.primary, width: 2.w),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                  ),
+                  child: Text('Sign Out',
+                      style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w700)),
+                ),
+              ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
+              SizedBox(height: 12.h),
+              Center(
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text('DELETE ACCOUNT',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.sp, fontWeight: FontWeight.w500,
+                        color: AppTheme.secondary.withValues(alpha: 0.6), letterSpacing: 0.5,
+                      )),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class _HeroCard extends StatelessWidget {
+  final String name;
+  final String role;
   final String initials;
-  const _HeroCard({required this.initials});
+  const _HeroCard({required this.name, required this.role, required this.initials});
 
   @override
   Widget build(BuildContext context) {
@@ -146,11 +161,11 @@ class _HeroCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 16.h),
-          Text('Vikram Sharma',
+          Text(name,
               style: GoogleFonts.inter(fontSize: 26.sp, fontWeight: FontWeight.w700, color: AppTheme.onSurface),
               textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
           SizedBox(height: 4.h),
-          Text('Owner · The Grand Spice',
+          Text(role,
               style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
               textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
           SizedBox(height: 12.h),

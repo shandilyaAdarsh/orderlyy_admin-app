@@ -4,8 +4,7 @@ class AuthService {
   final _client = Supabase.instance.client;
 
   // ── Admin login with email + password ──────────────────────────────────────
-  Future<AuthResponse> signInWithPassword(
-      String email, String password) async {
+  Future<AuthResponse> signInWithPassword(String email, String password) async {
     return await _client.auth.signInWithPassword(
       email: email,
       password: password,
@@ -14,9 +13,7 @@ class AuthService {
 
   // ── Send phone OTP ─────────────────────────────────────────────────────────
   Future<void> sendOTP(String phone) async {
-    await _client.auth.signInWithOtp(
-      phone: phone,
-    );
+    await _client.auth.signInWithOtp(phone: phone);
   }
 
   // ── Verify phone OTP ───────────────────────────────────────────────────────
@@ -33,18 +30,43 @@ class AuthService {
     final user = _client.auth.currentUser;
     if (user == null) return null;
 
-    final response = await _client
-        .from('profiles')
-        .select('*, tenants(*)')
-        .eq('id', user.id)
-        .maybeSingle();
+    try {
+      final profile = await _client
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
 
-    return response;
+      if (profile == null) return null;
+
+      final tenantId = profile['tenant_id'];
+      if (tenantId != null) {
+        try {
+          final tenant = await _client
+              .from('tenants')
+              .select('*')
+              .eq('id', tenantId)
+              .maybeSingle();
+
+          if (tenant != null) {
+            profile['tenants'] = tenant;
+          }
+        } catch (_) {
+          // Ignore tenant lookup failures to avoid blocking profile rendering.
+        }
+      }
+
+      return profile;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── Staff PIN login ────────────────────────────────────────────────────────
   Future<Map<String, dynamic>?> staffPinLogin(
-      String tenantSlug, String pin) async {
+    String tenantSlug,
+    String pin,
+  ) async {
     final response = await _client
         .from('staff')
         .select('*, tenants!inner(*)')

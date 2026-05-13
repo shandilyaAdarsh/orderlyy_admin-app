@@ -2,23 +2,192 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/auth/auth_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isSaving = false;
   bool _notifyNewOrder = true;
   bool _notifyOrderReady = true;
   bool _notifyLowStock = false;
   bool _notifyRevenue = false;
   bool _printReceipt = true;
+  bool _autoAccept = false;
+  String _confirmationSound = 'BEEP_01';
+  bool _qrAutoAssign = true;
   final _gstController = TextEditingController(text: '27AAACH0000Z1Z5');
   final _taxController = TextEditingController(text: '5.00');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    // Try to load from Supabase if available
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final profile = await ref.read(userProfileProvider.future);
+        final tenantId = profile?['tenant_id'];
+        if (tenantId != null) {
+          final res = await Supabase.instance.client
+              .from('tenant_settings')
+              .select()
+              .eq('tenant_id', tenantId)
+              .maybeSingle();
+          if (res != null) {
+            setState(() {
+              _notifyNewOrder = res['notify_new_order'] ?? true;
+              _notifyOrderReady = res['notify_order_ready'] ?? true;
+              _notifyLowStock = res['notify_low_stock'] ?? false;
+              _notifyRevenue = res['notify_revenue'] ?? false;
+              _printReceipt = res['print_receipt'] ?? true;
+              _autoAccept = res['auto_accept'] ?? false;
+              _confirmationSound = res['confirmation_sound'] ?? 'BEEP_01';
+              _qrAutoAssign = res['qr_auto_assign'] ?? true;
+              _gstController.text = res['gst_number'] ?? '';
+              _taxController.text = (res['tax_percentage'] ?? 5.0).toString();
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading settings: $e');
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    setState(() => _isSaving = true);
+    try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = profile?['tenant_id'];
+      if (tenantId != null) {
+        await Supabase.instance.client.from('tenant_settings').upsert({
+          'tenant_id': tenantId,
+          'notify_new_order': _notifyNewOrder,
+          'notify_order_ready': _notifyOrderReady,
+          'notify_low_stock': _notifyLowStock,
+          'notify_revenue': _notifyRevenue,
+          'print_receipt': _printReceipt,
+          'auto_accept': _autoAccept,
+          'confirmation_sound': _confirmationSound,
+          'qr_auto_assign': _qrAutoAssign,
+          'gst_number': _gstController.text.trim(),
+          'tax_percentage': double.tryParse(_taxController.text) ?? 5.0,
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Settings saved successfully!'), backgroundColor: Colors.green),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save settings: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _resetOrders() async {
+    final confirmed = await _showConfirmDialog(
+      'Reset All Orders',
+      'This will permanently delete all order data. This action cannot be undone.',
+    );
+    if (!confirmed) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = profile?['tenant_id'];
+      if (tenantId != null) {
+        await Supabase.instance.client
+            .from('orders')
+            .delete()
+            .eq('tenant_id', tenantId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('All orders have been reset.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to reset orders: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _clearMenu() async {
+    final confirmed = await _showConfirmDialog(
+      'Clear Menu Items',
+      'This will wipe all dishes and categories. This action cannot be undone.',
+    );
+    if (!confirmed) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = profile?['tenant_id'];
+      if (tenantId != null) {
+        await Supabase.instance.client
+            .from('menu_items')
+            .delete()
+            .eq('tenant_id', tenantId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Menu items have been cleared.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to clear menu: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<bool> _showConfirmDialog(String title, String message) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surfaceContainerLowest,
+            title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.error)),
+            content: Text(message, style: GoogleFonts.inter()),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('DELETE', style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
 
   @override
   void dispose() {
@@ -67,6 +236,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         actions: [
+          if (_isSaving)
+            const Center(child: Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+          else
+            TextButton(
+              onPressed: _saveSettings,
+              child: Text('SAVE', style: GoogleFonts.inter(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppTheme.primaryContainer)),
+            ),
           IconButton(
             icon: Icon(
               Icons.notifications_outlined,
@@ -150,16 +326,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _OrderingRow(
                   icon: Icons.auto_awesome_rounded,
                   label: 'Auto-accept',
-                  trailing: Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppTheme.surfaceDim,
-                    size: 20.r,
+                  subtitle: 'Automatically confirm all incoming orders',
+                  trailing: Switch(
+                    value: _autoAccept,
+                    onChanged: (v) => setState(() => _autoAccept = v),
+                    activeTrackColor: AppTheme.primaryContainer,
                   ),
-                  highlight: true,
+                  highlight: _autoAccept,
                 ),
                 _OrderingRow(
                   icon: Icons.volume_up_rounded,
                   label: 'Confirmation Sound',
+                  subtitle: 'Select audio cue for new notifications',
                   trailing: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: 8.w,
@@ -170,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
-                      'BEEP_01',
+                      _confirmationSound,
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 10.sp,
                         color: AppTheme.secondary,
@@ -181,10 +359,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _OrderingRow(
                   icon: Icons.qr_code_2_rounded,
                   label: 'QR Auto-assign',
-                  trailing: Icon(
-                    Icons.toggle_on_rounded,
-                    color: AppTheme.primaryContainer,
-                    size: 28.r,
+                  subtitle: 'Map QR codes to tables automatically',
+                  trailing: Switch(
+                    value: _qrAutoAssign,
+                    onChanged: (v) => setState(() => _qrAutoAssign = v),
+                    activeTrackColor: AppTheme.primaryContainer,
                   ),
                 ),
               ],
@@ -401,6 +580,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle:
                       'Permanently delete all order data',
                   icon: Icons.warning_rounded,
+                  onTap: _resetOrders,
                 ),
                 Divider(
                   color: AppTheme.error.withValues(alpha: 0.1),
@@ -412,6 +592,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle:
                       'Wipe all dishes and categories',
                   icon: Icons.delete_forever_rounded,
+                  onTap: _clearMenu,
                 ),
               ],
             ),
@@ -529,11 +710,13 @@ class _ToggleRow extends StatelessWidget {
 class _OrderingRow extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String subtitle;
   final Widget trailing;
   final bool highlight;
   const _OrderingRow({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.trailing,
     this.highlight = false,
   });
@@ -571,15 +754,29 @@ class _OrderingRow extends StatelessWidget {
                     ),
                     SizedBox(width: 12.w),
                     Expanded(
-                      child: Text(
-                        label,
-                        style: GoogleFonts.inter(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: GoogleFonts.inter(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.inter(
+                              fontSize: 11.sp,
+                              color: AppTheme.secondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -673,16 +870,18 @@ class _DangerRow extends StatelessWidget {
   final String label;
   final String subtitle;
   final IconData icon;
+  final VoidCallback onTap;
   const _DangerRow({
     required this.label,
     required this.subtitle,
     required this.icon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Row(
