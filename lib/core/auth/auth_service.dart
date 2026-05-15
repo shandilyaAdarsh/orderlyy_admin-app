@@ -32,7 +32,7 @@ class AuthService {
 
     try {
       final profile = await _client
-          .from('profiles')
+          .from('admin_profiles')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();

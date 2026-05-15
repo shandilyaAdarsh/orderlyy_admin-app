@@ -4,7 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/auth/mock_auth_provider.dart';
+import '../../core/providers/repository_providers.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -56,24 +57,16 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     });
 
     try {
-      // 1. Call edge function to change password
-      final supabase = Supabase.instance.client;
-      final response = await supabase.functions.invoke(
-        'change-password',
-        body: {'new_password': _newPasswordController.text},
-      );
+      // Call AuthRepository.changePassword (no-op in mock mode)
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.changePassword('', _newPasswordController.text);
 
-      if (response.status != 200) {
-        final error = response.data?['error'] ?? 'Password change failed';
-        throw Exception(error);
-      }
-
-      // 2. Password changed successfully. Session is now invalid.
-      await supabase.auth.signOut();
+      // Sign out and clear context
+      await authRepo.signOut();
+      ref.read(appContextProvider.notifier).clearContext();
 
       if (!mounted) return;
 
-      // 3. Show success message then redirect to login
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
@@ -84,7 +77,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         ),
       );
 
-      // 4. Navigate to login, clearing the entire navigation stack
       context.go('/admin/login');
     } catch (e) {
       setState(() {

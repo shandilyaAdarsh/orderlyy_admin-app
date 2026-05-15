@@ -1,0 +1,23 @@
+{
+  "categories": [
+    { "id": "cat-001", "tenant_id": "mock-tenant-001", "name": "Starters", "description": "Appetizers and small bites", "sort_order": 1, "is_active": true },
+    { "id": "cat-002", "tenant_id": "mock-tenant-001", "name": "Main Course", "description": "Signature dishes", "sort_order": 2, "is_active": true },
+    { "id": "cat-003", "tenant_id": "mock-tenant-001", "name": "Breads", "description": "Freshly baked", "sort_order": 3, "is_active": true },
+    { "id": "cat-004", "tenant_id": "mock-tenant-001", "name": "Beverages", "description": "Hot & cold drinks", "sort_order": 4, "is_active": true },
+    { "id": "cat-005", "tenant_id": "mock-tenant-001", "name": "Desserts", "description": "Sweet endings", "sort_order": 5, "is_active": true }
+  ],
+  "items": [
+    { "id": "item-001", "tenant_id": "mock-tenant-001", "category_id": "cat-001", "name": "Paneer Tikka", "description": "Cottage cheese marinated in spices, grilled in tandoor", "price": 280, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 20, "tags": ["bestseller", "veg"] },
+    { "id": "item-002", "tenant_id": "mock-tenant-001", "category_id": "cat-001", "name": "Chicken Seekh Kebab", "description": "Minced chicken with herbs on skewer", "price": 320, "image_url": null, "is_available": true, "is_vegetarian": false, "prep_time_minutes": 25, "tags": ["popular"] },
+    { "id": "item-003", "tenant_id": "mock-tenant-001", "category_id": "cat-001", "name": "Samosa (2 pcs)", "description": "Crispy pastry with spiced potato filling", "price": 80, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 10, "tags": ["veg", "quick"] },
+    { "id": "item-004", "tenant_id": "mock-tenant-001", "category_id": "cat-002", "name": "Butter Chicken", "description": "Tender chicken in rich tomato-cream sauce", "price": 380, "image_url": null, "is_available": true, "is_vegetarian": false, "prep_time_minutes": 30, "tags": ["bestseller", "must-try"] },
+    { "id": "item-005", "tenant_id": "mock-tenant-001", "category_id": "cat-002", "name": "Dal Makhani", "description": "Slow-cooked black lentils with butter and cream", "price": 260, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 20, "tags": ["veg", "bestseller"] },
+    { "id": "item-006", "tenant_id": "mock-tenant-001", "category_id": "cat-002", "name": "Palak Paneer", "description": "Cottage cheese in spiced spinach gravy", "price": 290, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 20, "tags": ["veg"] },
+    { "id": "item-007", "tenant_id": "mock-tenant-001", "category_id": "cat-002", "name": "Lamb Rogan Josh", "description": "Aromatic Kashmiri lamb curry", "price": 450, "image_url": null, "is_available": false, "is_vegetarian": false, "prep_time_minutes": 40, "tags": ["special"] },
+    { "id": "item-008", "tenant_id": "mock-tenant-001", "category_id": "cat-003", "name": "Garlic Naan", "description": "Leavened bread with garlic butter", "price": 60, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 8, "tags": ["veg"] },
+    { "id": "item-009", "tenant_id": "mock-tenant-001", "category_id": "cat-003", "name": "Tandoori Roti", "description": "Whole wheat bread from tandoor", "price": 40, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 8, "tags": ["veg"] },
+    { "id": "item-010", "tenant_id": "mock-tenant-001", "category_id": "cat-004", "name": "Masala Chai", "description": "Spiced milk tea", "price": 50, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 5, "tags": ["veg", "hot"] },
+    { "id": "item-011", "tenant_id": "mock-tenant-001", "category_id": "cat-004", "name": "Fresh Lime Soda", "description": "Refreshing lime with soda", "price": 70, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 3, "tags": ["veg", "cold"] },
+    { "id": "item-012", "tenant_id": "mock-tenant-001", "category_id": "cat-005", "name": "Gulab Jamun", "description": "Soft milk-solid dumplings in rose syrup", "price": 120, "image_url": null, "is_available": true, "is_vegetarian": true, "prep_time_minutes": 5, "tags": ["veg", "sweet"] }
+  ]
+}

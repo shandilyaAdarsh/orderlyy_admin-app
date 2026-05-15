@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/auth/app_context_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+// ── SplashScreen ──────────────────────────────────────────────────────────────
+// In mock mode: checks mock auth state only.
+// No Supabase.instance references.
+
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _progressController;
 
@@ -35,12 +38,12 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2500));
     if (!mounted) return;
 
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user != null) {
-      final container = ProviderScope.containerOf(context, listen: false);
-      final resolvedCtx = await container
-          .read(appContextProvider.notifier)
-          .resolveContext();
+    final currentUserId = ref.read(currentUserIdProvider);
+
+    if (currentUserId != null) {
+      // Resolve mock context to determine routing flags
+      final resolvedCtx =
+          await ref.read(appContextProvider.notifier).resolveContext();
       if (!mounted) return;
 
       if (resolvedCtx == null) {
@@ -53,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen>
         context.go('/change-password');
       } else if (flags.subscriptionExpired) {
         context.go('/subscription-expired');
-      } else if (!resolvedCtx.tenant.isActive) {
+      } else if (flags.accountSuspended) {
         context.go('/account-suspended');
       } else if (!resolvedCtx.onboarding.isComplete ||
           flags.onboardingRequired) {
@@ -78,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: AppTheme.surfaceContainerLowest,
       body: Stack(
         children: [
-          // ── Decorative texture background icons ──────────────────────────
+          // ── Decorative background icons ──────────────────────────────────
           Positioned(
             top: -20.h,
             right: -20.w,
@@ -116,7 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Outer ring (O)
                           Container(
                             width: 64.r,
                             height: 64.r,
@@ -130,7 +132,6 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                             ),
                           ),
-                          // Icon
                           Icon(
                             Icons.restaurant_menu_rounded,
                             size: 36.r,
@@ -148,7 +149,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                 SizedBox(height: 24.h),
 
-                // Wordmark
                 Text(
                       'Orderlli',
                       style: GoogleFonts.inter(
@@ -164,7 +164,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                 SizedBox(height: 6.h),
 
-                // Tagline
                 Text(
                   'RESTAURANT INTELLIGENCE PLATFORM',
                   style: GoogleFonts.inter(
@@ -188,7 +187,6 @@ class _SplashScreenState extends State<SplashScreen>
                 width: 240.w,
                 child: Column(
                   children: [
-                    // Progress line
                     ClipRRect(
                       borderRadius: BorderRadius.circular(9999.r),
                       child: SizedBox(
@@ -208,9 +206,8 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     SizedBox(height: 12.h),
-                    // Version
                     Text(
-                      'v1.0.0',
+                      'v1.0.0 • mock mode',
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 10.sp,
                         color: AppTheme.secondary.withValues(alpha: 0.5),

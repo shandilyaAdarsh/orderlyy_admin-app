@@ -1,0 +1,14 @@
+{
+  "tables": [
+    { "id": "tbl-001", "tenant_id": "mock-tenant-001", "label": "T-01", "capacity": 2, "status": "occupied", "active_order_id": "ord-001", "section": "Indoor", "updated_at": "2026-05-15T10:30:00Z" },
+    { "id": "tbl-002", "tenant_id": "mock-tenant-001", "label": "T-02", "capacity": 4, "status": "available", "active_order_id": null, "section": "Indoor", "updated_at": "2026-05-15T09:45:00Z" },
+    { "id": "tbl-003", "tenant_id": "mock-tenant-001", "label": "T-03", "capacity": 4, "status": "occupied", "active_order_id": "ord-002", "section": "Indoor", "updated_at": "2026-05-15T10:15:00Z" },
+    { "id": "tbl-004", "tenant_id": "mock-tenant-001", "label": "T-04", "capacity": 6, "status": "reserved", "active_order_id": null, "section": "Indoor", "updated_at": "2026-05-15T10:00:00Z" },
+    { "id": "tbl-005", "tenant_id": "mock-tenant-001", "label": "T-05", "capacity": 2, "status": "needsAttention", "active_order_id": "ord-003", "section": "Indoor", "updated_at": "2026-05-15T10:45:00Z" },
+    { "id": "tbl-006", "tenant_id": "mock-tenant-001", "label": "T-06", "capacity": 8, "status": "available", "active_order_id": null, "section": "Indoor", "updated_at": "2026-05-15T09:00:00Z" },
+    { "id": "tbl-007", "tenant_id": "mock-tenant-001", "label": "P-01", "capacity": 4, "status": "occupied", "active_order_id": "ord-004", "section": "Patio", "updated_at": "2026-05-15T10:20:00Z" },
+    { "id": "tbl-008", "tenant_id": "mock-tenant-001", "label": "P-02", "capacity": 4, "status": "available", "active_order_id": null, "section": "Patio", "updated_at": "2026-05-15T10:10:00Z" },
+    { "id": "tbl-009", "tenant_id": "mock-tenant-001", "label": "B-01", "capacity": 3, "status": "cleaning", "active_order_id": null, "section": "Bar", "updated_at": "2026-05-15T10:50:00Z" },
+    { "id": "tbl-010", "tenant_id": "mock-tenant-001", "label": "B-02", "capacity": 3, "status": "occupied", "active_order_id": "ord-005", "section": "Bar", "updated_at": "2026-05-15T11:00:00Z" }
+  ]
+}

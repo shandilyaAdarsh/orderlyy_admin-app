@@ -6,8 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/auth/auth_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
+import '../../core/data/dtos/auth_dto.dart';
+import '../../core/providers/repository_providers.dart';
 import '../../core/theme/app_theme.dart';
 
 class StaffLoginScreen extends ConsumerStatefulWidget {
@@ -79,31 +80,30 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
     _verifyTenantSlug(code);
   }
 
-  // ── Verify tenant slug with Supabase ──────────────────────────────────────
+  // ── Verify tenant slug (mock) ────────────────────────────────────────────
   Future<void> _verifyTenantSlug(String slug) async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
     try {
-      final response = await Supabase.instance.client
-          .from('tenants')
-          .select('id, name, slug')
-          .eq('slug', slug)
-          .eq('status', 'active')
-          .maybeSingle();
-
-      if (response == null) {
+      if (slug.trim().isEmpty) {
         setState(() {
-          _errorMessage = 'Restaurant not found. Check the code.';
+          _errorMessage = 'Please enter a restaurant code.';
           _scannerActive = true;
         });
         return;
       }
-
+      // Mock: 'spice-garden' is the demo tenant. Any other slug is accepted too.
+      final mockName = slug == 'spice-garden'
+          ? 'The Spice Garden'
+          : slug
+              .split('-')
+              .map((w) => w.isEmpty ? '' : w[0].toUpperCase() + w.substring(1))
+              .join(' ');
       setState(() {
-        _tenantSlug = response['slug'] as String;
-        _tenantName = response['name'] as String;
+        _tenantSlug = slug.trim();
+        _tenantName = mockName;
         _restaurantConfirmed = true;
       });
     } catch (e) {
@@ -129,7 +129,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
     }
   }
 
-  // ── Submit PIN ─────────────────────────────────────────────────────────────
+  // ── Submit PIN (via AuthRepository — backend-agnostic) ───────────────────
   Future<void> _submitPin() async {
     final pin = _pin.join();
     setState(() {
@@ -138,36 +138,39 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
     });
 
     try {
-      final authService = ref.read(authServiceProvider);
-      final staff = await authService.staffPinLogin(_tenantSlug, pin);
+      final authRepo = ref.read(authRepositoryProvider);
+      final response = await authRepo.staffPinLogin(
+        StaffPinLoginRequestDto(tenantSlug: _tenantSlug, pin: pin),
+      );
 
-      if (staff == null) {
+      if (!response.isSuccess || response.staff == null) {
         setState(() {
           _pin.clear();
-          _errorMessage = 'Invalid PIN. Try again.';
+          _errorMessage = response.errorMessage ?? 'Invalid PIN. Try again.';
         });
         return;
       }
 
-      // Store staff session
+      final staff = response.staff!;
+
+      // Store staff session in Riverpod
       ref.read(staffSessionProvider.notifier).setStaff(staff);
 
-      // Persist restaurant for "remember me"
+      // Persist restaurant slug for next launch
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('tenant_slug', _tenantSlug);
       await prefs.setString('tenant_name', _tenantName);
 
       // Navigate by role
-      final role = staff['role'] as String;
       if (!mounted) return;
-      if (role == 'waiter') {
-        context.go('/staff/tables');
-      } else if (role == 'manager') {
-        context.go('/manager/dashboard');
-      } else if (role == 'owner') {
-        context.go('/admin/dashboard');
-      } else {
-        context.go('/staff/tables');
+      switch (staff.role) {
+        case 'waiter':
+          context.go('/staff/tables');
+        case 'manager':
+          context.go('/manager/dashboard');
+        case 'owner':
+        default:
+          context.go('/admin/dashboard');
       }
     } catch (e) {
       setState(() {

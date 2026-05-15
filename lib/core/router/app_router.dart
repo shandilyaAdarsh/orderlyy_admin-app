@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/auth/auth_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/auth/role_select_screen.dart';
 import '../../features/auth/admin_login_screen.dart';
@@ -32,13 +31,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) {
-      final user = Supabase.instance.client.auth.currentUser;
-
-      // Read staff session from Riverpod container
+      // ── Use mock auth providers — no Supabase dependency ─────────────────
       final container = ProviderScope.containerOf(context);
+      final currentUserId = container.read(currentUserIdProvider);
       final staffSession = container.read(staffSessionProvider);
 
-      final isAdminLoggedIn = user != null;
+      final isAdminLoggedIn = currentUserId != null;
       final isStaffLoggedIn = staffSession != null;
       final isAnyoneLoggedIn = isAdminLoggedIn || isStaffLoggedIn;
 
@@ -47,7 +45,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Debug route always accessible
       if (loc == '/debug') return null;
 
-      // Post-login gated routes — require auth but are not the main dashboard
       const postLoginRoutes = {
         '/change-password',
         '/subscription-expired',
@@ -65,15 +62,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPublicRoute = publicRoutes.contains(loc);
       final isPostLoginRoute = postLoginRoutes.contains(loc);
 
-      // Splash performs live resolve-context routing; do not short-circuit it
+      // Splash handles its own routing
       if (loc == '/splash') return null;
 
-      // Logged-in admin on public auth screens → post-login flow handles routing
+      // Logged-in admin on auth screens → dashboard
       if (isPublicRoute && isAdminLoggedIn) {
         return '/admin/dashboard';
       }
 
-      // Logged-in staff on auth screen → correct staff screen
+      // Logged-in staff on auth screen → correct screen
       if (isPublicRoute && isStaffLoggedIn) {
         final role = staffSession.role;
         if (role == 'waiter') return '/staff/tables';
@@ -81,10 +78,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/admin/dashboard';
       }
 
-      // Post-login routes require a logged-in admin — if not, send to role-select
       if (isPostLoginRoute && !isAdminLoggedIn) return '/role-select';
 
-      // On protected admin routes without any session → role select
       const protectedAdminRoutes = {
         '/admin/dashboard',
         '/admin/orders',
@@ -111,7 +106,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DebugScreen(),
       ),
 
-      // ── Onboarding ──────────────────────────────────────────────────────
+      // ── Splash ────────────────────────────────────────────────────────────
       GoRoute(
         path: '/splash',
         name: 'splash',

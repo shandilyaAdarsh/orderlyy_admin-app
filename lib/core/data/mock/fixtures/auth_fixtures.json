@@ -1,0 +1,41 @@
+{
+  "context": {
+    "user": {
+      "id": "mock-user-admin-001",
+      "full_name": "Arjun Sharma",
+      "role": "tenant_admin",
+      "must_change_password": false
+    },
+    "tenant": {
+      "id": "mock-tenant-001",
+      "name": "The Spice Garden",
+      "slug": "spice-garden",
+      "plan": "pro",
+      "status": "active",
+      "is_active": true,
+      "next_billing_date": "2026-06-01"
+    },
+    "onboarding": {
+      "is_complete": true,
+      "steps_completed": ["profile", "menu", "tables", "staff"]
+    },
+    "flags": {
+      "must_change_password": false,
+      "subscription_expired": false,
+      "account_suspended": false,
+      "onboarding_required": false
+    }
+  },
+  "mock_credentials": {
+    "admin": {
+      "email": "admin@spicegarden.in",
+      "password": "demo1234",
+      "note": "Any email + password >= 6 chars works in mock mode"
+    },
+    "staff_pins": [
+      { "name": "Rahul (Waiter)", "role": "waiter", "pin": "1111", "tenant_slug": "spice-garden" },
+      { "name": "Priya (Manager)", "role": "manager", "pin": "2222", "tenant_slug": "spice-garden" },
+      { "name": "Aryan (Waiter)", "role": "waiter", "pin": "3333", "tenant_slug": "spice-garden" }
+    ]
+  }
+}

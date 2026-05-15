@@ -1,0 +1,94 @@
+{
+  "orders": [
+    {
+      "id": "ord-001",
+      "tenant_id": "mock-tenant-001",
+      "table_id": "tbl-001",
+      "table_label": "T-01",
+      "status": "preparing",
+      "staff_id": "staff-001",
+      "staff_name": "Rahul",
+      "notes": null,
+      "total_amount": 640,
+      "items": [
+        { "id": "oi-001", "menu_item_id": "item-001", "menu_item_name": "Paneer Tikka", "quantity": 1, "unit_price": 280, "notes": "Extra spicy" },
+        { "id": "oi-002", "menu_item_id": "item-004", "menu_item_name": "Butter Chicken", "quantity": 1, "unit_price": 380, "notes": null }
+      ],
+      "created_at": "2026-05-15T10:30:00Z",
+      "updated_at": "2026-05-15T10:35:00Z"
+    },
+    {
+      "id": "ord-002",
+      "tenant_id": "mock-tenant-001",
+      "table_id": "tbl-003",
+      "table_label": "T-03",
+      "status": "confirmed",
+      "staff_id": "staff-001",
+      "staff_name": "Rahul",
+      "notes": "Birthday table — bring dessert candle",
+      "total_amount": 1010,
+      "items": [
+        { "id": "oi-003", "menu_item_id": "item-002", "menu_item_name": "Chicken Seekh Kebab", "quantity": 2, "unit_price": 320, "notes": null },
+        { "id": "oi-004", "menu_item_id": "item-005", "menu_item_name": "Dal Makhani", "quantity": 1, "unit_price": 260, "notes": null },
+        { "id": "oi-005", "menu_item_id": "item-008", "menu_item_name": "Garlic Naan", "quantity": 2, "unit_price": 60, "notes": null },
+        { "id": "oi-006", "menu_item_id": "item-010", "menu_item_name": "Masala Chai", "quantity": 2, "unit_price": 50, "notes": null }
+      ],
+      "created_at": "2026-05-15T10:15:00Z",
+      "updated_at": "2026-05-15T10:18:00Z"
+    },
+    {
+      "id": "ord-003",
+      "tenant_id": "mock-tenant-001",
+      "table_id": "tbl-005",
+      "table_label": "T-05",
+      "status": "pending",
+      "staff_id": "staff-003",
+      "staff_name": "Aryan",
+      "notes": "Guest has nut allergy",
+      "total_amount": 350,
+      "items": [
+        { "id": "oi-007", "menu_item_id": "item-006", "menu_item_name": "Palak Paneer", "quantity": 1, "unit_price": 290, "notes": "No cream" },
+        { "id": "oi-008", "menu_item_id": "item-009", "menu_item_name": "Tandoori Roti", "quantity": 2, "unit_price": 40, "notes": null },
+        { "id": "oi-009", "menu_item_id": "item-011", "menu_item_name": "Fresh Lime Soda", "quantity": 1, "unit_price": 70, "notes": null }
+      ],
+      "created_at": "2026-05-15T10:45:00Z",
+      "updated_at": "2026-05-15T10:45:00Z"
+    },
+    {
+      "id": "ord-004",
+      "tenant_id": "mock-tenant-001",
+      "table_id": "tbl-007",
+      "table_label": "P-01",
+      "status": "ready",
+      "staff_id": "staff-003",
+      "staff_name": "Aryan",
+      "notes": null,
+      "total_amount": 790,
+      "items": [
+        { "id": "oi-010", "menu_item_id": "item-004", "menu_item_name": "Butter Chicken", "quantity": 2, "unit_price": 380, "notes": null },
+        { "id": "oi-011", "menu_item_id": "item-008", "menu_item_name": "Garlic Naan", "quantity": 2, "unit_price": 60, "notes": null },
+        { "id": "oi-012", "menu_item_id": "item-012", "menu_item_name": "Gulab Jamun", "quantity": 1, "unit_price": 120, "notes": null }
+      ],
+      "created_at": "2026-05-15T10:20:00Z",
+      "updated_at": "2026-05-15T10:50:00Z"
+    },
+    {
+      "id": "ord-005",
+      "tenant_id": "mock-tenant-001",
+      "table_id": "tbl-010",
+      "table_label": "B-02",
+      "status": "served",
+      "staff_id": "staff-001",
+      "staff_name": "Rahul",
+      "notes": null,
+      "total_amount": 240,
+      "items": [
+        { "id": "oi-013", "menu_item_id": "item-003", "menu_item_name": "Samosa (2 pcs)", "quantity": 2, "unit_price": 80, "notes": null },
+        { "id": "oi-014", "menu_item_id": "item-010", "menu_item_name": "Masala Chai", "quantity": 2, "unit_price": 50, "notes": null },
+        { "id": "oi-015", "menu_item_id": "item-011", "menu_item_name": "Fresh Lime Soda", "quantity": 1, "unit_price": 70, "notes": null }
+      ],
+      "created_at": "2026-05-15T09:30:00Z",
+      "updated_at": "2026-05-15T10:10:00Z"
+    }
+  ]
+}

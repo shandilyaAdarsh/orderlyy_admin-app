@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/auth/auth_provider.dart';
-import '../../core/auth/app_context_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
+import '../../core/data/dtos/auth_dto.dart';
+import '../../core/providers/repository_providers.dart';
 import '../../core/theme/app_theme.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
@@ -40,7 +41,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     super.dispose();
   }
 
-  // ── Email + Password Login ─────────────────────────────────────────────────
+  // ── Email + Password Login (via AuthRepository — backend-agnostic) ──────────
   Future<void> _loginWithPassword() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -48,37 +49,36 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       _errorMessage = '';
     });
     try {
-      final authService = ref.read(authServiceProvider);
-      final response = await authService.signInWithPassword(
-        _emailController.text.trim(),
-        _passwordController.text,
+      final authRepo = ref.read(authRepositoryProvider);
+      final response = await authRepo.signInWithPassword(
+        LoginRequestDto(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
       );
-      if (response.user != null) {
+      if (response.isSuccess) {
         // Step 2: resolve tenant context immediately after login
         final ctx = await ref
             .read(appContextProvider.notifier)
             .resolveContext();
         if (ctx == null) {
-          if (mounted) {
-            context.go('/admin/login');
-          }
+          if (mounted) context.go('/admin/login');
           return;
         }
         if (mounted) {
           _routeFromFlags(
             ctx.flags.mustChangePassword,
             ctx.flags.subscriptionExpired,
-            !ctx.tenant.isActive,
+            ctx.flags.accountSuspended,
             ctx.flags.onboardingRequired,
           );
         }
       } else {
-        setState(() => _errorMessage = 'Login failed. Please try again.');
+        setState(() => _errorMessage =
+            response.errorMessage ?? 'Login failed. Please try again.');
       }
     } catch (e) {
-      setState(
-        () => _errorMessage = e.toString().replaceAll('AuthApiException: ', ''),
-      );
+      setState(() => _errorMessage = e.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
