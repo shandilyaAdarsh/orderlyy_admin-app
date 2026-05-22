@@ -1,0 +1,62 @@
+name: orderlyy_app
+description: "A production-ready Flutter Clean Architecture setup for Orderlyy Restaurant Management."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^15.1.2
+
+  # Network
+  dio: ^5.4.3
+  connectivity_plus: ^6.0.3
+
+  # Local storage & Database
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Backend & Real-time
+  supabase_flutter: ^2.9.0
+  web_socket_channel: ^3.0.3
+
+  # Serialization & Immutability
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  equatable: ^2.0.5
+
+  # Logging & Debugging
+  talker_flutter: ^4.6.0
+  talker_dio_logger: ^4.6.0
+
+  # Design helpers
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.14
+  riverpod_generator: ^2.6.5
+  freezed: ^3.1.0
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true

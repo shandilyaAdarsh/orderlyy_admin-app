@@ -1,0 +1,49 @@
+// lib/features/orders/data/repositories/orders_repository_impl.dart
+import 'dart:async';
+import '../../domain/entities/order.dart';
+import '../../domain/repositories/orders_repository.dart';
+import '../datasources/local/orders_local_datasource.dart';
+import '../mappers/order_mapper.dart';
+
+class OrdersRepositoryImpl implements OrdersRepository {
+  final OrdersLocalDatasource local;
+
+  OrdersRepositoryImpl({required this.local});
+
+  @override
+  Future<Order?> getOrderById(String orderId) async {
+    final dto = await local.getCachedOrderById(orderId);
+    return dto?.toDomain();
+  }
+
+  @override
+  Future<Order?> getActiveOrderForTable(String tableId) async {
+    final dto = await local.getActiveOrderForTable(tableId);
+    return dto?.toDomain();
+  }
+
+  @override
+  Future<Order> saveOrder(Order order) async {
+    final dto = order.toDto();
+    await local.cacheOrder(dto);
+    return order;
+  }
+
+  @override
+  Stream<List<Order>> watchActiveOrders() {
+    return local.watchCachedOrders().map((list) {
+      return list
+          .map((dto) => dto.toDomain())
+          .where((o) => o.status != OrderStatus.completed && o.status != OrderStatus.cancelled)
+          .toList();
+    });
+  }
+
+  @override
+  Stream<Order?> watchOrderById(String orderId) {
+    return local.watchCachedOrders().map((list) {
+      final index = list.indexWhere((dto) => dto.id == orderId);
+      return index != -1 ? list[index].toDomain() : null;
+    });
+  }
+}
