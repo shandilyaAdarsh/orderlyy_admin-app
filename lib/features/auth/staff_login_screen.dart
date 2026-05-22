@@ -98,9 +98,11 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
       final mockName = slug == 'spice-garden'
           ? 'The Spice Garden'
           : slug
-              .split('-')
-              .map((w) => w.isEmpty ? '' : w[0].toUpperCase() + w.substring(1))
-              .join(' ');
+                .split('-')
+                .map(
+                  (w) => w.isEmpty ? '' : w[0].toUpperCase() + w.substring(1),
+                )
+                .join(' ');
       setState(() {
         _tenantSlug = slug.trim();
         _tenantName = mockName;
@@ -207,7 +209,11 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
         elevation: 0,
         toolbarHeight: 64.h,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.secondary, size: 24.r),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: AppTheme.secondary,
+            size: 24.r,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -231,10 +237,14 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
               indicatorWeight: 2.h,
               labelColor: AppTheme.primaryContainer,
               unselectedLabelColor: AppTheme.secondary,
-              labelStyle:
-                  GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w600),
-              unselectedLabelStyle:
-                  GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w500),
+              labelStyle: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
               dividerColor: AppTheme.surfaceContainerHighest,
               tabs: [
                 Tab(
@@ -253,10 +263,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildScanTab(),
-                _buildCodeTab(),
-              ],
+              children: [_buildScanTab(), _buildCodeTab()],
             ),
           ),
         ],
@@ -284,13 +291,17 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                     ),
                   ),
                   Positioned(
-                    top: 0, bottom: 0, left: 0, right: 0,
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     child: Center(
                       child: Container(
                         height: 2.h,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryContainer
-                              .withValues(alpha: 0.4),
+                          color: AppTheme.primaryContainer.withValues(
+                            alpha: 0.4,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: AppTheme.primary.withValues(alpha: 0.6),
@@ -310,9 +321,10 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           Text(
             'Point camera at restaurant QR code',
             style: GoogleFonts.inter(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.secondary),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.secondary,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 24.h),
@@ -340,14 +352,18 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           Text(
             'Enter Restaurant Code',
             style: GoogleFonts.inter(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.onSurface),
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.onSurface,
+            ),
           ).animate().fadeIn(duration: 400.ms),
           SizedBox(height: 8.h),
           Text(
             'Ask your admin for the restaurant code',
-            style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
+            style: GoogleFonts.inter(
+              fontSize: 14.sp,
+              color: AppTheme.secondary,
+            ),
           ),
           SizedBox(height: 24.h),
 
@@ -360,35 +376,45 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
             controller: _codeController,
             keyboardType: TextInputType.text,
             style: GoogleFonts.jetBrainsMono(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 2,
-                color: AppTheme.onSurface),
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2,
+              color: AppTheme.onSurface,
+            ),
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               hintText: 'my-restaurant',
               hintStyle: GoogleFonts.jetBrainsMono(
-                  fontSize: 18.sp,
-                  letterSpacing: 2,
-                  color: AppTheme.secondary.withValues(alpha: 0.4)),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
+                fontSize: 18.sp,
+                letterSpacing: 2,
+                color: AppTheme.secondary.withValues(alpha: 0.4),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 18.h,
+              ),
               filled: true,
               fillColor: AppTheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh, width: 2.w),
+                  color: AppTheme.surfaceContainerHigh,
+                  width: 2.w,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh, width: 2.w),
+                  color: AppTheme.surfaceContainerHigh,
+                  width: 2.w,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide:
-                    BorderSide(color: AppTheme.primaryContainer, width: 2.w),
+                borderSide: BorderSide(
+                  color: AppTheme.primaryContainer,
+                  width: 2.w,
+                ),
               ),
             ),
           ),
@@ -403,7 +429,8 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                 backgroundColor: AppTheme.primaryContainer,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.r)),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
                 elevation: 0,
               ),
               child: _isLoading
@@ -411,12 +438,16 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                       height: 20.r,
                       width: 20.r,
                       child: const CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(
                       'Confirm Restaurant',
                       style: GoogleFonts.inter(
-                          fontSize: 15.sp, fontWeight: FontWeight.w600),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
             ),
           ),
@@ -438,7 +469,8 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
         color: const Color(0xFFEF4444).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
-            color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+          color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -447,8 +479,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           Expanded(
             child: Text(
               _errorMessage,
-              style:
-                  TextStyle(color: const Color(0xFFEF4444), fontSize: 13.sp),
+              style: TextStyle(color: const Color(0xFFEF4444), fontSize: 13.sp),
             ),
           ),
         ],
@@ -476,8 +507,11 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
               color: Color(0xFFECFDF5),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.check_circle_rounded,
-                color: const Color(0xFF10B981), size: 22.r),
+            child: Icon(
+              Icons.check_circle_rounded,
+              color: const Color(0xFF10B981),
+              size: 22.r,
+            ),
           ),
           SizedBox(width: 16.w),
           Expanded(
@@ -487,19 +521,21 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                 Text(
                   _tenantName,
                   style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSurface),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onSurface,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'Slug: $_tenantSlug',
                   style: GoogleFonts.jetBrainsMono(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.secondary,
-                      letterSpacing: 0.5),
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.secondary,
+                    letterSpacing: 0.5,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -517,10 +553,11 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
         Text(
           'Enter your PIN',
           style: GoogleFonts.inter(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.onSurface,
-              letterSpacing: -0.3),
+            fontSize: 24.sp,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.onSurface,
+            letterSpacing: -0.3,
+          ),
         ).animate().fadeIn(duration: 300.ms),
         SizedBox(height: 4.h),
         Text(
@@ -555,7 +592,7 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                           color: AppTheme.primary.withValues(alpha: 0.3),
                           blurRadius: 8.r,
                           spreadRadius: 2.r,
-                        )
+                        ),
                       ]
                     : null,
               ),
@@ -576,15 +613,12 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
                   mainAxisSpacing: 20.h,
                   crossAxisSpacing: 20.w,
                   children: [
-                    ...[
-                      '1', '2', '3',
-                      '4', '5', '6',
-                      '7', '8', '9',
-                    ].map((n) =>
-                        _KeypadButton(label: n, onTap: () => _onKeypadTap(n))),
+                    ...['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(
+                      (n) =>
+                          _KeypadButton(label: n, onTap: () => _onKeypadTap(n)),
+                    ),
                     const SizedBox(),
-                    _KeypadButton(
-                        label: '0', onTap: () => _onKeypadTap('0')),
+                    _KeypadButton(label: '0', onTap: () => _onKeypadTap('0')),
                     _KeypadButton(
                       icon: Icons.backspace_rounded,
                       isBackspace: true,
@@ -600,9 +634,10 @@ class _StaffLoginScreenState extends ConsumerState<StaffLoginScreen>
           child: Text(
             'Wrong restaurant? Start over',
             style: GoogleFonts.inter(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.primaryContainer),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryContainer,
+            ),
           ),
         ),
       ],
@@ -622,9 +657,11 @@ class _QrBrackets extends StatelessWidget {
     return Stack(
       children: [
         Positioned(
-          top: 0, left: 0,
+          top: 0,
+          left: 0,
           child: Container(
-            width: bracketSize, height: bracketSize,
+            width: bracketSize,
+            height: bracketSize,
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: color, width: strokeWidth),
@@ -635,9 +672,11 @@ class _QrBrackets extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 0, right: 0,
+          top: 0,
+          right: 0,
           child: Container(
-            width: bracketSize, height: bracketSize,
+            width: bracketSize,
+            height: bracketSize,
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: color, width: strokeWidth),
@@ -648,9 +687,11 @@ class _QrBrackets extends StatelessWidget {
           ),
         ),
         Positioned(
-          bottom: 0, left: 0,
+          bottom: 0,
+          left: 0,
           child: Container(
-            width: bracketSize, height: bracketSize,
+            width: bracketSize,
+            height: bracketSize,
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(color: color, width: strokeWidth),
@@ -661,9 +702,11 @@ class _QrBrackets extends StatelessWidget {
           ),
         ),
         Positioned(
-          bottom: 0, right: 0,
+          bottom: 0,
+          right: 0,
           child: Container(
-            width: bracketSize, height: bracketSize,
+            width: bracketSize,
+            height: bracketSize,
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(color: color, width: strokeWidth),
@@ -716,11 +759,11 @@ class _KeypadButtonState extends State<_KeypadButton> {
           shape: BoxShape.circle,
           color: widget.isBackspace
               ? (_pressed
-                  ? AppTheme.primary.withValues(alpha: 0.2)
-                  : AppTheme.primary.withValues(alpha: 0.1))
+                    ? AppTheme.primary.withValues(alpha: 0.2)
+                    : AppTheme.primary.withValues(alpha: 0.1))
               : (_pressed
-                  ? AppTheme.surfaceContainerHigh
-                  : AppTheme.surfaceContainerLow),
+                    ? AppTheme.surfaceContainerHigh
+                    : AppTheme.surfaceContainerLow),
         ),
         child: Center(
           child: widget.icon != null

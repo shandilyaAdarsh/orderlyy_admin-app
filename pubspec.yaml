@@ -50,6 +50,10 @@ dependencies:
   # Local storage
   shared_preferences: ^2.5.3
 
+  # Immutable models & serialization
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
   # Animations
   flutter_animate: ^4.5.2
 
@@ -68,6 +72,8 @@ dev_dependencies:
   riverpod_generator: ^2.6.5
   custom_lint: ^0.7.5
   riverpod_lint: ^2.6.5
+  freezed: ^3.1.0
+  json_serializable: ^6.8.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -86,6 +92,8 @@ flutter:
     - lib/core/data/mock/fixtures/auth_fixtures.json
     - lib/core/data/mock/fixtures/menu_fixtures.json
     - lib/core/data/mock/fixtures/orders_fixtures.json
+    - lib/core/data/mock/fixtures/settings_fixtures.json
+    - lib/core/data/mock/fixtures/staff_fixtures.json
     - lib/core/data/mock/fixtures/tables_fixtures.json
 
   # An image asset can refer to one or more resolution-specific "variants", see

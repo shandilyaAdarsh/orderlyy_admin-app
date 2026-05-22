@@ -27,10 +27,10 @@ class RoleSelectScreen extends StatelessWidget {
               ),
             ),
           ).animate().scale(
-                begin: const Offset(0.5, 0.5),
-                duration: 800.ms,
-                curve: Curves.easeOut,
-              ),
+            begin: const Offset(0.5, 0.5),
+            duration: 800.ms,
+            curve: Curves.easeOut,
+          ),
           Positioned(
             bottom: -64.r,
             left: -64.r,
@@ -52,86 +52,91 @@ class RoleSelectScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                  // ── Top section ──────────────────────────────────────────
-                  SizedBox(height: 48.h),
-                  Icon(
-                    Icons.restaurant_menu_rounded,
-                    size: 32.r,
-                    color: AppTheme.primary,
-                  ).animate().fadeIn(duration: 500.ms).scale(
-                        begin: const Offset(0.6, 0.6),
-                        curve: Curves.easeOutBack,
-                      ),
-
-                  SizedBox(height: 24.h),
-
-                  Text(
-                    'Welcome to Orderlli',
-                    style: GoogleFonts.inter(
-                      fontSize: 26.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSurface,
-                      letterSpacing: -0.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ).animate(delay: 100.ms).fadeIn(duration: 500.ms).slideY(
-                        begin: 0.15,
-                        curve: Curves.easeOut,
-                      ),
-
-                  SizedBox(height: 40.h),
-
-                  // ── Role cards ────────────────────────────────────────────
-                  // Admin / Owner card
-                  _RoleCard(
-                    icon: Icons.admin_panel_settings_rounded,
-                    title: 'Admin / Owner',
-                    subtitle: 'Full restaurant control',
-                    iconBgColor: AppTheme.primaryContainer.withValues(alpha: 0.08),
-                    iconColor: AppTheme.primaryContainer,
-                    borderColor: AppTheme.primaryContainer,
-                    arrowColor: AppTheme.primaryContainer,
-                    onTap: () => context.push('/admin/login'),
-                  ).animate(delay: 250.ms).fadeIn(duration: 400.ms).slideY(
-                        begin: 0.2,
-                        curve: Curves.easeOut,
-                      ),
-
-                  SizedBox(height: 16.h),
-
-                  // Staff card
-                  _RoleCard(
-                    icon: Icons.groups_rounded,
-                    title: 'Staff',
-                    subtitle: 'Waiter · Manager',
-                    iconBgColor: AppTheme.surfaceContainerLow,
-                    iconColor: AppTheme.secondary,
-                    borderColor: AppTheme.secondaryContainer,
-                    arrowColor: AppTheme.secondary,
-                    onTap: () => context.push('/staff/login'),
-                  ).animate(delay: 350.ms).fadeIn(duration: 400.ms).slideY(
-                        begin: 0.2,
-                        curve: Curves.easeOut,
-                      ),
-
-                  SizedBox(height: 32.h),
-
-                  // ── Footer ────────────────────────────────────────────────
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 32.h),
-                    child: Column(
-                      children: [
-                        Text(
-                          'POWERED BY',
-                          style: GoogleFonts.inter(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.secondary.withValues(alpha: 0.6),
-                            letterSpacing: 1.5,
-                          ),
+                    // ── Top section ──────────────────────────────────────────
+                    SizedBox(height: 48.h),
+                    Icon(
+                          Icons.restaurant_menu_rounded,
+                          size: 32.r,
+                          color: AppTheme.primary,
+                        )
+                        .animate()
+                        .fadeIn(duration: 500.ms)
+                        .scale(
+                          begin: const Offset(0.6, 0.6),
+                          curve: Curves.easeOutBack,
                         ),
-                        SizedBox(height: 2.h),
-                        Text(
+
+                    SizedBox(height: 24.h),
+
+                    Text(
+                          'Welcome to Orderlli',
+                          style: GoogleFonts.inter(
+                            fontSize: 26.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onSurface,
+                            letterSpacing: -0.3,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                        .animate(delay: 100.ms)
+                        .fadeIn(duration: 500.ms)
+                        .slideY(begin: 0.15, curve: Curves.easeOut),
+
+                    SizedBox(height: 40.h),
+
+                    // ── Role cards ────────────────────────────────────────────
+                    // Admin / Owner card
+                    _RoleCard(
+                          icon: Icons.admin_panel_settings_rounded,
+                          title: 'Admin / Owner',
+                          subtitle: 'Full restaurant control',
+                          iconBgColor: AppTheme.primaryContainer.withValues(
+                            alpha: 0.08,
+                          ),
+                          iconColor: AppTheme.primaryContainer,
+                          borderColor: AppTheme.primaryContainer,
+                          arrowColor: AppTheme.primaryContainer,
+                          onTap: () => context.push('/admin/login'),
+                        )
+                        .animate(delay: 250.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: 0.2, curve: Curves.easeOut),
+
+                    SizedBox(height: 16.h),
+
+                    // Staff card
+                    _RoleCard(
+                          icon: Icons.groups_rounded,
+                          title: 'Staff',
+                          subtitle: 'Waiter · Manager',
+                          iconBgColor: AppTheme.surfaceContainerLow,
+                          iconColor: AppTheme.secondary,
+                          borderColor: AppTheme.secondaryContainer,
+                          arrowColor: AppTheme.secondary,
+                          onTap: () => context.push('/staff/login'),
+                        )
+                        .animate(delay: 350.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: 0.2, curve: Curves.easeOut),
+
+                    SizedBox(height: 32.h),
+
+                    // ── Footer ────────────────────────────────────────────────
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 32.h),
+                      child: Column(
+                        children: [
+                          Text(
+                            'POWERED BY',
+                            style: GoogleFonts.inter(
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.secondary.withValues(alpha: 0.6),
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
                             'Orderlli',
                             style: GoogleFonts.inter(
                               fontSize: 12.sp,

@@ -17,7 +17,7 @@ class LoginRequestDto {
 class LoginResponseDto {
   final String userId;
   final String email;
-  final String? accessToken;  // nullable — mocks won't issue real tokens
+  final String? accessToken; // nullable — mocks won't issue real tokens
   final bool isSuccess;
   final String? errorMessage;
 
@@ -30,11 +30,11 @@ class LoginResponseDto {
   });
 
   factory LoginResponseDto.failure(String message) => LoginResponseDto(
-        userId: '',
-        email: '',
-        isSuccess: false,
-        errorMessage: message,
-      );
+    userId: '',
+    email: '',
+    isSuccess: false,
+    errorMessage: message,
+  );
 }
 
 // ── Staff PIN login ───────────────────────────────────────────────────────────
@@ -43,10 +43,7 @@ class StaffPinLoginRequestDto {
   final String tenantSlug;
   final String pin;
 
-  const StaffPinLoginRequestDto({
-    required this.tenantSlug,
-    required this.pin,
-  });
+  const StaffPinLoginRequestDto({required this.tenantSlug, required this.pin});
 }
 
 class StaffPinLoginResponseDto {
@@ -99,13 +96,13 @@ class StaffDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'role': role,
-        'tenant_id': tenantId,
-        'tenants': {'name': tenantName, 'slug': tenantSlug},
-        'is_active': isActive,
-      };
+    'id': id,
+    'name': name,
+    'role': role,
+    'tenant_id': tenantId,
+    'tenants': {'name': tenantName, 'slug': tenantSlug},
+    'is_active': isActive,
+  };
 }
 
 // ── App context DTO (from resolve-context-v2) ─────────────────────────────────
@@ -124,14 +121,13 @@ class AppContextDto {
   });
 
   factory AppContextDto.fromJson(Map<String, dynamic> json) => AppContextDto(
-        user: UserContextDto.fromJson(json['user'] as Map<String, dynamic>),
-        tenant:
-            TenantContextDto.fromJson(json['tenant'] as Map<String, dynamic>),
-        onboarding: OnboardingContextDto.fromJson(
-            json['onboarding'] as Map<String, dynamic>),
-        flags:
-            ContextFlagsDto.fromJson(json['flags'] as Map<String, dynamic>),
-      );
+    user: UserContextDto.fromJson(json['user'] as Map<String, dynamic>),
+    tenant: TenantContextDto.fromJson(json['tenant'] as Map<String, dynamic>),
+    onboarding: OnboardingContextDto.fromJson(
+      json['onboarding'] as Map<String, dynamic>,
+    ),
+    flags: ContextFlagsDto.fromJson(json['flags'] as Map<String, dynamic>),
+  );
 }
 
 class UserContextDto {
@@ -148,11 +144,11 @@ class UserContextDto {
   });
 
   factory UserContextDto.fromJson(Map<String, dynamic> json) => UserContextDto(
-        id: json['id'] as String,
-        fullName: json['full_name'] as String,
-        role: json['role'] as String,
-        mustChangePassword: json['must_change_password'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    fullName: json['full_name'] as String,
+    role: json['role'] as String,
+    mustChangePassword: json['must_change_password'] as bool? ?? false,
+  );
 }
 
 class TenantContextDto {
@@ -198,8 +194,9 @@ class OnboardingContextDto {
   factory OnboardingContextDto.fromJson(Map<String, dynamic> json) =>
       OnboardingContextDto(
         isComplete: json['is_complete'] as bool? ?? false,
-        stepsCompleted:
-            List<String>.from(json['steps_completed'] as List? ?? []),
+        stepsCompleted: List<String>.from(
+          json['steps_completed'] as List? ?? [],
+        ),
       );
 }
 

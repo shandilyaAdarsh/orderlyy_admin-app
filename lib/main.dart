@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/data/mock/mock_auth_repository.dart';
+import 'core/providers/repository_providers.dart';
+import 'core/storage/local_storage.dart';
 
 // ── Mock mode: Supabase.initialize() is intentionally removed. ────────────────
 // The app is fully decoupled from the backend during this phase.
@@ -14,11 +16,44 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+
+  // Initialize local storage
+  final localStorage = SharedPreferencesStorage(prefs);
+
+  // ── Restore persisted mock session before the widget tree builds ──────────
+  // This ensures currentUserIdProvider has the correct value on first frame,
+  // preventing the splash → role-select flash for returning users.
+  if (kUseMockRepositories) {
+    debugPrint('[Main] 🔄 Restoring mock session...');
+    final mockRepo = MockAuthRepository();
+    debugPrint('[AUTH INSTANCE] [Main] mockRepo.hashCode=${mockRepo.hashCode}');
+    await mockRepo.restoreSession();
+    // Override the providers with pre-seeded instances
+    runApp(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          localStorageProvider.overrideWithValue(localStorage),
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: const OrderlliApp(),
+      ),
+    );
+    return;
+  }
 
   // NOTE: Supabase.initialize() is intentionally skipped in mock mode.
   // Restore it when kUseMockRepositories = false.
-
-  runApp(const ProviderScope(child: OrderlliApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        localStorageProvider.overrideWithValue(localStorage),
+      ],
+      child: const OrderlliApp(),
+    ),
+  );
 }
 
 class OrderlliApp extends ConsumerWidget {
@@ -27,11 +62,9 @@ class OrderlliApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final isDesktop = !kIsWeb &&
-        (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
     return ScreenUtilInit(
-      designSize: isDesktop ? const Size(1280, 800) : const Size(390, 844),
+      designSize: const Size(390, 844),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) => MaterialApp.router(

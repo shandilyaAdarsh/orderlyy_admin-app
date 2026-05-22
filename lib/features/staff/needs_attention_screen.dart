@@ -19,14 +19,29 @@ class NeedsAttentionScreen extends StatelessWidget {
         ),
         title: Row(
           children: [
-            Text('Needs Attention',
-                style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
+            Text(
+              'Needs Attention',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.onSurface,
+              ),
+            ),
             const SizedBox(width: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: AppTheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
-              child: Text('2 Tasks Pending',
-                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '2 Tasks Pending',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -113,36 +128,73 @@ class _AttentionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                Container(
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: accentColor, size: 22),
                   ),
-                  child: Icon(icon, color: accentColor, size: 22),
-                ),
-                const SizedBox(width: 14),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(tableId,
-                      style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.onSurface)),
-                  Text(category,
-                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: accentColor, letterSpacing: 1.2)),
-                ]),
-              ]),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(servedAt, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondary)),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: waitingColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tableId,
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        category,
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(waitingTime,
-                      style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.w700, color: waitingColor)),
-                ),
-              ]),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    servedAt,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: waitingColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      waitingTime,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: waitingColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -155,20 +207,34 @@ class _AttentionCard extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: actionColor, width: 2),
                       foregroundColor: actionColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: Text(actionLabel,
-                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   )
                 : ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: actionColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: Text(actionLabel,
-                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
           ),
         ],
@@ -195,8 +261,15 @@ class _IntelligenceGrid extends StatelessWidget {
             width: double.infinity,
             color: AppTheme.surfaceContainerLow,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Text('TURNOVER INTELLIGENCE',
-                style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.5)),
+            child: Text(
+              'TURNOVER INTELLIGENCE',
+              style: GoogleFonts.inter(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.secondary,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -208,8 +281,16 @@ class _IntelligenceGrid extends StatelessWidget {
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               children: const [
-                _StatCell(label: 'Avg Bussing Time', value: '6.2 min', mono: true),
-                _StatCell(label: 'Avg Checkout Time', value: '4.8 min', mono: true),
+                _StatCell(
+                  label: 'Avg Bussing Time',
+                  value: '6.2 min',
+                  mono: true,
+                ),
+                _StatCell(
+                  label: 'Avg Checkout Time',
+                  value: '4.8 min',
+                  mono: true,
+                ),
                 _StatCell(label: 'Table Efficiency', value: '78%', mono: true),
                 _StatCell(label: 'Daily Revenue', value: '₹48.2k', mono: true),
               ],
@@ -225,7 +306,11 @@ class _StatCell extends StatelessWidget {
   final String label;
   final String value;
   final bool mono;
-  const _StatCell({required this.label, required this.value, this.mono = false});
+  const _StatCell({
+    required this.label,
+    required this.value,
+    this.mono = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -239,12 +324,30 @@ class _StatCell extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.secondary, letterSpacing: 0.5)),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.secondary,
+              letterSpacing: 0.5,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value,
-              style: mono
-                  ? GoogleFonts.jetBrainsMono(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.onSurface)
-                  : GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.onSurface)),
+          Text(
+            value,
+            style: mono
+                ? GoogleFonts.jetBrainsMono(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onSurface,
+                  )
+                : GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onSurface,
+                  ),
+          ),
         ],
       ),
     );

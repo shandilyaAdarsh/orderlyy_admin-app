@@ -21,6 +21,8 @@ abstract class OrdersRepository {
 
   Future<OrderDto> updateOrderStatus(String orderId, OrderStatus newStatus);
 
+  Future<OrderDto> updateOrder(OrderDto order);
+
   Future<void> cancelOrder(String orderId);
 
   // ── Realtime-like stream (fake events in mock) ────────────────────────────

@@ -3,106 +3,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/data/dtos/staff_dto.dart';
+import '../../core/providers/staff_providers.dart';
 import '../../core/theme/app_theme.dart';
 
-// ── Staff Member Model ────────────────────────────────────────────────────────
-class _StaffMember {
-  final String id;
-  final String name;
-  final String role;
-  final String pin;
-  final bool isActive;
-  final String tenantId;
-
-  const _StaffMember({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.pin,
-    required this.isActive,
-    required this.tenantId,
-  });
-
-  factory _StaffMember.fromMap(Map<String, dynamic> m) => _StaffMember(
-        id: m['id'] as String,
-        name: m['name'] as String? ?? 'Unknown',
-        role: m['role'] as String? ?? 'waiter',
-        pin: m['pin'] as String? ?? '----',
-        isActive: m['is_active'] as bool? ?? true,
-        tenantId: m['tenant_id'] as String? ?? '',
-      );
-}
-
 // ── Screen ────────────────────────────────────────────────────────────────────
-class StaffManagementScreen extends ConsumerStatefulWidget {
+class StaffManagementScreen extends ConsumerWidget {
   const StaffManagementScreen({super.key});
 
   @override
-  ConsumerState<StaffManagementScreen> createState() =>
-      _StaffManagementScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final staffAsync = ref.watch(staffStreamProvider);
 
-class _StaffManagementScreenState
-    extends ConsumerState<StaffManagementScreen> {
-  List<_StaffMember> _staff = [];
-  bool _isLoading = true;
-  String _tenantId = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<String?> _getTenantId() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return null;
-    try {
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('tenant_id')
-          .eq('id', user.id)
-          .single();
-      return profile['tenant_id'] as String?;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    try {
-      final tid = await _getTenantId();
-      if (tid == null) {
-        setState(() {
-          _staff = _demoStaff;
-          _tenantId = 'demo';
-          _isLoading = false;
-        });
-        return;
-      }
-      _tenantId = tid;
-      final data = await Supabase.instance.client
-          .from('staff')
-          .select()
-          .eq('tenant_id', tid)
-          .order('name');
-      setState(() {
-        _staff = (data as List).map((m) => _StaffMember.fromMap(m)).toList();
-        _isLoading = false;
-      });
-    } catch (_) {
-      setState(() {
-        _staff = _demoStaff;
-        _tenantId = 'demo';
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -114,86 +26,120 @@ class _StaffManagementScreenState
         toolbarHeight: 64.h,
         title: Row(
           children: [
-            Text('Orderlli',
-                style: GoogleFonts.inter(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryContainer)),
+            Text(
+              'Orderlli',
+              style: GoogleFonts.inter(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primaryContainer,
+              ),
+            ),
             SizedBox(width: 12.w),
-            Container(
-                width: 1.w, height: 20.h, color: const Color(0xFFE2E8F0)),
+            Container(width: 1.w, height: 20.h, color: const Color(0xFFE2E8F0)),
             SizedBox(width: 12.w),
             Expanded(
-              child: Text('Staff',
-                  style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+              child: Text(
+                'Staff',
+                style: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF0F172A),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             SizedBox(width: 8.w),
-            Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-              decoration: BoxDecoration(
+            staffAsync.maybeWhen(
+              data: (staff) => Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                decoration: BoxDecoration(
                   color: AppTheme.primaryContainer.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20.r)),
-              child: Text('${_staff.length}',
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  '${staff.length}',
                   style: GoogleFonts.jetBrainsMono(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryContainer)),
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryContainer,
+                  ),
+                ),
+              ),
+              orElse: () => const SizedBox.shrink(),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.person_add_rounded, color: AppTheme.primaryContainer, size: 24.r),
-            onPressed: () => _showStaffSheet(context, null),
+            icon: Icon(
+              Icons.person_add_rounded,
+              color: AppTheme.primaryContainer,
+              size: 24.r,
+            ),
+            onPressed: () => _showStaffSheet(context, ref, null),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryContainer))
-          : _staff.isEmpty
-              ? _buildEmpty()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  color: AppTheme.primaryContainer,
-                  child: ListView.builder(
-                    padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
-                    itemCount: _staff.length,
-                    itemBuilder: (context, i) => _StaffCard(
-                      member: _staff[i],
-                      onTap: () => _showStaffSheet(context, _staff[i]),
-                    )
-                        .animate(
-                            delay: Duration(milliseconds: 50 * i))
-                        .fadeIn(duration: 300.ms)
-                        .slideY(begin: 0.1, curve: Curves.easeOut),
-                  ),
+      body: staffAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryContainer),
+        ),
+        error: (err, _) => Center(
+          child: Text(
+            'Failed to load staff: $err',
+            style: GoogleFonts.inter(color: AppTheme.error),
+          ),
+        ),
+        data: (staff) => staff.isEmpty
+            ? _buildEmpty(context, ref)
+            : RefreshIndicator(
+                onRefresh: () async => ref.invalidate(staffStreamProvider),
+                color: AppTheme.primaryContainer,
+                child: ListView.builder(
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
+                  itemCount: staff.length,
+                  itemBuilder: (context, i) =>
+                      _StaffCard(
+                            member: staff[i],
+                            onTap: () =>
+                                _showStaffSheet(context, ref, staff[i]),
+                          )
+                          .animate(delay: Duration(milliseconds: 50 * i))
+                          .fadeIn(duration: 300.ms)
+                          .slideY(begin: 0.1, curve: Curves.easeOut),
                 ),
+              ),
+      ),
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.group_outlined,
-              size: 64.r,
-              color: const Color(0xFFCBD5E1).withValues(alpha: 0.6)),
+          Icon(
+            Icons.group_outlined,
+            size: 64.r,
+            color: const Color(0xFFCBD5E1).withValues(alpha: 0.6),
+          ),
           SizedBox(height: 16.h),
-          Text('No staff members yet',
-              style: GoogleFonts.inter(
-                  fontSize: 16.sp, color: const Color(0xFF94A3B8))),
+          Text(
+            'No staff members yet',
+            style: GoogleFonts.inter(
+              fontSize: 16.sp,
+              color: const Color(0xFF94A3B8),
+            ),
+          ),
           SizedBox(height: 12.h),
           ElevatedButton.icon(
-            onPressed: () => _showStaffSheet(context, null),
+            onPressed: () => _showStaffSheet(context, ref, null),
             icon: Icon(Icons.add_rounded, size: 18.r),
-            label: Text('Add First Staff', style: GoogleFonts.inter(fontSize: 14.sp)),
+            label: Text(
+              'Add First Staff',
+              style: GoogleFonts.inter(fontSize: 14.sp),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryContainer,
               foregroundColor: Colors.white,
@@ -205,45 +151,37 @@ class _StaffManagementScreenState
     );
   }
 
-  void _showStaffSheet(BuildContext context, _StaffMember? member) {
+  void _showStaffSheet(BuildContext context, WidgetRef ref, StaffDto? member) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _StaffSheet(
-        member: member,
-        tenantId: _tenantId,
-        onSaved: _load,
-      ),
+      builder: (_) => _StaffSheet(member: member),
     );
   }
 }
 
 // ── Staff Card ────────────────────────────────────────────────────────────────
 class _StaffCard extends StatelessWidget {
-  final _StaffMember member;
+  final StaffDto member;
   final VoidCallback onTap;
 
   const _StaffCard({required this.member, required this.onTap});
 
   Color get _roleColor => switch (member.role) {
-        'owner' => AppTheme.primaryContainer,
-        'manager' => const Color(0xFF3B82F6),
-        _ => const Color(0xFF64748B),
-      };
-
-  String get _roleLabel => switch (member.role) {
-        'owner' => 'OWNER',
-        'manager' => 'MANAGER',
-        _ => 'WAITER',
-      };
+    StaffRole.owner => AppTheme.primaryContainer,
+    StaffRole.manager => const Color(0xFF3B82F6),
+    StaffRole.waiter => const Color(0xFF64748B),
+  };
 
   String get _initials {
     final parts = member.name.split(' ');
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return member.name.substring(0, member.name.length >= 2 ? 2 : 1).toUpperCase();
+    return member.name
+        .substring(0, member.name.length >= 2 ? 2 : 1)
+        .toUpperCase();
   }
 
   @override
@@ -278,11 +216,14 @@ class _StaffCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: Text(_initials,
-                        style: GoogleFonts.inter(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w800,
-                            color: _roleColor)),
+                    child: Text(
+                      _initials,
+                      style: GoogleFonts.inter(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w800,
+                        color: _roleColor,
+                      ),
+                    ),
                   ),
                 ),
                 if (member.isActive)
@@ -310,47 +251,63 @@ class _StaffCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(member.name,
-                            style: GoogleFonts.inter(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF0F172A)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          member.name,
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       SizedBox(width: 8.w),
                       Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 7.w, vertical: 2.h),
+                          horizontal: 7.w,
+                          vertical: 2.h,
+                        ),
                         decoration: BoxDecoration(
                           color: _roleColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4.r),
                         ),
-                        child: Text(_roleLabel,
-                            style: GoogleFonts.inter(
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.w800,
-                                color: _roleColor,
-                                letterSpacing: 0.5)),
+                        child: Text(
+                          member.role.displayLabel,
+                          style: GoogleFonts.inter(
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w800,
+                            color: _roleColor,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 4.h),
                   Row(
                     children: [
-                      Text('PIN: ',
-                          style: GoogleFonts.inter(
-                              fontSize: 11.sp,
-                              color: const Color(0xFF94A3B8))),
-                      Text('●' * member.pin.length,
-                          style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11.sp,
-                              color: const Color(0xFF64748B),
-                              letterSpacing: 3)),
+                      Text(
+                        'PIN: ',
+                        style: GoogleFonts.inter(
+                          fontSize: 11.sp,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      Text(
+                        '●' * member.pin.length,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 11.sp,
+                          color: const Color(0xFF64748B),
+                          letterSpacing: 3,
+                        ),
+                      ),
                       SizedBox(width: 8.w),
                       Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 6.w, vertical: 1.h),
+                          horizontal: 6.w,
+                          vertical: 1.h,
+                        ),
                         decoration: BoxDecoration(
                           color: member.isActive
                               ? const Color(0xFFECFDF5)
@@ -358,22 +315,27 @@ class _StaffCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                         child: Text(
-                            member.isActive ? 'ACTIVE' : 'INACTIVE',
-                            style: GoogleFonts.inter(
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.w700,
-                                color: member.isActive
-                                    ? const Color(0xFF059669)
-                                    : const Color(0xFF94A3B8),
-                                letterSpacing: 0.5)),
+                          member.isActive ? 'ACTIVE' : 'INACTIVE',
+                          style: GoogleFonts.inter(
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w700,
+                            color: member.isActive
+                                ? const Color(0xFF059669)
+                                : const Color(0xFF94A3B8),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                color: const Color(0xFFCBD5E1), size: 20.r),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: const Color(0xFFCBD5E1),
+              size: 20.r,
+            ),
           ],
         ),
       ),
@@ -382,32 +344,27 @@ class _StaffCard extends StatelessWidget {
 }
 
 // ── Add / Edit Staff Sheet ────────────────────────────────────────────────────
-class _StaffSheet extends StatefulWidget {
-  final _StaffMember? member;
-  final String tenantId;
-  final VoidCallback onSaved;
-  const _StaffSheet(
-      {this.member, required this.tenantId, required this.onSaved});
+class _StaffSheet extends ConsumerStatefulWidget {
+  final StaffDto? member;
+  const _StaffSheet({this.member});
 
   @override
-  State<_StaffSheet> createState() => _StaffSheetState();
+  ConsumerState<_StaffSheet> createState() => _StaffSheetState();
 }
 
-class _StaffSheetState extends State<_StaffSheet> {
+class _StaffSheetState extends ConsumerState<_StaffSheet> {
   late TextEditingController _nameCtrl;
   late TextEditingController _pinCtrl;
-  String _role = 'waiter';
+  StaffRole _role = StaffRole.waiter;
   bool _active = true;
   bool _isSaving = false;
-
-  static const _roles = ['waiter', 'manager', 'owner'];
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.member?.name ?? '');
     _pinCtrl = TextEditingController(text: widget.member?.pin ?? '');
-    _role = widget.member?.role ?? 'waiter';
+    _role = widget.member?.role ?? StaffRole.waiter;
     _active = widget.member?.isActive ?? true;
   }
 
@@ -425,44 +382,50 @@ class _StaffSheetState extends State<_StaffSheet> {
 
     setState(() => _isSaving = true);
     try {
-      final data = {
-        'name': name,
-        'pin': pin,
-        'role': _role,
-        'is_active': _active,
-        'tenant_id': widget.tenantId,
-      };
       if (widget.member == null) {
-        await Supabase.instance.client.from('staff').insert(data);
+        // Create
+        final newStaff = StaffDto(
+          id: 'stf-${DateTime.now().millisecondsSinceEpoch}',
+          tenantId: 'mock-tenant-001',
+          name: name,
+          role: _role,
+          pin: pin,
+          isActive: _active,
+        );
+        await ref.read(createStaffProvider)(newStaff);
       } else {
-        await Supabase.instance.client
-            .from('staff')
-            .update(data)
-            .eq('id', widget.member!.id);
+        // Update
+        final updated = widget.member!.copyWith(
+          name: name,
+          role: _role,
+          pin: pin,
+          isActive: _active,
+        );
+        await ref.read(updateStaffProvider)(updated);
       }
-    } catch (_) {}
-    if (mounted) Navigator.pop(context);
-    widget.onSaved();
-    if (mounted) setState(() => _isSaving = false);
+    } catch (_) {
+      // Errors are surfaced via the stream; silently continue
+    }
+    if (mounted) {
+      setState(() => _isSaving = false);
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _remove() async {
     if (widget.member == null) return;
     try {
-      await Supabase.instance.client
-          .from('staff')
-          .delete()
-          .eq('id', widget.member!.id);
+      await ref.read(deleteStaffProvider)(widget.member!.id);
     } catch (_) {}
     if (mounted) Navigator.pop(context);
-    widget.onSaved();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -477,8 +440,9 @@ class _StaffSheetState extends State<_StaffSheet> {
                 width: 40.w,
                 height: 4.h,
                 decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2.r)),
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
             ),
             Padding(
@@ -487,33 +451,41 @@ class _StaffSheetState extends State<_StaffSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      widget.member == null
-                          ? 'Add Staff Member'
-                          : 'Edit Staff',
-                      style: GoogleFonts.inter(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A))),
+                    widget.member == null ? 'Add Staff Member' : 'Edit Staff',
+                    style: GoogleFonts.inter(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
                   SizedBox(height: 20.h),
                   _field('Full Name', _nameCtrl, 'e.g. Rajesh Kumar'),
                   SizedBox(height: 12.h),
-                  _field('PIN (4 digits)', _pinCtrl, 'e.g. 1234',
-                      type: TextInputType.number, maxLen: 4),
+                  _field(
+                    'PIN (4 digits)',
+                    _pinCtrl,
+                    'e.g. 1234',
+                    type: TextInputType.number,
+                    maxLen: 4,
+                  ),
                   SizedBox(height: 16.h),
                   // Role
-                  Text('Role',
-                      style: GoogleFonts.inter(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF64748B))),
+                  Text(
+                    'Role',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
                   SizedBox(height: 8.h),
                   Row(
-                    children: _roles.map((r) {
+                    children: StaffRole.values.map((r) {
                       final active = _role == r;
                       final color = switch (r) {
-                        'owner' => AppTheme.primaryContainer,
-                        'manager' => const Color(0xFF3B82F6),
-                        _ => const Color(0xFF64748B),
+                        StaffRole.owner => AppTheme.primaryContainer,
+                        StaffRole.manager => const Color(0xFF3B82F6),
+                        StaffRole.waiter => const Color(0xFF64748B),
                       };
                       return Expanded(
                         child: GestureDetector(
@@ -523,18 +495,20 @@ class _StaffSheetState extends State<_StaffSheet> {
                             margin: EdgeInsets.only(right: 8.w),
                             padding: EdgeInsets.symmetric(vertical: 10.h),
                             decoration: BoxDecoration(
-                              color:
-                                  active ? color : const Color(0xFFF1F5F9),
+                              color: active ? color : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(10.r),
                             ),
                             child: Center(
-                              child: Text(r.toUpperCase(),
-                                  style: GoogleFonts.inter(
-                                      fontSize: 11.sp,
-                                      fontWeight: FontWeight.w700,
-                                      color: active
-                                          ? Colors.white
-                                          : const Color(0xFF64748B))),
+                              child: Text(
+                                r.displayLabel,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: active
+                                      ? Colors.white
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -546,11 +520,14 @@ class _StaffSheetState extends State<_StaffSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Active',
-                          style: GoogleFonts.inter(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF0F172A))),
+                      Text(
+                        'Active',
+                        style: GoogleFonts.inter(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
                       Switch(
                         value: _active,
                         onChanged: (v) => setState(() => _active = v),
@@ -567,16 +544,21 @@ class _StaffSheetState extends State<_StaffSheet> {
                             onPressed: _remove,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppTheme.primaryContainer,
-                              side: const BorderSide(color: AppTheme.primaryContainer),
+                              side: const BorderSide(
+                                color: AppTheme.primaryContainer,
+                              ),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.r)),
-                              padding:
-                                  EdgeInsets.symmetric(vertical: 14.h),
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
                             ),
-                            child: Text('Remove',
-                                style: GoogleFonts.inter(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w700)),
+                            child: Text(
+                              'Remove',
+                              style: GoogleFonts.inter(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(width: 12.w),
@@ -589,9 +571,9 @@ class _StaffSheetState extends State<_StaffSheet> {
                             backgroundColor: AppTheme.primaryContainer,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.r)),
-                            padding:
-                                EdgeInsets.symmetric(vertical: 14.h),
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
                             elevation: 0,
                           ),
                           child: _isSaving
@@ -599,11 +581,17 @@ class _StaffSheetState extends State<_StaffSheet> {
                                   width: 20.r,
                                   height: 20.r,
                                   child: const CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white))
-                              : Text('Save',
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Save',
                                   style: GoogleFonts.inter(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w700)),
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -617,61 +605,64 @@ class _StaffSheetState extends State<_StaffSheet> {
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl, String hint,
-      {TextInputType? type, int? maxLen}) {
+  Widget _field(
+    String label,
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType? type,
+    int? maxLen,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: GoogleFonts.inter(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B))),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+          ),
+        ),
         SizedBox(height: 6.h),
         TextField(
           controller: ctrl,
           keyboardType: type,
           maxLength: maxLen,
           style: GoogleFonts.inter(
-              fontSize: 14.sp, color: const Color(0xFF0F172A)),
+            fontSize: 14.sp,
+            color: const Color(0xFF0F172A),
+          ),
           decoration: InputDecoration(
             hintText: hint,
             counterText: '',
             hintStyle: GoogleFonts.inter(
-                fontSize: 14.sp, color: const Color(0xFFCBD5E1)),
+              fontSize: 14.sp,
+              color: const Color(0xFFCBD5E1),
+            ),
             filled: true,
             fillColor: const Color(0xFFF8FAFB),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 14.w,
+              vertical: 12.h,
+            ),
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
-                borderSide:
-                    const BorderSide(color: AppTheme.primaryContainer, width: 2)),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryContainer,
+                width: 2,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 }
-
-// ── Demo data ─────────────────────────────────────────────────────────────────
-const _demoStaff = [
-  _StaffMember(
-      id: '1', name: 'Vikram Sharma', role: 'owner',
-      pin: '1111', isActive: true, tenantId: 'demo'),
-  _StaffMember(
-      id: '2', name: 'Priya Mehta', role: 'manager',
-      pin: '2222', isActive: true, tenantId: 'demo'),
-  _StaffMember(
-      id: '3', name: 'Raju Yadav', role: 'waiter',
-      pin: '1234', isActive: true, tenantId: 'demo'),
-  _StaffMember(
-      id: '4', name: 'Ananya Singh', role: 'waiter',
-      pin: '5678', isActive: false, tenantId: 'demo'),
-];

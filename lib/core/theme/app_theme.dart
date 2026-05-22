@@ -76,84 +76,86 @@ class AppTheme {
 
   // ── Text Styles ───────────────────────────────────────────────────────────
   static TextStyle get displayLg => GoogleFonts.inter(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        color: onSurface,
-        letterSpacing: -0.5,
-      );
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    color: onSurface,
+    letterSpacing: -0.5,
+  );
 
   static TextStyle get headlineMd => GoogleFonts.inter(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        color: onSurface,
-        letterSpacing: -0.5,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    color: onSurface,
+    letterSpacing: -0.5,
+  );
 
   static TextStyle get titleLg => GoogleFonts.inter(
-        fontSize: 26,
-        fontWeight: FontWeight.w700,
-        color: onSurface,
-        letterSpacing: -0.3,
-      );
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    color: onSurface,
+    letterSpacing: -0.3,
+  );
 
   static TextStyle get titleMd => GoogleFonts.inter(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      );
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: onSurface,
+  );
 
   static TextStyle get titleSm => GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: onSurface,
+  );
 
   static TextStyle get bodyMd => GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-        height: 1.6,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: onSurface,
+    height: 1.6,
+  );
 
   static TextStyle get bodySm => GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: secondary,
-        height: 1.5,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: secondary,
+    height: 1.5,
+  );
 
   static TextStyle get labelMd => GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: secondary,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: secondary,
+  );
 
   static TextStyle get labelSm => GoogleFonts.inter(
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        color: secondary,
-        letterSpacing: 0.8,
-      );
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    color: secondary,
+    letterSpacing: 0.8,
+  );
 
   /// JetBrains Mono for technical data (IDs, prices, table numbers)
   static TextStyle get monoMd => GoogleFonts.jetBrainsMono(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.6,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.6,
+  );
 
   static TextStyle get monoLg => GoogleFonts.jetBrainsMono(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-      );
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.5,
+  );
 
   // ── Radius ────────────────────────────────────────────────────────────────
   static const BorderRadius radiusSm = BorderRadius.all(Radius.circular(8));
   static const BorderRadius radiusMd = BorderRadius.all(Radius.circular(12));
   static const BorderRadius radiusLg = BorderRadius.all(Radius.circular(16));
   static const BorderRadius radiusXl = BorderRadius.all(Radius.circular(20));
-  static const BorderRadius radiusFull = BorderRadius.all(Radius.circular(9999));
+  static const BorderRadius radiusFull = BorderRadius.all(
+    Radius.circular(9999),
+  );
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   static ThemeData get light {
@@ -190,34 +192,73 @@ class AppTheme {
       ),
       textTheme: base.copyWith(
         displayLarge: GoogleFonts.inter(
-            fontSize: 32, fontWeight: FontWeight.w900, color: onSurface, letterSpacing: -1.0),
+          fontSize: 32,
+          fontWeight: FontWeight.w900,
+          color: onSurface,
+          letterSpacing: -1.0,
+        ),
         headlineLarge: GoogleFonts.inter(
-            fontSize: 28, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.5),
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: onSurface,
+          letterSpacing: -0.5,
+        ),
         headlineMedium: GoogleFonts.inter(
-            fontSize: 24, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.5),
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          color: onSurface,
+          letterSpacing: -0.5,
+        ),
         titleLarge: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w800, color: onSurface),
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: onSurface,
+        ),
         titleMedium: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w700, color: onSurface),
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: onSurface,
+        ),
         titleSmall: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w700, color: onSurface),
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: onSurface,
+        ),
         bodyLarge: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w500, color: onSurface),
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: onSurface,
+        ),
         bodyMedium: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w500, color: onSurface),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: onSurface,
+        ),
         bodySmall: GoogleFonts.inter(
-            fontSize: 12, fontWeight: FontWeight.w400, color: secondary),
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          color: secondary,
+        ),
         labelLarge: GoogleFonts.inter(
-            fontSize: 12, fontWeight: FontWeight.w700, color: secondary),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: secondary,
+        ),
         labelSmall: GoogleFonts.inter(
-            fontSize: 10, fontWeight: FontWeight.w700, color: secondary, letterSpacing: 0.5),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: secondary,
+          letterSpacing: 0.5,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
         hintStyle: const TextStyle(color: secondary),
-        labelStyle:
-            const TextStyle(color: secondary, fontWeight: FontWeight.w500),
+        labelStyle: const TextStyle(
+          color: secondary,
+          fontWeight: FontWeight.w500,
+        ),
         prefixIconColor: secondary,
         suffixIconColor: secondary,
         // Bottom-border-only style (financial dashboard aesthetic)
@@ -236,8 +277,10 @@ class AppTheme {
         focusedErrorBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: error, width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -245,8 +288,9 @@ class AppTheme {
           foregroundColor: onPrimary,
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           textStyle: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -257,10 +301,10 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryContainer,
           minimumSize: const Size(double.infinity, 52),
-          side:
-              const BorderSide(color: primaryContainer, width: 1.5),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: const BorderSide(color: primaryContainer, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           textStyle: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -279,9 +323,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: surfaceContainerLowest,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceContainerLowest,

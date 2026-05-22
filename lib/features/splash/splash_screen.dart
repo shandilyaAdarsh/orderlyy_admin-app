@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/auth/mock_auth_provider.dart';
 
 // ── SplashScreen ──────────────────────────────────────────────────────────────
 // In mock mode: checks mock auth state only.
@@ -29,44 +27,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..forward();
-
-    _checkAuthAndNavigate();
-  }
-
-  Future<void> _checkAuthAndNavigate() async {
-    // Wait for splash animation
-    await Future.delayed(const Duration(milliseconds: 2500));
-    if (!mounted) return;
-
-    final currentUserId = ref.read(currentUserIdProvider);
-
-    if (currentUserId != null) {
-      // Resolve mock context to determine routing flags
-      final resolvedCtx =
-          await ref.read(appContextProvider.notifier).resolveContext();
-      if (!mounted) return;
-
-      if (resolvedCtx == null) {
-        context.go('/role-select');
-        return;
-      }
-
-      final flags = resolvedCtx.flags;
-      if (flags.mustChangePassword) {
-        context.go('/change-password');
-      } else if (flags.subscriptionExpired) {
-        context.go('/subscription-expired');
-      } else if (flags.accountSuspended) {
-        context.go('/account-suspended');
-      } else if (!resolvedCtx.onboarding.isComplete ||
-          flags.onboardingRequired) {
-        context.go('/onboarding');
-      } else {
-        context.go('/admin/dashboard');
-      }
-    } else {
-      context.go('/role-select');
-    }
+    debugPrint(
+      '[TRACE] [Splash Init] Displaying splash UI. Waiting for GoRouter redirect...',
+    );
   }
 
   @override

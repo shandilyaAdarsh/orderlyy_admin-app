@@ -13,11 +13,10 @@ enum OrderStatus {
   served,
   cancelled;
 
-  static OrderStatus fromString(String value) =>
-      OrderStatus.values.firstWhere(
-        (e) => e.name == value,
-        orElse: () => OrderStatus.pending,
-      );
+  static OrderStatus fromString(String value) => OrderStatus.values.firstWhere(
+    (e) => e.name == value,
+    orElse: () => OrderStatus.pending,
+  );
 }
 
 // ── Order item ────────────────────────────────────────────────────────────────
@@ -42,22 +41,22 @@ class OrderItemDto {
   double get lineTotal => unitPrice * quantity;
 
   factory OrderItemDto.fromJson(Map<String, dynamic> json) => OrderItemDto(
-        id: json['id'] as String,
-        menuItemId: json['menu_item_id'] as String,
-        menuItemName: json['menu_item_name'] as String,
-        quantity: json['quantity'] as int,
-        unitPrice: (json['unit_price'] as num).toDouble(),
-        notes: json['notes'] as String?,
-      );
+    id: json['id'] as String,
+    menuItemId: json['menu_item_id'] as String,
+    menuItemName: json['menu_item_name'] as String,
+    quantity: json['quantity'] as int,
+    unitPrice: (json['unit_price'] as num).toDouble(),
+    notes: json['notes'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'menu_item_id': menuItemId,
-        'menu_item_name': menuItemName,
-        'quantity': quantity,
-        'unit_price': unitPrice,
-        'notes': notes,
-      };
+    'id': id,
+    'menu_item_id': menuItemId,
+    'menu_item_name': menuItemName,
+    'quantity': quantity,
+    'unit_price': unitPrice,
+    'notes': notes,
+  };
 }
 
 // ── Order ─────────────────────────────────────────────────────────────────────
@@ -92,49 +91,73 @@ class OrderDto {
   });
 
   factory OrderDto.fromJson(Map<String, dynamic> json) => OrderDto(
-        id: json['id'] as String,
-        tenantId: json['tenant_id'] as String,
-        tableId: json['table_id'] as String,
-        tableLabel: json['table_label'] as String,
-        status: OrderStatus.fromString(json['status'] as String),
-        items: (json['items'] as List? ?? [])
-            .map((e) => OrderItemDto.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        totalAmount: (json['total_amount'] as num).toDouble(),
-        staffId: json['staff_id'] as String?,
-        staffName: json['staff_name'] as String?,
-        notes: json['notes'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        updatedAt: DateTime.parse(json['updated_at'] as String),
-      );
+    id: json['id'] as String,
+    tenantId: json['tenant_id'] as String,
+    tableId: json['table_id'] as String? ?? '',
+    tableLabel: json['table_label'] as String? ?? 'T??',
+    status: OrderStatus.fromString(json['status'] as String),
+    items: (json['items'] as List? ?? [])
+        .map((e) => OrderItemDto.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    totalAmount: (json['total_amount'] as num).toDouble(),
+    staffId: json['staff_id'] as String?,
+    staffName: json['staff_name'] as String?,
+    notes: json['notes'] as String?,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    updatedAt: DateTime.parse(json['updated_at'] as String),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tenant_id': tenantId,
-        'table_id': tableId,
-        'table_label': tableLabel,
-        'status': status.name,
-        'items': items.map((i) => i.toJson()).toList(),
-        'total_amount': totalAmount,
-        'staff_id': staffId,
-        'staff_name': staffName,
-        'notes': notes,
-        'created_at': createdAt.toIso8601String(),
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'tenant_id': tenantId,
+    'table_id': tableId,
+    'table_label': tableLabel,
+    'status': status.name,
+    'items': items.map((i) => i.toJson()).toList(),
+    'total_amount': totalAmount,
+    'staff_id': staffId,
+    'staff_name': staffName,
+    'notes': notes,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
 
   OrderDto copyWith({OrderStatus? status, DateTime? updatedAt}) => OrderDto(
-        id: id,
-        tenantId: tenantId,
-        tableId: tableId,
-        tableLabel: tableLabel,
-        status: status ?? this.status,
-        items: items,
-        totalAmount: totalAmount,
-        staffId: staffId,
-        staffName: staffName,
-        notes: notes,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+    id: id,
+    tenantId: tenantId,
+    tableId: tableId,
+    tableLabel: tableLabel,
+    status: status ?? this.status,
+    items: items,
+    totalAmount: totalAmount,
+    staffId: staffId,
+    staffName: staffName,
+    notes: notes,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+
+  String get displayStatus => status.name.toUpperCase();
+
+  String get displayTime {
+    final dt = createdAt.toLocal();
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+    return '${months[dt.month - 1]} ${dt.day} · $hour:$minute $ampm';
+  }
 }

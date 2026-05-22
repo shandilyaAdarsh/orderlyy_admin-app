@@ -33,13 +33,13 @@ class MenuCategoryDto {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tenant_id': tenantId,
-        'name': name,
-        'description': description,
-        'sort_order': sortOrder,
-        'is_active': isActive,
-      };
+    'id': id,
+    'tenant_id': tenantId,
+    'name': name,
+    'description': description,
+    'sort_order': sortOrder,
+    'is_active': isActive,
+  };
 }
 
 // ── Menu Item ─────────────────────────────────────────────────────────────────
@@ -72,30 +72,30 @@ class MenuItemDto {
   });
 
   factory MenuItemDto.fromJson(Map<String, dynamic> json) => MenuItemDto(
-        id: json['id'] as String,
-        tenantId: json['tenant_id'] as String,
-        categoryId: json['category_id'] as String,
-        name: json['name'] as String,
-        description: json['description'] as String?,
-        price: (json['price'] as num).toDouble(),
-        imageUrl: json['image_url'] as String?,
-        isAvailable: json['is_available'] as bool? ?? true,
-        isVegetarian: json['is_vegetarian'] as bool? ?? false,
-        prepTimeMinutes: json['prep_time_minutes'] as int? ?? 15,
-        tags: List<String>.from(json['tags'] as List? ?? []),
-      );
+    id: json['id'] as String,
+    tenantId: json['tenant_id'] as String,
+    categoryId: json['category_id'] as String,
+    name: json['name'] as String,
+    description: json['description'] as String?,
+    price: (json['price'] as num).toDouble(),
+    imageUrl: json['image_url'] as String?,
+    isAvailable: json['is_available'] as bool? ?? true,
+    isVegetarian: json['is_vegetarian'] as bool? ?? false,
+    prepTimeMinutes: json['prep_time_minutes'] as int? ?? 15,
+    tags: List<String>.from(json['tags'] as List? ?? []),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tenant_id': tenantId,
-        'category_id': categoryId,
-        'name': name,
-        'description': description,
-        'price': price,
-        'image_url': imageUrl,
-        'is_available': isAvailable,
-        'is_vegetarian': isVegetarian,
-        'prep_time_minutes': prepTimeMinutes,
-        'tags': tags,
-      };
+    'id': id,
+    'tenant_id': tenantId,
+    'category_id': categoryId,
+    'name': name,
+    'description': description,
+    'price': price,
+    'image_url': imageUrl,
+    'is_available': isAvailable,
+    'is_vegetarian': isVegetarian,
+    'prep_time_minutes': prepTimeMinutes,
+    'tags': tags,
+  };
 }

@@ -28,4 +28,10 @@ abstract class AuthRepository {
 
   // ── Currently authenticated user id ──────────────────────────────────────
   String? get currentUserId;
+
+  // ── Currently authenticated staff member (null if admin or logged out) ───
+  StaffDto? get currentStaff;
+
+  // ── Restore persisted session (call once at app start) ────────────────────
+  Future<void> restoreSession();
 }
