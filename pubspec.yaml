@@ -47,12 +47,24 @@ dependencies:
   # Typography
   google_fonts: ^6.2.1
 
-  # Local storage
-  shared_preferences: ^2.5.3
+  # Network
+  dio: ^5.4.3
+  connectivity_plus: ^6.0.3
 
-  # Immutable models & serialization
+  # Local storage & Database
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Serialization & Immutability
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
+  equatable: ^2.0.5
+
+  # Logging & Debugging
+  talker_flutter: ^4.6.0
+  talker_dio_logger: ^4.6.0
 
   # Animations
   flutter_animate: ^4.5.2

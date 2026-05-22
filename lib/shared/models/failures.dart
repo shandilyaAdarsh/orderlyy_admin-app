@@ -63,6 +63,24 @@ class CacheException implements Exception {
   String toString() => 'CacheException: $message';
 }
 
+class AuthException implements Exception {
+  final String message;
+
+  AuthException(this.message);
+
+  @override
+  String toString() => 'AuthException: $message';
+}
+
+class ConflictException implements Exception {
+  final String message;
+
+  ConflictException(this.message);
+
+  @override
+  String toString() => 'ConflictException: $message';
+}
+
 // ── Exception to Failure Mapping ─────────────────────────────────────────────
 
 AppFailure mapExceptionToFailure(Exception exception) {
@@ -75,6 +93,10 @@ AppFailure mapExceptionToFailure(Exception exception) {
     return AppFailure.network(message: exception.message);
   } else if (exception is CacheException) {
     return AppFailure.cache(message: exception.message);
+  } else if (exception is AuthException) {
+    return AppFailure.unauthorized(message: exception.message);
+  } else if (exception is ConflictException) {
+    return AppFailure.validation(message: exception.message);
   } else {
     return AppFailure.unknown(message: exception.toString());
   }

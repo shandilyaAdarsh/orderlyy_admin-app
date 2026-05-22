@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/config/app_config.dart';
+import 'core/network/secure_storage.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/data/mock/mock_auth_repository.dart';
 import 'core/providers/repository_providers.dart';
 import 'core/storage/local_storage.dart';
+import 'core/storage/hive_storage.dart';
 
 // ── Mock mode: Supabase.initialize() is intentionally removed. ────────────────
 // The app is fully decoupled from the backend during this phase.
@@ -16,6 +20,13 @@ import 'core/storage/local_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Local Hive Database Snapshot Cache
+  await HiveStorage.initialize();
+
+  // Initialize App Configuration
+  AppConfig.initialize();
+
   final prefs = await SharedPreferences.getInstance();
 
   // Initialize local storage
@@ -43,8 +54,18 @@ Future<void> main() async {
     return;
   }
 
-  // NOTE: Supabase.initialize() is intentionally skipped in mock mode.
-  // Restore it when kUseMockRepositories = false.
+  // Supabase initialization with Secure Token Storage
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://placeholder.supabase.co');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'placeholder-key');
+  
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+    authOptions: FlutterAuthClientOptions(
+      localStorage: SecureLocalStorage(),
+    ),
+  );
+
   runApp(
     ProviderScope(
       overrides: [
