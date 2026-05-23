@@ -7,6 +7,7 @@ import 'network_info_stub.dart'
 abstract class NetworkInfo {
   Future<bool> get isConnected;
   Stream<List<ConnectivityResult>> get onConnectivityChanged;
+  Stream<bool> get onConnectionChanged;
 }
 
 class NetworkInfoImpl implements NetworkInfo {
@@ -26,6 +27,10 @@ class NetworkInfoImpl implements NetworkInfo {
   @override
   Stream<List<ConnectivityResult>> get onConnectivityChanged =>
       _connectivity.onConnectivityChanged;
+
+  @override
+  Stream<bool> get onConnectionChanged =>
+      onConnectivityChanged.map((results) => !results.contains(ConnectivityResult.none));
 }
 
 final networkInfoProvider = Provider<NetworkInfo>((ref) {

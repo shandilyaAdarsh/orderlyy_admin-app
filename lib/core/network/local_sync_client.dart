@@ -1,13 +1,18 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class LocalSyncClient {
+  static bool enabled = !kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST');
+
   static final LocalSyncClient _instance = LocalSyncClient._internal();
   factory LocalSyncClient() => _instance;
   LocalSyncClient._internal() {
     // Automatically trigger connection
-    connect();
+    if (enabled) {
+      connect();
+    }
   }
 
   WebSocketChannel? _channel;
@@ -17,6 +22,7 @@ class LocalSyncClient {
   bool get isConnected => _isConnected;
 
   void connect() {
+    if (!enabled) return;
     if (_isConnected || _isConnecting) return;
     _isConnecting = true;
     if (kDebugMode) {
@@ -74,6 +80,7 @@ class LocalSyncClient {
   }
 
   void broadcastEvent(String type, Map<String, dynamic> payload) {
+    if (!enabled) return;
     if (!_isConnected || _channel == null) {
       if (kDebugMode) {
         print('[LocalSyncClient] Client not connected. Trying to connect and dropping event: $type');

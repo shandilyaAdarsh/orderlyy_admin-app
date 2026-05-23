@@ -1,184 +1,79 @@
-// ── Orders Local Data Source ─────────────────────────────────────────────────
-// Handles local persistence for orders (cache, offline storage).
-// Can be implemented with Hive, Isar, SQLite, SharedPreferences, etc.
+// lib/features/orders/data/datasources/orders_local_datasource.dart
+import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../dtos/order_dto.dart';
 
-import '../../../../core/data/datasources/base/base_datasource.dart';
-import '../../../../core/data/dtos/order_dto.dart';
-import '../../../../core/storage/local_storage.dart';
-
-/// Local data source for orders (cache/offline storage)
-abstract class OrdersLocalDataSource extends LocalDataSource<OrderDto> {
-  /// Get all cached orders
-  @override
-  Future<List<OrderDto>> getAll();
-
-  /// Get cached order by ID
-  @override
-  Future<OrderDto?> getById(String id);
-
-  /// Save order to cache
-  @override
-  Future<void> save(OrderDto dto);
-
-  /// Save multiple orders to cache
-  @override
-  Future<void> saveAll(List<OrderDto> dtos);
-
-  /// Delete order from cache
-  @override
-  Future<void> delete(String id);
-
-  /// Clear all cached orders
-  @override
-  Future<void> clear();
-
-  /// Check if order exists in cache
-  @override
-  Future<bool> exists(String id);
-
-  /// Get orders by tenant
-  Future<List<OrderDto>> getByTenant(String tenantId);
-
-  /// Get orders by status
-  Future<List<OrderDto>> getByStatus(OrderStatus status);
+abstract class OrdersLocalDatasource {
+  Future<List<OrderDto>> getCachedOrders();
+  Future<OrderDto?> getCachedOrderById(String id);
+  Future<OrderDto?> getActiveOrderForTable(String tableId);
+  Future<void> cacheOrders(List<OrderDto> orders);
+  Future<void> cacheOrder(OrderDto order);
+  Stream<List<OrderDto>> watchCachedOrders();
 }
 
-/// SharedPreferences implementation (simple cache)
-class OrdersSharedPrefsDataSource implements OrdersLocalDataSource {
-  final LocalStorage _storage;
-  static const String _cacheKey = 'orders_cache';
+class OrdersLocalDatasourceImpl implements OrdersLocalDatasource {
+  final SharedPreferences _prefs;
+  static const _key = 'cached_restaurant_orders';
+  
+  final _controller = StreamController<List<OrderDto>>.broadcast();
 
-  OrdersSharedPrefsDataSource(this._storage);
-
-  @override
-  Future<List<OrderDto>> getAll() async {
-    final json = await _storage.read(_cacheKey);
-    if (json == null) return [];
-
-    final list = (json['orders'] as List? ?? [])
-        .map((item) => OrderDto.fromJson(item as Map<String, dynamic>))
-        .toList();
-
-    return list;
+  OrdersLocalDatasourceImpl(this._prefs) {
+    _controller.add(_readFromPrefs());
   }
 
-  @override
-  Future<OrderDto?> getById(String id) async {
-    final all = await getAll();
+  List<OrderDto> _readFromPrefs() {
+    final raw = _prefs.getString(_key);
+    if (raw == null) return [];
     try {
-      return all.firstWhere((order) => order.id == id);
-    } catch (e) {
-      return null;
+      final decoded = jsonDecode(raw) as List;
+      return decoded.map((e) => OrderDto.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
     }
   }
 
   @override
-  Future<void> save(OrderDto dto) async {
-    final all = await getAll();
-    final index = all.indexWhere((order) => order.id == dto.id);
+  Future<List<OrderDto>> getCachedOrders() async {
+    return _readFromPrefs();
+  }
 
-    if (index >= 0) {
-      all[index] = dto;
+  @override
+  Future<OrderDto?> getCachedOrderById(String id) async {
+    final current = _readFromPrefs();
+    final index = current.indexWhere((o) => o.id == id);
+    return index != -1 ? current[index] : null;
+  }
+
+  @override
+  Future<OrderDto?> getActiveOrderForTable(String tableId) async {
+    final current = _readFromPrefs();
+    final index = current.indexWhere((o) => o.tableId == tableId && o.status != 'completed' && o.status != 'cancelled');
+    return index != -1 ? current[index] : null;
+  }
+
+  @override
+  Future<void> cacheOrders(List<OrderDto> orders) async {
+    final raw = jsonEncode(orders.map((o) => o.toJson()).toList());
+    await _prefs.setString(_key, raw);
+    _controller.add(orders);
+  }
+
+  @override
+  Future<void> cacheOrder(OrderDto order) async {
+    final current = _readFromPrefs();
+    final index = current.indexWhere((o) => o.id == order.id);
+    if (index != -1) {
+      current[index] = order;
     } else {
-      all.add(dto);
+      current.add(order);
     }
-
-    await _saveAll(all);
+    await cacheOrders(current);
   }
 
   @override
-  Future<void> saveAll(List<OrderDto> dtos) async {
-    await _saveAll(dtos);
-  }
-
-  Future<void> _saveAll(List<OrderDto> dtos) async {
-    final json = {
-      'orders': dtos.map((dto) => dto.toJson()).toList(),
-      'lastUpdated': DateTime.now().toIso8601String(),
-    };
-
-    await _storage.write(_cacheKey, json);
-  }
-
-  @override
-  Future<void> delete(String id) async {
-    final all = await getAll();
-    all.removeWhere((order) => order.id == id);
-    await _saveAll(all);
-  }
-
-  @override
-  Future<void> clear() async {
-    await _storage.delete(_cacheKey);
-  }
-
-  @override
-  Future<bool> exists(String id) async {
-    final order = await getById(id);
-    return order != null;
-  }
-
-  @override
-  Future<List<OrderDto>> getByTenant(String tenantId) async {
-    final all = await getAll();
-    return all.where((order) => order.tenantId == tenantId).toList();
-  }
-
-  @override
-  Future<List<OrderDto>> getByStatus(OrderStatus status) async {
-    final all = await getAll();
-    return all.where((order) => order.status == status).toList();
-  }
-}
-
-/// Future: Hive implementation (for better performance)
-class OrdersHiveDataSource implements OrdersLocalDataSource {
-  // final Box<OrderDto> _box;
-
-  // OrdersHiveDataSource(this._box);
-
-  @override
-  Future<List<OrderDto>> getAll() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<OrderDto?> getById(String id) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> save(OrderDto dto) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> saveAll(List<OrderDto> dtos) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> delete(String id) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> clear() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<bool> exists(String id) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<List<OrderDto>> getByTenant(String tenantId) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<List<OrderDto>> getByStatus(OrderStatus status) async {
-    throw UnimplementedError('Hive implementation pending');
+  Stream<List<OrderDto>> watchCachedOrders() {
+    return _controller.stream;
   }
 }
