@@ -6,8 +6,9 @@ import '../../../../core/storage/local_storage.dart';
 import '../datasources/orders_remote_datasource.dart';
 import '../datasources/orders_local_datasource.dart';
 import '../datasources/orders_mock_datasource.dart';
+import '../datasources/orders_shared_prefs_datasource.dart';
 import 'orders_repository_interface.dart';
-import 'orders_repository_impl.dart';
+import 'i_orders_repository_impl.dart';
 
 /// Repository mode enum
 enum RepositoryMode {
@@ -67,7 +68,7 @@ class OrdersRepositoryFactory {
   static IOrdersRepository _createMockRepository() {
     final mockDataSource = OrdersMockDataSource();
 
-    return OrdersRepositoryImpl(
+    return IOrdersRepositoryImpl(
       mockDataSource: mockDataSource,
       useCache: false,
     );
@@ -86,7 +87,7 @@ class OrdersRepositoryFactory {
           baseUrl ?? _getDefaultBaseUrl(),
         );
 
-    return OrdersRepositoryImpl(remoteDataSource: remote, useCache: false);
+    return IOrdersRepositoryImpl(remoteDataSource: remote, useCache: false);
   }
 
   /// Create offline-first repository (local + remote with sync)
@@ -109,7 +110,7 @@ class OrdersRepositoryFactory {
 
     final local = OrdersSharedPrefsDataSource(localStorage);
 
-    return OrdersRepositoryImpl(
+    return IOrdersRepositoryImpl(
       remoteDataSource: remote,
       localDataSource: local,
       useCache: true,
@@ -136,7 +137,7 @@ class OrdersRepositoryFactory {
 
     final local = OrdersSharedPrefsDataSource(localStorage);
 
-    return OrdersRepositoryImpl(
+    return IOrdersRepositoryImpl(
       remoteDataSource: remote,
       localDataSource: local,
       useCache: true,

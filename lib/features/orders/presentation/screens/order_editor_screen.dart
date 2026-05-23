@@ -6,8 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sync_state_chip.dart';
 import '../../../menu/presentation/state/menu_providers.dart';
-import '../../../menu/presentation/widgets/menu_error_state.dart';
-import '../../../menu/presentation/widgets/menu_skeleton_loader.dart';
 import '../../domain/entities/menu_product.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/order_item.dart';
@@ -161,10 +159,19 @@ class _OrderEditorScreenState extends ConsumerState<OrderEditorScreen> {
     bool isDark,
   ) {
     return menuSnapshotAsync.when(
-      loading: () => const MenuSkeletonLoader(),
-      error: (err, stack) => MenuErrorState(
-        errorMessage: err.toString(),
-        onRetry: () => ref.read(menuSnapshotNotifierProvider.notifier).refresh(),
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      error: (err, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error loading menu: $err', style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref.read(menuSnapshotNotifierProvider.notifier).refresh(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ),
       data: (snapshot) {
         final categories = ['All'] + snapshot.categories.map((c) => c.name).toList();

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../auth/presentation/state/auth_notifier.dart';
+import '../../../../core/auth/mock_auth_provider.dart';
 import '../../../tables/presentation/state/table_grid_notifier.dart';
 import '../../../kitchen/presentation/state/kitchen_queue_notifier.dart';
 import '../../../tables/domain/entities/restaurant_table.dart';
@@ -73,15 +73,17 @@ class _OperationalDashboardScreenState extends ConsumerState<OperationalDashboar
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
     final tablesAsync = ref.watch(tableGridNotifierProvider);
     final kitchenAsync = ref.watch(kitchenQueueNotifierProvider);
     
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final branch = authState.selectedBranch;
-    final staff = authState.loggedInStaff;
+    final appCtx = ref.watch(appContextProvider);
+    final staffSession = ref.watch(staffSessionProvider);
+    
+    final branch = appCtx != null ? _MockBranch(appCtx.tenant.name) : null;
+    final staff = staffSession;
 
     // Operational statistics derived from providers
     int totalTables = 0;
@@ -142,8 +144,8 @@ class _OperationalDashboardScreenState extends ConsumerState<OperationalDashboar
 
     // Device lock shortcut
     void triggerLock() {
-      ref.read(authNotifierProvider.notifier).lockSession();
-      context.go('/lock');
+      // Mock lock session
+      context.go('/role-select');
     }
 
     return Scaffold(
@@ -158,7 +160,7 @@ class _OperationalDashboardScreenState extends ConsumerState<OperationalDashboar
             ),
             if (staff != null)
               Text(
-                'Shift User: ${staff.name} (${staff.role.name.toUpperCase()})',
+                'Shift User: ${staff.name} (${staff.role.toUpperCase()})',
                 style: theme.textTheme.bodySmall?.copyWith(color: AppColors.primary),
               ),
           ],
@@ -175,8 +177,8 @@ class _OperationalDashboardScreenState extends ConsumerState<OperationalDashboar
             tooltip: 'Logout Session',
             icon: const Icon(Icons.logout_rounded),
             onPressed: () {
-              ref.read(authNotifierProvider.notifier).logout();
-              context.go('/org-select');
+              ref.read(authServiceProvider).signOut();
+              context.go('/role-select');
             },
           ),
         ],
@@ -650,3 +652,12 @@ class _OperationalDashboardScreenState extends ConsumerState<OperationalDashboar
     );
   }
 }
+
+class _MockBranch {
+  final String name;
+  final _MockBranchStatus status = _MockBranchStatus.synced;
+  
+  _MockBranch(this.name);
+}
+
+enum _MockBranchStatus { synced, busy, outage }

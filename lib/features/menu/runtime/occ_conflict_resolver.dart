@@ -86,14 +86,69 @@ class OccConflictResolver {
         final serverChanged = serverItem != baseItem;
 
         if (localChanged && serverChanged) {
-          // Overlap conflict: both modified the same item
-          if (localItem == serverItem) {
-            // They made the exact same change: resolve cleanly
-            mergedItems.add(localItem);
-          } else {
-            _talker.warning('[OCC] Overlap collision on item ${serverItem.id}. Both edited item differently.');
+          // Check for attribute collision
+          final bool categoryCollision = (localItem.categoryId != baseItem.categoryId &&
+              serverItem.categoryId != baseItem.categoryId &&
+              localItem.categoryId != serverItem.categoryId);
+          final bool nameCollision = (localItem.name != baseItem.name &&
+              serverItem.name != baseItem.name &&
+              localItem.name != serverItem.name);
+          final bool descriptionCollision = (localItem.description != baseItem.description &&
+              serverItem.description != baseItem.description &&
+              localItem.description != serverItem.description);
+          final bool priceCollision = (localItem.price != baseItem.price &&
+              serverItem.price != baseItem.price &&
+              localItem.price != serverItem.price);
+          final bool isAvailableCollision = (localItem.isAvailable != baseItem.isAvailable &&
+              serverItem.isAvailable != baseItem.isAvailable &&
+              localItem.isAvailable != serverItem.isAvailable);
+
+          bool listEquals(List a, List b) {
+            if (a.length != b.length) return false;
+            for (int i = 0; i < a.length; i++) {
+              if (a[i] != b[i]) return false;
+            }
+            return true;
+          }
+
+          final bool localModifiersChanged =
+              !listEquals(localItem.modifierGroupIds, baseItem.modifierGroupIds);
+          final bool serverModifiersChanged =
+              !listEquals(serverItem.modifierGroupIds, baseItem.modifierGroupIds);
+          final bool modifiersCollision = localModifiersChanged &&
+              serverModifiersChanged &&
+              !listEquals(localItem.modifierGroupIds, serverItem.modifierGroupIds);
+
+          if (categoryCollision ||
+              nameCollision ||
+              descriptionCollision ||
+              priceCollision ||
+              isAvailableCollision ||
+              modifiersCollision) {
+            _talker.warning(
+              '[OCC] Overlap collision on item ${serverItem.id}. Both edited same property differently.',
+            );
             overlapConflict = true;
             mergedItems.add(serverItem); // Server version takes precedence in conflict
+          } else {
+            // Auto-merge non-colliding fields!
+            final mergedItem = MenuItem(
+              id: serverItem.id,
+              categoryId: localItem.categoryId != baseItem.categoryId
+                  ? localItem.categoryId
+                  : serverItem.categoryId,
+              name: localItem.name != baseItem.name ? localItem.name : serverItem.name,
+              description: localItem.description != baseItem.description
+                  ? localItem.description
+                  : serverItem.description,
+              price: localItem.price != baseItem.price ? localItem.price : serverItem.price,
+              isAvailable: localItem.isAvailable != baseItem.isAvailable
+                  ? localItem.isAvailable
+                  : serverItem.isAvailable,
+              modifierGroupIds:
+                  localModifiersChanged ? localItem.modifierGroupIds : serverItem.modifierGroupIds,
+            );
+            mergedItems.add(mergedItem);
           }
         } else if (localChanged) {
           // Only local changed: keep local change
