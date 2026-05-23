@@ -184,12 +184,24 @@ class MenuSnapshotDto {
   final List<MenuItemDto> items;
   final List<ModifierGroupDto> modifierGroups;
   final TaxConfigDto taxConfig;
+  final Map<String, dynamic> metadata;
+  final Map<String, bool> availabilityOverlay;
+  final String? etag;
+  final String? snapshotVersion;
+  final DateTime? generatedAt;
+  final String branchId;
 
   const MenuSnapshotDto({
     required this.categories,
     required this.items,
     required this.modifierGroups,
     required this.taxConfig,
+    this.metadata = const {},
+    this.availabilityOverlay = const {},
+    this.etag,
+    this.snapshotVersion,
+    this.generatedAt,
+    this.branchId = 'mock_branch',
   });
 
   factory MenuSnapshotDto.fromJson(Map<String, dynamic> json) {
@@ -203,7 +215,21 @@ class MenuSnapshotDto {
       modifierGroups: (json['modifier_groups'] as List? ?? [])
           .map((e) => ModifierGroupDto.fromJson(e as Map<String, dynamic>))
           .toList(),
-      taxConfig: TaxConfigDto.fromJson(json['tax_configs'] as Map<String, dynamic>? ?? json['tax_config'] as Map<String, dynamic>? ?? {}),
+      taxConfig: TaxConfigDto.fromJson(
+          json['tax_configs'] as Map<String, dynamic>? ??
+              json['tax_config'] as Map<String, dynamic>? ??
+              {}),
+      metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
+      availabilityOverlay: (json['availability_overlay'] as Map? ??
+              json['availabilityOverlay'] as Map? ??
+              const {})
+          .map((k, v) => MapEntry(k.toString(), v as bool)),
+      etag: json['etag'] as String?,
+      snapshotVersion: json['snapshot_version'] as String? ?? json['version'] as String?,
+      generatedAt: json['generated_at'] != null
+          ? DateTime.tryParse(json['generated_at'] as String)
+          : null,
+      branchId: json['branch_id'] as String? ?? 'mock_branch',
     );
   }
 
@@ -212,6 +238,12 @@ class MenuSnapshotDto {
         'items': items.map((e) => e.toJson()).toList(),
         'modifier_groups': modifierGroups.map((e) => e.toJson()).toList(),
         'tax_configs': taxConfig.toJson(),
+        'metadata': metadata,
+        'availability_overlay': availabilityOverlay,
+        'etag': etag,
+        'snapshot_version': snapshotVersion,
+        'generated_at': generatedAt?.toIso8601String(),
+        'branch_id': branchId,
       };
 
   MenuSnapshot toDomain() => MenuSnapshot(
@@ -219,5 +251,11 @@ class MenuSnapshotDto {
         items: items.map((e) => e.toDomain()).toList(),
         modifierGroups: modifierGroups.map((e) => e.toDomain()).toList(),
         taxConfig: taxConfig.toDomain(),
+        metadata: metadata,
+        availabilityOverlay: availabilityOverlay,
+        etag: etag,
+        snapshotVersion: snapshotVersion,
+        generatedAt: generatedAt,
+        branchId: branchId,
       );
 }

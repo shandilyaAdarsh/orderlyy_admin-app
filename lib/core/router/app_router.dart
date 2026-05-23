@@ -25,6 +25,8 @@ import '../../features/staff/staff_management_screen.dart';
 import '../../features/debug/debug_screen.dart';
 import '../../features/orders/add_order_screen.dart';
 import '../data/dtos/order_dto.dart';
+import '../../features/customer/presentation/screens/customer_landing_screen.dart';
+import '../../features/customer/presentation/screens/customer_menu_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -93,6 +95,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/role-select',
         '/admin/login',
         '/staff/login',
+        '/customer/landing',
+        '/customer/menu',
       };
 
       final isPublicRoute = publicRoutes.contains(loc);
@@ -372,6 +376,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/manager/dashboard',
         name: 'manager-dashboard',
         builder: (context, state) => const ManagerDashboardScreen(),
+      ),
+
+      // ── Customer ──────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/customer/landing',
+        name: 'customer-landing',
+        builder: (context, state) {
+          final tenantId = state.uri.queryParameters['tenant_id'];
+          final branchId = state.uri.queryParameters['branch_id'];
+          final tableId = state.uri.queryParameters['table_id'];
+          return CustomerLandingScreen(
+            tenantId: tenantId,
+            branchId: branchId,
+            tableId: tableId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/customer/menu',
+        name: 'customer-menu',
+        builder: (context, state) => const CustomerMenuScreen(),
       ),
     ],
   );
