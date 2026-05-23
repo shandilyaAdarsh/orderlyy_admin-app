@@ -1,0 +1,18 @@
+{
+  "settings": [
+    {
+      "tenant_id": "mock-tenant-001",
+      "notify_new_order": true,
+      "notify_order_ready": true,
+      "notify_low_stock": false,
+      "notify_revenue": false,
+      "print_receipt": true,
+      "auto_accept": false,
+      "confirmation_sound": "BEEP_01",
+      "qr_auto_assign": true,
+      "gst_number": "27AAACH0000Z1Z5",
+      "tax_percentage": 5.0,
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}

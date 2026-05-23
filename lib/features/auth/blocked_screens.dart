@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/auth/app_context_provider.dart';
-import '../../core/auth/auth_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 class SubscriptionExpiredScreen extends ConsumerWidget {
@@ -23,7 +21,7 @@ class SubscriptionExpiredScreen extends ConsumerWidget {
 
   Future<void> _logout(WidgetRef ref, BuildContext context) async {
     ref.read(appContextProvider.notifier).clearContext();
-    await Supabase.instance.client.auth.signOut();
+    await ref.read(authServiceProvider).signOut();
     if (context.mounted) context.go('/role-select');
   }
 }
@@ -45,7 +43,7 @@ class AccountSuspendedScreen extends ConsumerWidget {
   Future<void> _logout(WidgetRef ref, BuildContext context) async {
     ref.read(appContextProvider.notifier).clearContext();
     ref.read(staffSessionProvider.notifier).clear();
-    await Supabase.instance.client.auth.signOut();
+    await ref.read(authServiceProvider).signOut();
     if (context.mounted) context.go('/role-select');
   }
 }
@@ -71,8 +69,7 @@ class _BlockedScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -83,8 +80,7 @@ class _BlockedScreen extends StatelessWidget {
                     color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(icon,
-                      size: 44, color: const Color(0xFFEF4444)),
+                  child: Icon(icon, size: 44, color: const Color(0xFFEF4444)),
                 ),
                 const SizedBox(height: 28),
                 Text(
@@ -114,15 +110,22 @@ class _BlockedScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onLogout,
                     icon: const Icon(Icons.logout_rounded, size: 18),
-                    label: Text('Sign Out',
-                        style: GoogleFonts.inter(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    label: Text(
+                      'Sign Out',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.onSurface,
                       side: const BorderSide(
-                          color: AppTheme.surfaceContainerHigh, width: 1.5),
+                        color: AppTheme.surfaceContainerHigh,
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),

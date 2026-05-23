@@ -74,8 +74,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           );
         }
       } else {
-        setState(() => _errorMessage =
-            response.errorMessage ?? 'Login failed. Please try again.');
+        setState(
+          () => _errorMessage =
+              response.errorMessage ?? 'Login failed. Please try again.',
+        );
       }
     } catch (e) {
       setState(() => _errorMessage = e.toString());
@@ -382,7 +384,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
-              style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.onSurface),
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                color: AppTheme.onSurface,
+              ),
               decoration: InputDecoration(
                 hintText: '••••••••',
                 hintStyle: GoogleFonts.inter(

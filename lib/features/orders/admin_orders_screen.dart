@@ -1,147 +1,44 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/data/dtos/order_dto.dart';
+import '../../core/providers/orders_providers.dart';
 import '../../core/theme/app_theme.dart';
 
-class AdminOrdersScreen extends StatefulWidget {
+// ── Screen ────────────────────────────────────────────────────────────────────
+class AdminOrdersScreen extends ConsumerStatefulWidget {
   const AdminOrdersScreen({super.key});
 
   @override
-  State<AdminOrdersScreen> createState() => _AdminOrdersScreenState();
+  ConsumerState<AdminOrdersScreen> createState() => _AdminOrdersScreenState();
 }
 
-String _normalizeOrderStatus(dynamic status) {
-  final raw = status?.toString().toLowerCase().trim() ?? '';
-  if (raw == 'rejected' || raw == 'completed') return 'served';
-  if (raw.isEmpty) return 'pending';
-  return raw;
-}
-
-String _displayOrderStatus(dynamic status) {
-  final normalized = _normalizeOrderStatus(status);
-  return normalized.toUpperCase();
-}
-
-String _displayTableLabel(Map<String, dynamic> order) {
-  final tableNum =
-      order['table_num'] ??
-      order['table_number'] ??
-      order['tableNo'] ??
-      order['table'];
-  if (tableNum != null) {
-    final numStr = tableNum.toString().padLeft(2, '0');
-    return 'T$numStr';
-  }
-
-  final rawId = order['table_id']?.toString() ?? '';
-  if (rawId.isNotEmpty && rawId.length <= 4) return rawId;
-  return 'T??';
-}
-
-String _formatOrderTime(Map<String, dynamic> order) {
-  final raw = order['created_at'] ?? order['createdAt'] ?? order['created'];
-  if (raw == null) return '';
-  try {
-    final dt = DateTime.parse(raw.toString()).toLocal();
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-    return '${months[dt.month - 1]} ${dt.day} · $hour:$minute $ampm';
-  } catch (_) {
-    return '';
-  }
-}
-
-List<Map<String, dynamic>> _extractOrderItems(Map<String, dynamic> order) {
-  dynamic raw = order['items'] ?? order['order_items'] ?? order['items_json'] ?? order['cart'] ?? order['cart_items'];
-  if (raw is String) {
-    try {
-      raw = jsonDecode(raw);
-    } catch (_) {
-      raw = [];
-    }
-  }
-
-  if (raw is Map) {
-    // If it's a map (e.g. { "item_id": { ... } }), convert values to a list
-    raw = raw.values.toList();
-  }
-
-  if (raw is! List) return [];
-
-  return raw.map<Map<String, dynamic>>((item) {
-    if (item is Map<String, dynamic>) return item;
-    if (item is Map) return Map<String, dynamic>.from(item);
-    return {'name': item.toString()};
-  }).toList();
-}
-
-class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
+class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
   int _filterIndex = 0;
   static const _filters = ['ALL', 'PENDING', 'COOKING', 'READY', 'SERVED'];
 
   @override
   Widget build(BuildContext context) {
+    final ordersAsync = ref.watch(ordersStreamProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: Builder(builder: (context) {
-          Stream<List<Map<String, dynamic>>> ordersStream;
-          try {
-            ordersStream = Supabase.instance.client.from('orders').stream(primaryKey: ['id']);
-          } catch (e) {
-            debugPrint('Orders realtime stream unavailable: $e');
-            ordersStream = Stream.fromFuture(Future(() async {
-              try {
-                final data = await Supabase.instance.client.from('orders').select();
-                return List<Map<String, dynamic>>.from(data.cast<Map>());
-              } catch (e) {
-                debugPrint('Orders one-shot fetch failed: $e');
-              }
-              return <Map<String, dynamic>>[];
-            }));
-          }
-
-          return StreamBuilder<List<Map<String, dynamic>>>(
-            stream: ordersStream,
-            builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  'Order Sync Error: ${snapshot.error}',
-                  style: GoogleFonts.inter(color: AppTheme.error),
-                ),
-              );
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final allOrders = snapshot.data ?? [];
-
+        child: ordersAsync.when(
+          error: (err, _) => Center(
+            child: Text(
+              'Order Sync Error: $err',
+              style: GoogleFonts.inter(color: AppTheme.error),
+            ),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          data: (allOrders) {
             // Filter orders based on _filterIndex
             final orders = allOrders.where((o) {
               if (_filterIndex == 0) return true; // ALL
-              final status = _displayOrderStatus(o['status']);
+              final status = o.displayStatus;
               return status == _filters[_filterIndex];
             }).toList();
 
@@ -246,19 +143,18 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               ],
             );
           },
-        );
-      }),
-    ),
-  );
-}
+        ),
+      ),
+    );
+  }
 }
 
 // ── Dynamic Order Card ─────────────────────────────────────────────────────────
 class _DynamicOrderCard extends StatelessWidget {
-  final Map<String, dynamic> order;
+  final OrderDto order;
   const _DynamicOrderCard({required this.order});
 
-  void _showOrderDetails(BuildContext context, Map<String, dynamic> order) {
+  void _showOrderDetails(BuildContext context, OrderDto order) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -269,13 +165,12 @@ class _DynamicOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tableId = _displayTableLabel(order);
-    final rawId = order['id']?.toString() ?? '';
-    final orderId = rawId.length >= 8 ? rawId.substring(0, 8) : rawId;
-    final status = _displayOrderStatus(order['status']);
-    final amount = order['total_amount']?.toString() ?? '0.00';
-    final timeLabel = _formatOrderTime(order);
-    final itemsList = _extractOrderItems(order);
+    final tableId = order.tableLabel;
+    final orderId = order.id.length >= 8 ? order.id.substring(0, 8) : order.id;
+    final status = order.displayStatus;
+    final amount = order.totalAmount.toStringAsFixed(2);
+    final timeLabel = order.displayTime;
+    final itemsList = order.items;
 
     return Container(
       padding: EdgeInsets.all(20.r),
@@ -377,8 +272,8 @@ class _DynamicOrderCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ...itemsList.take(3).map((item) {
-            final itemName = item['name'] ?? item['item_name'] ?? 'Item';
-            final qty = item['quantity'] ?? item['qty'] ?? 1;
+            final itemName = item.menuItemName;
+            final qty = item.quantity;
             return Padding(
               padding: EdgeInsets.only(bottom: 6.h),
               child: Row(
@@ -449,16 +344,16 @@ class _DynamicOrderCard extends StatelessWidget {
 
 // â”€â”€ Order Details Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _OrderDetailsSheet extends StatelessWidget {
-  final Map<String, dynamic> order;
+  final OrderDto order;
   const _OrderDetailsSheet({required this.order});
 
   @override
   Widget build(BuildContext context) {
-    final items = _extractOrderItems(order);
-    final tableId = _displayTableLabel(order);
-    final amount = order['total_amount']?.toString() ?? '0';
-    final status = _displayOrderStatus(order['status']);
-    final timeLabel = _formatOrderTime(order);
+    final items = order.items;
+    final tableId = order.tableLabel;
+    final amount = order.totalAmount.toStringAsFixed(0);
+    final status = order.displayStatus;
+    final timeLabel = order.displayTime;
 
     return Container(
       decoration: BoxDecoration(
@@ -513,8 +408,7 @@ class _OrderDetailsSheet extends StatelessWidget {
             children: [
               Text(
                 'Table $tableId · Order #${(() {
-                  final rawId = order['id']?.toString() ?? '';
-                  return (rawId.length >= 8 ? rawId.substring(0, 8) : rawId).toUpperCase();
+                  return (order.id.length >= 8 ? order.id.substring(0, 8) : order.id).toUpperCase();
                 })()}',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12.sp,
@@ -555,9 +449,9 @@ class _OrderDetailsSheet extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
           ...items.map((i) {
-            final name = i['name'] ?? i['item_name'] ?? 'Item';
-            final qty = i['quantity'] ?? i['qty'] ?? 1;
-            final price = i['price']?.toString() ?? '';
+            final name = i.menuItemName;
+            final qty = i.quantity;
+            final price = i.unitPrice > 0 ? i.lineTotal.toStringAsFixed(0) : '';
             return Padding(
               padding: EdgeInsets.only(bottom: 12.h),
               child: Row(

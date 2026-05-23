@@ -49,8 +49,7 @@ class MockOrdersRepository implements OrdersRepository {
       if (from != null && o.createdAt.isBefore(from)) return false;
       if (to != null && o.createdAt.isAfter(to)) return false;
       return true;
-    }).toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   @override
@@ -83,11 +82,24 @@ class MockOrdersRepository implements OrdersRepository {
     await _ensureLoaded();
     final idx = _orders!.indexWhere((o) => o.id == orderId);
     if (idx == -1) throw Exception('Order not found: $orderId');
-    final updated =
-        _orders![idx].copyWith(status: newStatus, updatedAt: DateTime.now());
+    final updated = _orders![idx].copyWith(
+      status: newStatus,
+      updatedAt: DateTime.now(),
+    );
     _orders![idx] = updated;
     _broadcast();
     return updated;
+  }
+
+  @override
+  Future<OrderDto> updateOrder(OrderDto order) async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    await _ensureLoaded();
+    final idx = _orders!.indexWhere((o) => o.id == order.id);
+    if (idx == -1) throw Exception('Order not found: ${order.id}');
+    _orders![idx] = order;
+    _broadcast();
+    return order;
   }
 
   @override
@@ -100,8 +112,9 @@ class MockOrdersRepository implements OrdersRepository {
   Stream<List<OrderDto>> watchOrders(String tenantId) async* {
     await _ensureLoaded();
     yield _orders!.where((o) => o.tenantId == tenantId).toList();
-    yield* _ordersController.stream
-        .map((orders) => orders.where((o) => o.tenantId == tenantId).toList());
+    yield* _ordersController.stream.map(
+      (orders) => orders.where((o) => o.tenantId == tenantId).toList(),
+    );
   }
 
   // ── Daily summary ─────────────────────────────────────────────────────────
@@ -127,8 +140,9 @@ class MockOrdersRepository implements OrdersRepository {
       'total_orders': dayOrders.length,
       'total_revenue': revenue,
       'pending': dayOrders.where((o) => o.status == OrderStatus.pending).length,
-      'preparing':
-          dayOrders.where((o) => o.status == OrderStatus.preparing).length,
+      'preparing': dayOrders
+          .where((o) => o.status == OrderStatus.preparing)
+          .length,
       'ready': dayOrders.where((o) => o.status == OrderStatus.ready).length,
       'served': dayOrders.where((o) => o.status == OrderStatus.served).length,
     };

@@ -1,46 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/data/dtos/order_dto.dart';
+import '../../core/providers/orders_providers.dart';
 import '../../core/theme/app_theme.dart';
 
-class WaiterOrdersScreen extends StatefulWidget {
+class WaiterOrdersScreen extends ConsumerStatefulWidget {
   const WaiterOrdersScreen({super.key});
 
   @override
-  State<WaiterOrdersScreen> createState() => _WaiterOrdersScreenState();
+  ConsumerState<WaiterOrdersScreen> createState() => _WaiterOrdersScreenState();
 }
 
-String _normalizeOrderStatus(dynamic status) {
-  final raw = status?.toString().toLowerCase().trim() ?? '';
-  if (raw == 'rejected' || raw == 'completed') return 'served';
-  if (raw.isEmpty) return 'pending';
-  return raw;
-}
-
-String _displayTableLabel(Map<String, dynamic> order) {
-  final tableNum =
-      order['table_num'] ??
-      order['table_number'] ??
-      order['tableNo'] ??
-      order['table'];
-  if (tableNum != null) {
-    final numStr = tableNum.toString().padLeft(2, '0');
-    return 'Table $numStr';
-  }
-
-  final rawId = order['table_id']?.toString() ?? '';
-  if (rawId.isNotEmpty && rawId.length <= 4) return 'Table $rawId';
-  return 'Table ?';
-}
-
-class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
+class _WaiterOrdersScreenState extends ConsumerState<WaiterOrdersScreen> {
   int _filterIndex = 0;
   static const _filters = ['ALL', 'ACTIVE', 'SERVED'];
 
   @override
   Widget build(BuildContext context) {
+    final ordersAsync = ref.watch(ordersStreamProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -66,43 +48,32 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
           ),
         ],
       ),
-      body: Builder(
-        builder: (context) {
-          Stream<List<Map<String, dynamic>>> ordersStream;
-          try {
-            ordersStream = Supabase.instance.client.from('orders').stream(primaryKey: ['id']);
-          } catch (e) {
-            debugPrint('Orders realtime stream unavailable: $e');
-            ordersStream = Stream.fromFuture(Future(() async {
-              try {
-                final data = await Supabase.instance.client.from('orders').select();
-                return List<Map<String, dynamic>>.from(data.cast<Map>());
-              } catch (e) {
-                debugPrint('Orders one-shot fetch failed: $e');
-              }
-              return <Map<String, dynamic>>[];
-            }));
-          }
-
-          return StreamBuilder<List<Map<String, dynamic>>>(
-            stream: ordersStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                debugPrint('Orders Sync Error: ${snapshot.error}');
-                return Center(
-                  child: Text('Orders Sync Error: ${snapshot.error}', style: GoogleFonts.inter(color: AppTheme.error)),
-                );
-              }
-              final allOrders = snapshot.data ?? [];
-
+      body: ordersAsync.when(
+        error: (err, _) {
+          debugPrint('Orders Sync Error: $err');
+          return Center(
+            child: Text(
+              'Orders Sync Error: $err',
+              style: GoogleFonts.inter(color: AppTheme.error),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        data: (allOrders) {
           // Filter logic for waiter: ACTIVE (Pending, Cooking, Ready) or SERVED
           final orders = allOrders.where((o) {
-            final status = _normalizeOrderStatus(o['status']);
+            final status = o.status;
             if (_filterIndex == 0) return true; // ALL
             if (_filterIndex == 1) {
-              return ['pending', 'cooking', 'ready'].contains(status); // ACTIVE
+              return [
+                OrderStatus.pending,
+                OrderStatus.preparing,
+                OrderStatus.ready,
+              ].contains(status); // ACTIVE
             }
-            if (_filterIndex == 2) return status == 'served'; // SERVED
+            if (_filterIndex == 2) {
+              return status == OrderStatus.served; // SERVED
+            }
             return true;
           }).toList();
 
@@ -159,37 +130,32 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
                         itemCount: orders.length,
                         itemBuilder: (context, i) {
                           final o = orders[i];
-                          final statusStr = _normalizeOrderStatus(o['status']);
-                          final status = statusStr == 'cooking'
+                          final status = o.status == OrderStatus.preparing
                               ? _WaiterOrderStatus.cooking
-                              : statusStr == 'ready'
+                              : o.status == OrderStatus.ready
                               ? _WaiterOrderStatus.ready
                               : _WaiterOrderStatus.served;
 
-                          final items = (o['items'] as List? ?? []).map((item) {
-                            final name = item is Map
-                                ? (item['name'] ?? 'Item')
-                                : item.toString();
-                            final qty = item is Map
-                                ? (item['quantity'] ?? 1)
-                                : 1;
-                            final price = item is Map
-                                ? '₹${item['price'] ?? ''}'
+                          final items = o.items.map((item) {
+                            final name = item.menuItemName;
+                            final qty = item.quantity;
+                            final price = item.unitPrice > 0
+                                ? '₹${item.lineTotal.toStringAsFixed(0)}'
                                 : '';
-                            return ('$qty×', name.toString(), price.toString());
+                            return ('$qty×', name, price);
                           }).toList();
 
                           return Padding(
                             padding: EdgeInsets.only(bottom: 12.h),
                             child: _WaiterOrderCard(
-                              tableInfo: _displayTableLabel(o),
-                               orderId: (() {
-                                 final rawId = o['id']?.toString() ?? '';
-                                 return '#${(rawId.length >= 8 ? rawId.substring(0, 8) : rawId).toUpperCase()}';
-                               })(),
+                              tableInfo: o.tableLabel,
+                              orderId: (() {
+                                return '#${(o.id.length >= 8 ? o.id.substring(0, 8) : o.id).toUpperCase()}';
+                              })(),
                               status: status,
                               items: items,
-                              totalAmount: '₹${o['total_amount'] ?? '0'}',
+                              totalAmount:
+                                  '₹${o.totalAmount.toStringAsFixed(0)}',
                               orderMap: o,
                             ).animate().fadeIn(duration: 400.ms),
                           );
@@ -199,21 +165,20 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
             ],
           );
         },
-      );
-    }),
-  );
-}
+      ),
+    );
+  }
 }
 
 enum _WaiterOrderStatus { cooking, ready, served }
 
-class _WaiterOrderCard extends StatelessWidget {
+class _WaiterOrderCard extends ConsumerWidget {
   final String tableInfo;
   final String orderId;
   final _WaiterOrderStatus status;
   final List<(String, String, String)> items;
   final String totalAmount;
-  final Map<String, dynamic> orderMap;
+  final OrderDto orderMap;
 
   const _WaiterOrderCard({
     required this.tableInfo,
@@ -224,12 +189,10 @@ class _WaiterOrderCard extends StatelessWidget {
     required this.orderMap,
   });
 
-  Future<void> _serveOrder(BuildContext context) async {
+  Future<void> _serveOrder(BuildContext context, WidgetRef ref) async {
     try {
-      await Supabase.instance.client
-          .from('orders')
-          .update({'status': 'served'})
-          .eq('id', orderMap['id']);
+      final updateStatus = ref.read(updateOrderStatusProvider);
+      await updateStatus(orderMap.id, OrderStatus.served);
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -251,7 +214,7 @@ class _WaiterOrderCard extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isServed = status == _WaiterOrderStatus.served;
     final isCooking = status == _WaiterOrderStatus.cooking;
     final isReady = status == _WaiterOrderStatus.ready;
@@ -404,7 +367,16 @@ class _WaiterOrderCard extends StatelessWidget {
                         child: SizedBox(
                           height: 40,
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              context.push(
+                                '/staff/add-order',
+                                extra: {
+                                  'tableId': orderMap.tableId,
+                                  'tableLabel': orderMap.tableLabel,
+                                  'existingOrder': orderMap,
+                                },
+                              );
+                            },
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(
                                 color: AppTheme.surfaceContainerHigh,
@@ -443,7 +415,7 @@ class _WaiterOrderCard extends StatelessWidget {
                         child: SizedBox(
                           height: 48.h,
                           child: ElevatedButton(
-                            onPressed: () => _serveOrder(context),
+                            onPressed: () => _serveOrder(context, ref),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

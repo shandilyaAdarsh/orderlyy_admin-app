@@ -12,11 +12,10 @@ enum TableStatus {
   needsAttention,
   cleaning;
 
-  static TableStatus fromString(String value) =>
-      TableStatus.values.firstWhere(
-        (e) => e.name == value,
-        orElse: () => TableStatus.available,
-      );
+  static TableStatus fromString(String value) => TableStatus.values.firstWhere(
+    (e) => e.name == value,
+    orElse: () => TableStatus.available,
+  );
 
   String get displayName {
     switch (this) {
@@ -39,11 +38,11 @@ enum TableStatus {
 class RestaurantTableDto {
   final String id;
   final String tenantId;
-  final String label;       // e.g. "T-01", "Bar 3"
+  final String label; // e.g. "T-01", "Bar 3"
   final int capacity;
   final TableStatus status;
   final String? activeOrderId;
-  final String? section;    // e.g. "Indoor", "Patio"
+  final String? section; // e.g. "Indoor", "Patio"
   final DateTime updatedAt;
 
   const RestaurantTableDto({
@@ -70,29 +69,28 @@ class RestaurantTableDto {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tenant_id': tenantId,
-        'label': label,
-        'capacity': capacity,
-        'status': status.name,
-        'active_order_id': activeOrderId,
-        'section': section,
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'tenant_id': tenantId,
+    'label': label,
+    'capacity': capacity,
+    'status': status.name,
+    'active_order_id': activeOrderId,
+    'section': section,
+    'updated_at': updatedAt.toIso8601String(),
+  };
 
   RestaurantTableDto copyWith({
     TableStatus? status,
     String? activeOrderId,
     DateTime? updatedAt,
-  }) =>
-      RestaurantTableDto(
-        id: id,
-        tenantId: tenantId,
-        label: label,
-        capacity: capacity,
-        status: status ?? this.status,
-        activeOrderId: activeOrderId ?? this.activeOrderId,
-        section: section,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  }) => RestaurantTableDto(
+    id: id,
+    tenantId: tenantId,
+    label: label,
+    capacity: capacity,
+    status: status ?? this.status,
+    activeOrderId: activeOrderId ?? this.activeOrderId,
+    section: section,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 }

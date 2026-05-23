@@ -73,6 +73,49 @@ class AppContextNotifier extends StateNotifier<AppContext?> {
 
   // ── Clear on logout ─────────────────────────────────────────────────────────
   void clearContext() => state = null;
+
+  // ── Complete Onboarding Step ────────────────────────────────────────────────
+  Future<void> completeOnboardingStep(
+    String tenantId,
+    String stepName,
+    bool isLastStep,
+  ) async {
+    if (state == null) throw Exception('No active context');
+
+    final currentSteps = List<String>.from(state!.onboarding.stepsCompleted);
+    if (!currentSteps.contains(stepName)) {
+      currentSteps.add(stepName);
+    }
+
+    if (isLastStep) {
+      await _client
+          .from('onboarding_state')
+          .update({
+            'steps_completed': currentSteps,
+            'is_complete': true,
+            'completed_at': DateTime.now().toIso8601String(),
+          })
+          .eq('tenant_id', tenantId);
+    } else {
+      await _client
+          .from('onboarding_state')
+          .update({'steps_completed': currentSteps})
+          .eq('tenant_id', tenantId);
+    }
+
+    // Update local state instead of doing a full resolveContext
+    final newOnboarding = OnboardingContext(
+      stepsCompleted: currentSteps,
+      isComplete: isLastStep,
+    );
+
+    state = AppContext(
+      tenant: state!.tenant,
+      user: state!.user,
+      onboarding: newOnboarding,
+      flags: state!.flags,
+    );
+  }
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────

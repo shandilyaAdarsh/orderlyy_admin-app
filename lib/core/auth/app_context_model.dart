@@ -16,11 +16,11 @@ class UserContext {
   });
 
   factory UserContext.fromJson(Map<String, dynamic> json) => UserContext(
-        id: json['id'] as String,
-        fullName: json['full_name'] as String,
-        role: json['role'] as String,
-        mustChangePassword: json['must_change_password'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    fullName: json['full_name'] as String,
+    role: json['role'] as String,
+    mustChangePassword: json['must_change_password'] as bool? ?? false,
+  );
 }
 
 class TenantContext {
@@ -43,14 +43,14 @@ class TenantContext {
   });
 
   factory TenantContext.fromJson(Map<String, dynamic> json) => TenantContext(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        slug: json['slug'] as String,
-        plan: json['plan'] as String,
-        status: json['status'] as String,
-        isActive: json['is_active'] as bool? ?? true,
-        nextBillingDate: json['next_billing_date'] as String?,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    slug: json['slug'] as String,
+    plan: json['plan'] as String,
+    status: json['status'] as String,
+    isActive: json['is_active'] as bool? ?? true,
+    nextBillingDate: json['next_billing_date'] as String?,
+  );
 }
 
 class OnboardingContext {
@@ -65,8 +65,9 @@ class OnboardingContext {
   factory OnboardingContext.fromJson(Map<String, dynamic> json) =>
       OnboardingContext(
         isComplete: json['is_complete'] as bool? ?? false,
-        stepsCompleted:
-            List<String>.from(json['steps_completed'] as List? ?? []),
+        stepsCompleted: List<String>.from(
+          json['steps_completed'] as List? ?? [],
+        ),
       );
 }
 
@@ -84,11 +85,11 @@ class ContextFlags {
   });
 
   factory ContextFlags.fromJson(Map<String, dynamic> json) => ContextFlags(
-        mustChangePassword: json['must_change_password'] as bool? ?? false,
-        subscriptionExpired: json['subscription_expired'] as bool? ?? false,
-        accountSuspended: json['account_suspended'] as bool? ?? false,
-        onboardingRequired: json['onboarding_required'] as bool? ?? false,
-      );
+    mustChangePassword: json['must_change_password'] as bool? ?? false,
+    subscriptionExpired: json['subscription_expired'] as bool? ?? false,
+    accountSuspended: json['account_suspended'] as bool? ?? false,
+    onboardingRequired: json['onboarding_required'] as bool? ?? false,
+  );
 }
 
 /// Root context object. Populated after every successful `resolve-context-v2` call.
@@ -106,10 +107,11 @@ class AppContext {
   });
 
   factory AppContext.fromJson(Map<String, dynamic> json) => AppContext(
-        user: UserContext.fromJson(json['user'] as Map<String, dynamic>),
-        tenant: TenantContext.fromJson(json['tenant'] as Map<String, dynamic>),
-        onboarding: OnboardingContext.fromJson(
-            json['onboarding'] as Map<String, dynamic>),
-        flags: ContextFlags.fromJson(json['flags'] as Map<String, dynamic>),
-      );
+    user: UserContext.fromJson(json['user'] as Map<String, dynamic>),
+    tenant: TenantContext.fromJson(json['tenant'] as Map<String, dynamic>),
+    onboarding: OnboardingContext.fromJson(
+      json['onboarding'] as Map<String, dynamic>,
+    ),
+    flags: ContextFlags.fromJson(json['flags'] as Map<String, dynamic>),
+  );
 }

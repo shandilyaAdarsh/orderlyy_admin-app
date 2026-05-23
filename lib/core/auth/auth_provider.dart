@@ -67,5 +67,5 @@ class StaffSessionNotifier extends StateNotifier<StaffSession?> {
 
 final staffSessionProvider =
     StateNotifierProvider<StaffSessionNotifier, StaffSession?>((ref) {
-  return StaffSessionNotifier();
-});
+      return StaffSessionNotifier();
+    });

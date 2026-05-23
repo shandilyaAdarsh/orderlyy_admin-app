@@ -5,12 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/data/dtos/menu_dto.dart';
+import '../../core/providers/menu_providers.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/auth/auth_provider.dart';
 
-// ——————————————————————————————————————————————————————————————
+// ── Constants ─────────────────────────────────────────────────────────────────
 const _kPrimary = Color(0xFFC0272D);
 const _kCategories = [
   'ALL',
@@ -21,47 +20,12 @@ const _kCategories = [
   'BEVERAGES',
 ];
 
-// ——————————————————————————————————————————————————————————————
-class _MenuItem {
-  final String id;
-  final String? tenantId;
-  final String name;
-  final String category;
-  final double price;
-  final String? imageUrl;
-  final bool isAvailable;
+// ── Tenant ID used when creating new items ────────────────────────────────────
+// TODO: replace with real tenant from staffSessionProvider when auth is wired.
+const _kDevTenantId = 'mock-tenant-001';
+// _kDevCategoryId removed — category is resolved dynamically via _catLabelToId()
 
-  const _MenuItem({
-    required this.id,
-    this.tenantId,
-    required this.name,
-    required this.category,
-    required this.price,
-    this.imageUrl,
-    required this.isAvailable,
-  });
-
-  _MenuItem copyWith({bool? isAvailable}) => _MenuItem(
-    id: id,
-    name: name,
-    category: category,
-    price: price,
-    imageUrl: imageUrl,
-    isAvailable: isAvailable ?? this.isAvailable,
-  );
-
-  factory _MenuItem.fromMap(Map<String, dynamic> m) => _MenuItem(
-    id: m['id'] as String,
-    tenantId: m['tenant_id'] as String?,
-    name: m['name'] as String? ?? '',
-    category: (m['category'] as String? ?? 'MAINS').toUpperCase(),
-    price: (m['price'] as num? ?? 0).toDouble(),
-    imageUrl: m['image_url'] as String?,
-    isAvailable: m['is_available'] as bool? ?? true,
-  );
-}
-
-// â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Screen ────────────────────────────────────────────────────────────────────
 class MenuManagementScreen extends ConsumerStatefulWidget {
   const MenuManagementScreen({super.key});
 
@@ -71,17 +35,9 @@ class MenuManagementScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
-  List<_MenuItem> _items = [];
-  bool _isLoading = true;
   int _catIndex = 0;
   String _search = '';
   final _searchCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
 
   @override
   void dispose() {
@@ -89,148 +45,17 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
     super.dispose();
   }
 
-  // â”€â”€ Fetch helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Future<String?> _getTenantId() async {
-    // Prefer staffSessionProvider value if available
-    final session = ref.read(staffSessionProvider);
-    if (session != null) return session.tenantId;
-
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return null;
-
-    // Try profile (may fail with RLS)
-    try {
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('tenant_id')
-          .eq('id', user.id)
-          .maybeSingle();
-      if (profile is Map<String, dynamic> && profile['tenant_id'] != null) {
-        return profile['tenant_id'] as String;
-      }
-    } catch (_) {}
-
-    // Fallback: try resolving tenant id from saved tenant slug (remember-me)
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final slug = prefs.getString('tenant_slug');
-      if (slug != null && slug.isNotEmpty) {
-        final t = await Supabase.instance.client
-            .from('tenants')
-            .select('id')
-            .eq('slug', slug)
-            .maybeSingle();
-        if (t is Map<String, dynamic> && t['id'] != null) {
-          return t['id'] as String;
-        }
-      }
-    } catch (_) {}
-
-    return null;
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final tenantId = await _getTenantId();
-      if (tenantId == null) {
-        // Show demo data if no tenant
-        setState(() {
-          _items = _demoItems;
-          _isLoading = false;
-        });
-        return;
-      }
-      // Fetch tenant-specific items plus any global items (tenant_id IS NULL).
-      // Use PostgREST OR filter and then dedupe by name, preferring tenant items.
-      final data = await Supabase.instance.client
-          .from('menu_items')
-          .select()
-          .or('tenant_id.eq.$tenantId,tenant_id.is.null')
-          .order('sort_order');
-
-      // Deduplicate by name (case-insensitive): prefer rows owned by this tenant.
-      final raw = data as List;
-      final Map<String, Map<String, dynamic>> pick = {};
-      for (final row in raw) {
-        final nameKey = (row['name'] ?? '').toString().toLowerCase();
-        if (nameKey.isEmpty) continue;
-        final existing = pick[nameKey];
-        if (existing == null) {
-          pick[nameKey] = Map<String, dynamic>.from(row);
-        } else {
-          // prefer tenant-owned row
-          if (row['tenant_id'] == tenantId &&
-              existing['tenant_id'] != tenantId) {
-            pick[nameKey] = Map<String, dynamic>.from(row);
-          }
-        }
-      }
-
-      setState(() {
-        _items = pick.values.map((m) => _MenuItem.fromMap(m)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _items = _demoItems;
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _toggleAvailability(_MenuItem item) async {
-    // Prevent toggling template/global items (tenant_id == null)
-    if (item.tenantId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Copy this item to your menu before toggling availability.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
-
-    final newVal = !item.isAvailable;
-    // Optimistic update
-    setState(() {
-      _items = _items.map((it) {
-        return it.id == item.id ? it.copyWith(isAvailable: newVal) : it;
-      }).toList();
-    });
-    try {
-      await Supabase.instance.client
-          .from('menu_items')
-          .update({'is_available': newVal})
-          .eq('id', item.id);
-    } catch (e) {
-      if (mounted) {
-        final msg = e.toString();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update availability: $msg'),
-            backgroundColor: _kPrimary,
-          ),
-        );
-      }
-      // Revert on failure
-      setState(() {
-        _items = _items.map((it) {
-          return it.id == item.id ? it.copyWith(isAvailable: !newVal) : it;
-        }).toList();
-      });
-    }
-  }
-
-  List<_MenuItem> get _filtered {
-    var list = _items;
+  List<MenuItemDto> _filtered(List<MenuItemDto> items) {
+    var list = items;
     if (_catIndex > 0) {
-      list = list.where((i) => i.category == _kCategories[_catIndex]).toList();
+      final cat = _kCategories[_catIndex];
+      list = list
+          .where(
+            (i) =>
+                i.name.toUpperCase().contains(cat) ||
+                i.categoryId.toUpperCase().contains(cat),
+          )
+          .toList();
     }
     if (_search.isNotEmpty) {
       list = list
@@ -240,235 +65,267 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
     return list;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFB),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // â”€â”€ App Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              elevation: 1,
-              toolbarHeight: 64.h,
-              shadowColor: const Color(0xFFE2E8F0),
-              automaticallyImplyLeading: false,
-              title: Row(
-                children: [
-                  Text(
-                    'Orderlli',
-                    style: GoogleFonts.inter(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w900,
-                      color: _kPrimary,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Container(
-                    width: 1.w,
-                    height: 20.h,
-                    color: const Color(0xFFE2E8F0),
-                  ),
-                  SizedBox(width: 12.w),
-                  Text(
-                    'Menu',
-                    style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 3.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _kPrimary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Text(
-                      '${_items.length}',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w700,
-                        color: _kPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.add_rounded, color: _kPrimary, size: 24.r),
-                  onPressed: () => _showEditSheet(context, null),
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(108.h),
-                child: Column(
-                  children: [
-                    // Search
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
-                      child: TextField(
-                        controller: _searchCtrl,
-                        onChanged: (v) => setState(() => _search = v),
-                        style: GoogleFonts.inter(
-                          fontSize: 13.sp,
-                          color: const Color(0xFF0F172A),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Search menu items...',
-                          hintStyle: GoogleFonts.inter(
-                            fontSize: 13.sp,
-                            color: const Color(0xFF94A3B8),
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search_rounded,
-                            color: const Color(0xFF94A3B8),
-                            size: 20.r,
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFB),
-                          contentPadding: EdgeInsets.symmetric(vertical: 0.h),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                            borderSide: const BorderSide(color: _kPrimary),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Category tabs
-                    SizedBox(
-                      height: 44.h,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        itemCount: _kCategories.length,
-                        itemBuilder: (context, i) {
-                          final active = _catIndex == i;
-                          return GestureDetector(
-                            onTap: () => setState(() => _catIndex = i),
-                            child: AnimatedContainer(
-                              duration: 200.ms,
-                              margin: EdgeInsets.only(right: 8.w),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: active
-                                    ? _kPrimary
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(20.r),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _kCategories[i],
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.w700,
-                                    color: active
-                                        ? Colors.white
-                                        : const Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                  ],
-                ),
-              ),
-            ),
-
-            // ———————————————————————————————————————————————————————— Body ————————————————————————————————————————————————————————
-            if (_isLoading)
-              const SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(color: _kPrimary),
-                ),
-              )
-            else if (_filtered.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu_outlined,
-                        size: 64.r,
-                        color: const Color(0xFFCBD5E1).withValues(alpha: 0.6),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        'No items found',
-                        style: GoogleFonts.inter(
-                          fontSize: 16.sp,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, i) {
-                    return _MenuItemCard(
-                          item: _filtered[i],
-                          onToggle: () => _toggleAvailability(_filtered[i]),
-                          onTap: () => _showEditSheet(context, _filtered[i]),
-                        )
-                        .animate(delay: Duration(milliseconds: 40 * i))
-                        .fadeIn(duration: 300.ms)
-                        .slideY(begin: 0.1, curve: Curves.easeOut);
-                  }, childCount: _filtered.length),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _toggleAvailability(MenuItemDto item) async {
+    final newVal = !item.isAvailable;
+    try {
+      await ref.read(toggleMenuItemAvailabilityProvider)(item.id, newVal);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update availability: $e'),
+            backgroundColor: _kPrimary,
+          ),
+        );
+      }
+    }
   }
 
-  // â”€â”€ Edit / Add sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  void _showEditSheet(BuildContext context, _MenuItem? item) {
+  void _showEditSheet(BuildContext context, MenuItemDto? item) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _MenuItemSheet(item: item, onSaved: _load),
+      builder: (_) => _MenuItemSheet(item: item),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final menuAsync = ref.watch(menuItemsStreamProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFB),
+      body: SafeArea(
+        child: menuAsync.when(
+          error: (err, _) => Center(
+            child: Text(
+              'Failed to load menu: $err',
+              style: GoogleFonts.inter(color: AppTheme.error),
+            ),
+          ),
+          loading: () =>
+              const Center(child: CircularProgressIndicator(color: _kPrimary)),
+          data: (allItems) {
+            final filtered = _filtered(allItems);
+            return CustomScrollView(
+              slivers: [
+                // ── App Bar ───────────────────────────────────────────────────
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: Colors.white,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 1,
+                  toolbarHeight: 64.h,
+                  shadowColor: const Color(0xFFE2E8F0),
+                  automaticallyImplyLeading: false,
+                  title: Row(
+                    children: [
+                      Text(
+                        'Orderlli',
+                        style: GoogleFonts.inter(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w900,
+                          color: _kPrimary,
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Container(
+                        width: 1.w,
+                        height: 20.h,
+                        color: const Color(0xFFE2E8F0),
+                      ),
+                      SizedBox(width: 12.w),
+                      Text(
+                        'Menu',
+                        style: GoogleFonts.inter(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _kPrimary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Text(
+                          '${allItems.length}',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w700,
+                            color: _kPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_rounded,
+                        color: _kPrimary,
+                        size: 24.r,
+                      ),
+                      onPressed: () => _showEditSheet(context, null),
+                    ),
+                  ],
+                  bottom: PreferredSize(
+                    preferredSize: Size.fromHeight(108.h),
+                    child: Column(
+                      children: [
+                        // Search
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
+                          child: TextField(
+                            controller: _searchCtrl,
+                            onChanged: (v) => setState(() => _search = v),
+                            style: GoogleFonts.inter(
+                              fontSize: 13.sp,
+                              color: const Color(0xFF0F172A),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Search menu items...',
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 13.sp,
+                                color: const Color(0xFF94A3B8),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.search_rounded,
+                                color: const Color(0xFF94A3B8),
+                                size: 20.r,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFB),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 0.h,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                                borderSide: const BorderSide(color: _kPrimary),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Category tabs
+                        SizedBox(
+                          height: 44.h,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            itemCount: _kCategories.length,
+                            itemBuilder: (context, i) {
+                              final active = _catIndex == i;
+                              return GestureDetector(
+                                onTap: () => setState(() => _catIndex = i),
+                                child: AnimatedContainer(
+                                  duration: 200.ms,
+                                  margin: EdgeInsets.only(right: 8.w),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 14.w,
+                                    vertical: 8.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: active
+                                        ? _kPrimary
+                                        : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(20.r),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      _kCategories[i],
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: active
+                                            ? Colors.white
+                                            : const Color(0xFF64748B),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Body ──────────────────────────────────────────────────────
+                if (filtered.isEmpty)
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu_outlined,
+                            size: 64.r,
+                            color: const Color(
+                              0xFFCBD5E1,
+                            ).withValues(alpha: 0.6),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'No items found',
+                            style: GoogleFonts.inter(
+                              fontSize: 16.sp,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, i) {
+                        return _MenuItemCard(
+                              item: filtered[i],
+                              onToggle: () => _toggleAvailability(filtered[i]),
+                              onTap: () => _showEditSheet(context, filtered[i]),
+                            )
+                            .animate(delay: Duration(milliseconds: 40 * i))
+                            .fadeIn(duration: 300.ms)
+                            .slideY(begin: 0.1, curve: Curves.easeOut);
+                      }, childCount: filtered.length),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }
 
-// â”€â”€ Menu Item Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Menu Item Card ────────────────────────────────────────────────────────────
 class _MenuItemCard extends StatelessWidget {
-  final _MenuItem item;
+  final MenuItemDto item;
   final VoidCallback onToggle;
   final VoidCallback onTap;
 
@@ -479,14 +336,21 @@ class _MenuItemCard extends StatelessWidget {
   });
 
   Color get _catColor {
-    return switch (item.category) {
-      'STARTERS' => const Color(0xFFF59E0B),
-      'MAINS' => _kPrimary,
-      'DESSERTS' => const Color(0xFFEC4899),
-      'BEVERAGES' => const Color(0xFF3B82F6),
-      'SIDES' => const Color(0xFF10B981),
-      _ => const Color(0xFF64748B),
-    };
+    final cat = item.categoryId.toUpperCase();
+    if (cat.contains('START') || cat == 'CAT-001') {
+      return const Color(0xFFF59E0B);
+    }
+    if (cat.contains('MAIN') || cat == 'CAT-002') return _kPrimary;
+    if (cat.contains('DESSERT') || cat == 'CAT-005') {
+      return const Color(0xFFEC4899);
+    }
+    if (cat.contains('BEV') || cat == 'CAT-004') {
+      return const Color(0xFF3B82F6);
+    }
+    if (cat.contains('BREAD') || cat == 'CAT-003') {
+      return const Color(0xFF10B981);
+    }
+    return const Color(0xFF64748B);
   }
 
   @override
@@ -512,7 +376,6 @@ class _MenuItemCard extends StatelessWidget {
           opacity: item.isAvailable ? 1.0 : 0.6,
           child: Row(
             children: [
-              // Category dot
               // Image placeholder or network image
               Container(
                 width: 60.r,
@@ -578,7 +441,7 @@ class _MenuItemCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Text(
-                            item.category,
+                            item.categoryId.toUpperCase(),
                             style: GoogleFonts.inter(
                               fontSize: 9.sp,
                               fontWeight: FontWeight.w700,
@@ -587,13 +450,37 @@ class _MenuItemCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (item.isVegetarian) ...[
+                          SizedBox(width: 6.w),
+                          Container(
+                            width: 14.r,
+                            height: 14.r,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(0xFF16A34A),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(2.r),
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 7.r,
+                                height: 7.r,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF16A34A),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
               SizedBox(width: 8.w),
-              // Toggle
+              // Availability toggle
               GestureDetector(
                 onTap: onToggle,
                 child: AnimatedContainer(
@@ -633,11 +520,10 @@ class _MenuItemCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Add / Edit Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add / Edit Bottom Sheet ───────────────────────────────────────────────────
 class _MenuItemSheet extends ConsumerStatefulWidget {
-  final _MenuItem? item;
-  final VoidCallback onSaved;
-  const _MenuItemSheet({this.item, required this.onSaved});
+  final MenuItemDto? item;
+  const _MenuItemSheet({this.item});
 
   @override
   ConsumerState<_MenuItemSheet> createState() => _MenuItemSheetState();
@@ -649,6 +535,7 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
   final _customCatCtrl = TextEditingController();
   String _category = 'MAINS';
   bool _available = true;
+  bool _isVegetarian = false;
   bool _isSaving = false;
   XFile? _pickedImage;
   String? _currentImageUrl;
@@ -660,15 +547,40 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
     final item = widget.item;
     _nameCtrl.text = item?.name ?? '';
     _priceCtrl.text = item != null ? item.price.toStringAsFixed(0) : '';
-    _category = item?.category ?? 'MAINS';
     _available = item?.isAvailable ?? true;
+    _isVegetarian = item?.isVegetarian ?? false;
     _currentImageUrl = item?.imageUrl;
 
-    if (!_kCategories.contains(_category)) {
+    // Map categoryId to display category
+    final catId = item?.categoryId.toUpperCase() ?? '';
+    _category = _catIdToLabel(catId);
+    if (!_kCategories.contains(_category) && _category != 'ALL') {
       _useCustomCat = true;
       _customCatCtrl.text = _category;
       _category = 'OTHER';
     }
+  }
+
+  String _catIdToLabel(String catId) {
+    return switch (catId) {
+      'CAT-001' => 'STARTERS',
+      'CAT-002' => 'MAINS',
+      'CAT-003' => 'SIDES',
+      'CAT-004' => 'BEVERAGES',
+      'CAT-005' => 'DESSERTS',
+      _ => catId.isNotEmpty ? catId : 'MAINS',
+    };
+  }
+
+  String _catLabelToId(String label) {
+    return switch (label) {
+      'STARTERS' => 'cat-001',
+      'MAINS' => 'cat-002',
+      'SIDES' => 'cat-003',
+      'BEVERAGES' => 'cat-004',
+      'DESSERTS' => 'cat-005',
+      _ => 'cat-002',
+    };
   }
 
   @override
@@ -685,48 +597,16 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
       source: ImageSource.gallery,
       imageQuality: 70,
     );
-    if (image != null) {
-      setState(() => _pickedImage = image);
-    }
+    if (image != null) setState(() => _pickedImage = image);
   }
 
-  Future<String?> _getTenantId() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return null;
-    try {
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('tenant_id')
-          .eq('id', user.id)
-          .single();
-      return profile['tenant_id'] as String?;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<String?> _uploadImage(String tenantId) async {
+  // Image upload is intentionally a no-op in mock mode.
+  // The SupabaseMenuRepository will handle actual storage upload when wired.
+  Future<String?> _resolveImageUrl() async {
     if (_pickedImage == null) return _currentImageUrl;
-
-    try {
-      final file = File(_pickedImage!.path);
-      final fileExt = _pickedImage!.name.split('.').last;
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final filePath = '$tenantId/$fileName';
-
-      await Supabase.instance.client.storage
-          .from('menu-images')
-          .upload(filePath, file);
-
-      final url = Supabase.instance.client.storage
-          .from('menu-images')
-          .getPublicUrl(filePath);
-
-      return url;
-    } catch (e) {
-      debugPrint('Upload error: $e');
-      return _currentImageUrl;
-    }
+    // TODO: delegate to repository image upload when SupabaseMenuRepository
+    // is implemented. For now, return the existing URL unchanged.
+    return _currentImageUrl;
   }
 
   Future<void> _save() async {
@@ -740,37 +620,45 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
 
     setState(() => _isSaving = true);
     try {
-      // Prefer staffSessionProvider; fall back to querying profiles if needed
-      String? tenantId = ref.read(staffSessionProvider)?.tenantId;
-      tenantId ??= await _getTenantId();
-      if (tenantId == null) {
-        throw 'Session expired or tenant not found. Please log in again.';
-      }
-
-      final imageUrl = await _uploadImage(tenantId);
-      final category = _useCustomCat
+      final imageUrl = await _resolveImageUrl();
+      final categoryLabel = _useCustomCat
           ? _customCatCtrl.text.trim().toUpperCase()
           : _category;
-
-      final data = {
-        'name': name,
-        'price': double.tryParse(_priceCtrl.text) ?? 0,
-        'category': category.isEmpty ? 'MAINS' : category,
-        'image_url': imageUrl,
-        'is_available': _available,
-        'tenant_id': tenantId,
-      };
+      final categoryId = _catLabelToId(categoryLabel);
 
       if (widget.item == null) {
-        await Supabase.instance.client.from('menu_items').insert(data);
+        // Create
+        final newItem = MenuItemDto(
+          id: 'item-${DateTime.now().millisecondsSinceEpoch}',
+          tenantId: _kDevTenantId,
+          categoryId: categoryId,
+          name: name,
+          price: double.tryParse(_priceCtrl.text) ?? 0,
+          imageUrl: imageUrl,
+          isAvailable: _available,
+          isVegetarian: _isVegetarian,
+          prepTimeMinutes: 15,
+          tags: [],
+        );
+        await ref.read(createMenuItemProvider)(newItem);
       } else {
-        await Supabase.instance.client
-            .from('menu_items')
-            .update(data)
-            .eq('id', widget.item!.id);
+        // Update
+        final updated = MenuItemDto(
+          id: widget.item!.id,
+          tenantId: widget.item!.tenantId,
+          categoryId: categoryId,
+          name: name,
+          description: widget.item!.description,
+          price: double.tryParse(_priceCtrl.text) ?? widget.item!.price,
+          imageUrl: imageUrl,
+          isAvailable: _available,
+          isVegetarian: _isVegetarian,
+          prepTimeMinutes: widget.item!.prepTimeMinutes,
+          tags: widget.item!.tags,
+        );
+        await ref.read(updateMenuItemProvider)(updated);
       }
       if (mounted) Navigator.pop(context);
-      widget.onSaved();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -811,12 +699,8 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
     if (confirm != true) return;
 
     try {
-      await Supabase.instance.client
-          .from('menu_items')
-          .delete()
-          .eq('id', widget.item!.id);
+      await ref.read(deleteMenuItemProvider)(widget.item!.id);
       if (mounted) Navigator.pop(context);
-      widget.onSaved();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -986,6 +870,28 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
                       _field('Custom Category', _customCatCtrl, 'e.g. BREAD'),
                     ],
                     SizedBox(height: 16.h),
+                    // Vegetarian toggle
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Vegetarian',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Transform.scale(
+                          scale: 0.8.r,
+                          child: Switch(
+                            value: _isVegetarian,
+                            onChanged: (v) => setState(() => _isVegetarian = v),
+                            activeThumbColor: const Color(0xFF16A34A),
+                          ),
+                        ),
+                      ],
+                    ),
                     // Available toggle
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1133,63 +1039,3 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
     );
   }
 }
-
-// â”€â”€ Demo data (shown when no tenant or Supabase error) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const _demoItems = [
-  _MenuItem(
-    id: '1',
-    name: 'Butter Chicken',
-    category: 'MAINS',
-    price: 380,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '2',
-    name: 'Paneer Tikka',
-    category: 'STARTERS',
-    price: 280,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '3',
-    name: 'Garlic Naan',
-    category: 'SIDES',
-    price: 60,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '4',
-    name: 'Mango Lassi',
-    category: 'BEVERAGES',
-    price: 120,
-    isAvailable: false,
-  ),
-  _MenuItem(
-    id: '5',
-    name: 'Gulab Jamun',
-    category: 'DESSERTS',
-    price: 160,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '6',
-    name: 'Dal Makhani',
-    category: 'MAINS',
-    price: 260,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '7',
-    name: 'Chicken 65',
-    category: 'STARTERS',
-    price: 320,
-    isAvailable: true,
-  ),
-  _MenuItem(
-    id: '8',
-    name: 'Masala Papad',
-    category: 'SIDES',
-    price: 80,
-    isAvailable: true,
-  ),
-];

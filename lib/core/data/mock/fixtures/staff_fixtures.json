@@ -1,0 +1,9 @@
+{
+  "staff": [
+    { "id": "stf-001", "tenant_id": "mock-tenant-001", "name": "Vikram Sharma",  "role": "owner",   "pin": "1111", "is_active": true  },
+    { "id": "stf-002", "tenant_id": "mock-tenant-001", "name": "Priya Mehta",    "role": "manager", "pin": "2222", "is_active": true  },
+    { "id": "stf-003", "tenant_id": "mock-tenant-001", "name": "Raju Yadav",     "role": "waiter",  "pin": "1234", "is_active": true  },
+    { "id": "stf-004", "tenant_id": "mock-tenant-001", "name": "Ananya Singh",   "role": "waiter",  "pin": "5678", "is_active": false },
+    { "id": "stf-005", "tenant_id": "mock-tenant-001", "name": "Deepak Verma",   "role": "waiter",  "pin": "4321", "is_active": true  }
+  ]
+}

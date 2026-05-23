@@ -37,9 +37,7 @@ class MockTablesRepository implements TablesRepository {
   Future<List<RestaurantTableDto>> getTables(String tenantId) async {
     await Future.delayed(const Duration(milliseconds: 350));
     await _ensureLoaded();
-    return _tables!
-        .where((t) => t.tenantId == tenantId)
-        .toList()
+    return _tables!.where((t) => t.tenantId == tenantId).toList()
       ..sort((a, b) => a.label.compareTo(b.label));
   }
 
@@ -98,7 +96,8 @@ class MockTablesRepository implements TablesRepository {
   Stream<List<RestaurantTableDto>> watchTables(String tenantId) async* {
     await _ensureLoaded();
     yield _tables!.where((t) => t.tenantId == tenantId).toList();
-    yield* _tablesController.stream
-        .map((tables) => tables.where((t) => t.tenantId == tenantId).toList());
+    yield* _tablesController.stream.map(
+      (tables) => tables.where((t) => t.tenantId == tenantId).toList(),
+    );
   }
 }

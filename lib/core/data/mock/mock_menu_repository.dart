@@ -81,9 +81,11 @@ class MockMenuRepository implements MenuRepository {
     await Future.delayed(const Duration(milliseconds: 350));
     await _ensureLoaded();
     return _items!
-        .where((i) =>
-            i.tenantId == tenantId &&
-            (categoryId == null || i.categoryId == categoryId))
+        .where(
+          (i) =>
+              i.tenantId == tenantId &&
+              (categoryId == null || i.categoryId == categoryId),
+        )
         .toList();
   }
 
@@ -143,7 +145,8 @@ class MockMenuRepository implements MenuRepository {
   Stream<List<MenuItemDto>> watchMenuItems(String tenantId) async* {
     await _ensureLoaded();
     yield _items!.where((i) => i.tenantId == tenantId).toList();
-    yield* _itemsController.stream
-        .map((items) => items.where((i) => i.tenantId == tenantId).toList());
+    yield* _itemsController.stream.map(
+      (items) => items.where((i) => i.tenantId == tenantId).toList(),
+    );
   }
 }

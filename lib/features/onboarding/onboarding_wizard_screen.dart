@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/auth/app_context_provider.dart';
+import '../../core/auth/mock_auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 // Steps in order — must match what the backend stores in steps_completed
@@ -20,7 +19,6 @@ class OnboardingWizardScreen extends ConsumerStatefulWidget {
 
 class _OnboardingWizardScreenState
     extends ConsumerState<OnboardingWizardScreen> {
-  final _client = Supabase.instance.client;
   int _currentStepIndex = 0;
   bool _isSaving = false;
   String _errorMessage = '';
@@ -73,33 +71,12 @@ class _OnboardingWizardScreenState
       final stepName = _onboardingSteps[_currentStepIndex];
       final isLastStep = _currentStepIndex == _onboardingSteps.length - 1;
 
-      final ctx = ref.read(appContextProvider);
-      final currentSteps = List<String>.from(
-        ctx?.onboarding.stepsCompleted ?? [],
-      );
-      currentSteps.add(stepName);
-
-      if (isLastStep) {
-        // Mark onboarding complete
-        await _client
-            .from('onboarding_state')
-            .update({
-              'steps_completed': currentSteps,
-              'is_complete': true,
-              'completed_at': DateTime.now().toIso8601String(),
-            })
-            .eq('tenant_id', _tenantId);
-      } else {
-        await _client
-            .from('onboarding_state')
-            .update({'steps_completed': currentSteps})
-            .eq('tenant_id', _tenantId);
-      }
-
-      // Re-resolve context so provider has latest steps_completed
-      final updatedCtx = await ref
+      await ref
           .read(appContextProvider.notifier)
-          .resolveContext();
+          .completeOnboardingStep(_tenantId, stepName, isLastStep);
+
+      // Get updated ctx from provider
+      final updatedCtx = ref.read(appContextProvider);
 
       if (isLastStep) {
         if (mounted) context.go('/admin/dashboard');
@@ -209,10 +186,7 @@ class _OnboardingWizardScreenState
             // ── Step Content ───────────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 28.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 28.h),
                 child: _buildStep(_currentStepIndex),
               ),
             ),
@@ -498,7 +472,10 @@ class _OnboardingWizardScreenState
               ),
               Text(
                 subtitle,
-                style: GoogleFonts.inter(fontSize: 13.sp, color: AppTheme.secondary),
+                style: GoogleFonts.inter(
+                  fontSize: 13.sp,
+                  color: AppTheme.secondary,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
