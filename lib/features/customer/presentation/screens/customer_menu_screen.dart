@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/network/sync_state.dart';
 import '../../../menu/domain/entities/menu_snapshot.dart';
 import '../../../menu/presentation/state/menu_providers.dart';
 import '../state/customer_providers.dart';
@@ -42,6 +43,8 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
   Widget build(BuildContext context) {
     final menuAsync = ref.watch(menuSnapshotNotifierProvider);
     final session = ref.watch(customerSessionProvider);
+    final staleness = ref.watch(staleMenuProvider);
+    final isDegraded = staleness.syncState == SyncState.degraded;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -110,6 +113,7 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (isDegraded) _buildStalenessBanner(theme),
                   // Search & Filter Header
                   _buildSearchAndFilters(isDark),
                   // Category Tabs
@@ -598,6 +602,29 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStalenessBanner(ThemeData theme) {
+    return Container(
+      color: Colors.amber[800],
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Operating in Offline Mode. Serving cached menu layout.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

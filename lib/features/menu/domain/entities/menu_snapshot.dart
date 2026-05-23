@@ -105,20 +105,69 @@ class TaxConfig extends Equatable {
 }
 
 class MenuSnapshot extends Equatable {
+  final Map<String, dynamic> metadata;
   final List<MenuCategory> categories;
   final List<MenuItem> items;
   final List<ModifierGroup> modifierGroups;
   final TaxConfig taxConfig;
+  final Map<String, bool> availabilityOverlay;
+  final String? etag;
+  final String? snapshotVersion;
+  final DateTime? generatedAt;
+  final String branchId;
 
   const MenuSnapshot({
     required this.categories,
     required this.items,
     required this.modifierGroups,
     required this.taxConfig,
+    this.metadata = const {},
+    this.availabilityOverlay = const {},
+    this.etag,
+    this.snapshotVersion,
+    this.generatedAt,
+    this.branchId = 'mock_branch',
   });
 
+  MenuSnapshot copyWith({
+    Map<String, dynamic>? metadata,
+    List<MenuCategory>? categories,
+    List<MenuItem>? items,
+    List<ModifierGroup>? modifierGroups,
+    TaxConfig? taxConfig,
+    Map<String, bool>? availabilityOverlay,
+    String? etag,
+    String? snapshotVersion,
+    DateTime? generatedAt,
+    String? branchId,
+  }) {
+    return MenuSnapshot(
+      metadata: metadata ?? this.metadata,
+      categories: categories ?? this.categories,
+      items: items ?? this.items,
+      modifierGroups: modifierGroups ?? this.modifierGroups,
+      taxConfig: taxConfig ?? this.taxConfig,
+      availabilityOverlay: availabilityOverlay ?? this.availabilityOverlay,
+      etag: etag ?? this.etag,
+      snapshotVersion: snapshotVersion ?? this.snapshotVersion,
+      generatedAt: generatedAt ?? this.generatedAt,
+      branchId: branchId ?? this.branchId,
+    );
+  }
+
   @override
-  List<Object?> get props => [categories, items, modifierGroups, taxConfig];
+  List<Object?> get props => [
+        metadata,
+        categories,
+        items,
+        modifierGroups,
+        taxConfig,
+        availabilityOverlay,
+        etag,
+        snapshotVersion,
+        generatedAt,
+        branchId,
+      ];
 
   /// Helper to convert snapshot items to legacy domain models for UI compatibility
   List<orders_entities.MenuProduct> toMenuProducts() {

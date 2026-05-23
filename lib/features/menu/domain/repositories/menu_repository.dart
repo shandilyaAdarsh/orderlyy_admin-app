@@ -13,4 +13,22 @@ abstract class MenuRepository {
   Future<Map<String, bool>> getItemAvailability({
     required String branchId,
   });
+
+  /// Saves a menu snapshot locally.
+  Future<void> saveMenuSnapshot(MenuSnapshot snapshot);
+
+  /// Retrieves a locally cached menu snapshot.
+  Future<MenuSnapshot?> getCachedMenuSnapshot(String branchId);
+
+  /// Saves the lightweight item availability overlay mapping locally.
+  Future<void> saveAvailabilityOverlay(
+    String branchId,
+    Map<String, bool> overlay,
+  );
+
+  /// Retrieves the locally cached availability overlay mapping.
+  Future<Map<String, bool>> getCachedAvailabilityOverlay(String branchId);
+
+  /// Clears the cache for the given branch.
+  Future<void> clearCache(String branchId);
 }
