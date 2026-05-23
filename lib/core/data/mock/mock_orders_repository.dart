@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../repositories/orders_repository.dart';
 import '../dtos/order_dto.dart';
+import '../../network/local_sync_client.dart';
 
 class MockOrdersRepository implements OrdersRepository {
   List<OrderDto>? _orders;
@@ -70,6 +71,7 @@ class MockOrdersRepository implements OrdersRepository {
     await _ensureLoaded();
     _orders!.add(order);
     _broadcast();
+    LocalSyncClient().broadcastEvent('order_update', order.toJson());
     return order;
   }
 
@@ -88,6 +90,7 @@ class MockOrdersRepository implements OrdersRepository {
     );
     _orders![idx] = updated;
     _broadcast();
+    LocalSyncClient().broadcastEvent('order_update', updated.toJson());
     return updated;
   }
 
@@ -99,6 +102,7 @@ class MockOrdersRepository implements OrdersRepository {
     if (idx == -1) throw Exception('Order not found: ${order.id}');
     _orders![idx] = order;
     _broadcast();
+    LocalSyncClient().broadcastEvent('order_update', order.toJson());
     return order;
   }
 

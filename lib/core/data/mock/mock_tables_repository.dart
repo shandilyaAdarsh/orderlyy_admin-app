@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../repositories/tables_repository.dart';
 import '../dtos/table_dto.dart';
+import '../../network/local_sync_client.dart';
 
 class MockTablesRepository implements TablesRepository {
   List<RestaurantTableDto>? _tables;
@@ -59,6 +60,7 @@ class MockTablesRepository implements TablesRepository {
     await _ensureLoaded();
     _tables!.add(table);
     _broadcast();
+    LocalSyncClient().broadcastEvent('table_update', table.toJson());
     return table;
   }
 
@@ -80,6 +82,7 @@ class MockTablesRepository implements TablesRepository {
     );
     _tables![idx] = updated;
     _broadcast();
+    LocalSyncClient().broadcastEvent('table_update', updated.toJson());
     return updated;
   }
 
@@ -89,6 +92,7 @@ class MockTablesRepository implements TablesRepository {
     await _ensureLoaded();
     _tables!.removeWhere((t) => t.id == tableId);
     _broadcast();
+    LocalSyncClient().broadcastEvent('table_delete', {'id': tableId});
   }
 
   // ── Realtime-like stream ──────────────────────────────────────────────────

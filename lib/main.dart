@@ -36,10 +36,10 @@ Future<void> main() async {
   // This ensures currentUserIdProvider has the correct value on first frame,
   // preventing the splash → role-select flash for returning users.
   if (kUseMockRepositories) {
-    debugPrint('[Main] 🔄 Restoring mock session...');
+    debugPrint('[Main] 🔄 Force sign out to start from login page...');
     final mockRepo = MockAuthRepository();
     debugPrint('[AUTH INSTANCE] [Main] mockRepo.hashCode=${mockRepo.hashCode}');
-    await mockRepo.restoreSession();
+    await mockRepo.signOut();
     // Override the providers with pre-seeded instances
     runApp(
       ProviderScope(
