@@ -178,7 +178,7 @@ class _CustomerCartSheetState extends ConsumerState<CustomerCartSheet> {
               setState(() => _isCheckingOut = true);
               try {
                 await ref.read(customerSessionProvider.notifier).checkout();
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Order sent to the kitchen successfully!'),
@@ -188,7 +188,7 @@ class _CustomerCartSheetState extends ConsumerState<CustomerCartSheet> {
                   Navigator.pop(context);
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Checkout failed: $e'),

@@ -5,25 +5,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:orderlyy_app/shared/models/money.dart';
 import 'package:orderlyy_app/features/menu/domain/entities/menu_snapshot.dart';
-import 'package:orderlyy_app/features/customer/domain/entities/customer_session.dart';
 import 'package:orderlyy_app/features/customer/presentation/state/customer_providers.dart';
 import 'package:orderlyy_app/features/orders/domain/entities/order.dart';
-import 'package:orderlyy_app/features/orders/domain/entities/order_item.dart';
 import 'package:orderlyy_app/features/orders/domain/repositories/orders_repository.dart';
 import 'package:orderlyy_app/features/orders/providers/orders_providers.dart';
 import 'package:orderlyy_app/features/tables/domain/entities/restaurant_table.dart';
 import 'package:orderlyy_app/features/tables/domain/repositories/tables_repository.dart';
 import 'package:orderlyy_app/features/tables/providers/tables_providers.dart';
-import 'package:orderlyy_app/core/network/network_providers.dart';
 import 'package:orderlyy_app/bootstrap/bootstrap.dart';
 
 class MockOrdersRepository implements OrdersRepository {
   final List<Order> _orders = [];
   bool saveOrderCalled = false;
   Order? lastSavedOrder;
-
-  @override
-  Future<List<Order>> getActiveOrders() async => _orders;
 
   @override
   Future<Order?> getOrderById(String id) async {
@@ -59,6 +53,16 @@ class MockOrdersRepository implements OrdersRepository {
   @override
   Stream<List<Order>> watchActiveOrders() {
     return Stream.value(_orders);
+  }
+
+  @override
+  Stream<Order?> watchOrderById(String orderId) {
+    try {
+      final order = _orders.firstWhere((o) => o.id == orderId);
+      return Stream.value(order);
+    } catch (_) {
+      return Stream.value(null);
+    }
   }
 
   @override

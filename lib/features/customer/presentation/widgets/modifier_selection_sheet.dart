@@ -213,10 +213,13 @@ class _ModifierSelectionSheetState extends State<ModifierSelectionSheet> {
                                     ),
                                   ),
                                 ),
-                              isSingle
-                                  ? Radio<ModifierOption>(
+                               isSingle
+                                  ? // ignore: deprecated_member_use
+                                    Radio<ModifierOption>(
                                       value: opt,
+                                      // ignore: deprecated_member_use
                                       groupValue: isSelected ? opt : null,
+                                      // ignore: deprecated_member_use
                                       onChanged: (_) => _toggleOption(group, opt),
                                       activeColor: AppColors.primary,
                                     )
