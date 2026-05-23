@@ -20,6 +20,7 @@ import 'package:orderlli_admin/features/menu/runtime/projection_reconciliation.d
 import 'package:orderlli_admin/features/menu/runtime/projection_integrity.dart';
 import 'package:orderlli_admin/features/menu/runtime/modifier_resolver.dart';
 import 'package:orderlli_admin/features/menu/runtime/snapshot_migration.dart';
+import 'package:orderlli_admin/features/menu/runtime/occ_conflict_resolver.dart';
 import 'package:orderlli_admin/features/menu/presentation/state/menu_providers.dart';
 
 void main() {
@@ -207,7 +208,68 @@ void main() {
       expect(mockRepo.clearCacheCalled, isTrue);
     });
   });
+  
+  group('OccConflictResolver Tests', () {
+    late Talker talker;
+    late OccConflictResolver resolver;
+
+    setUp(() {
+      talker = Talker();
+      resolver = OccConflictResolver(talker);
+    });
+
+    test('resolveSnapshotConflict returns local changes if server is at base version', () {
+      final localOptimistic = baseSnapshot.copyWith(
+        items: [
+          baseSnapshot.items[0].copyWith(isAvailable: false),
+          baseSnapshot.items[1],
+        ],
+      );
+
+      final result = resolver.resolveSnapshotConflict(
+        localOptimistic: localOptimistic,
+        serverAuthoritative: baseSnapshot.copyWith(snapshotVersion: 'v2'),
+        expectedBaseVersion: 'v2',
+      );
+
+      expect(result.hasConflict, isFalse);
+      expect(result.reconciledState.items.firstWhere((i) => i.id == 'item_burger').isAvailable, isFalse);
+      expect(result.reconciledState.snapshotVersion, 'v2');
+    });
+
+    test('resolveSnapshotConflict attempts structural merge and succeeds if no overlapping changes', () {
+      final localOptimistic = baseSnapshot.copyWith(
+        items: [
+          baseSnapshot.items[0].copyWith(isAvailable: false),
+          baseSnapshot.items[1],
+        ],
+      );
+
+      // Server changed item_cola in the interim and incremented version
+      final serverAuthoritative = baseSnapshot.copyWith(
+        items: [
+          baseSnapshot.items[0],
+          baseSnapshot.items[1].copyWith(isAvailable: false),
+        ],
+        snapshotVersion: 'v3',
+      );
+
+      final result = resolver.resolveSnapshotConflict(
+        localOptimistic: localOptimistic,
+        serverAuthoritative: serverAuthoritative,
+        expectedBaseVersion: 'v2', // local was edited based on v2
+        baseSnapshot: baseSnapshot,
+      );
+
+      expect(result.hasConflict, isFalse);
+      // Both burger (local change) and cola (server change) should be unavailable in the merged state
+      expect(result.reconciledState.items.firstWhere((i) => i.id == 'item_burger').isAvailable, isFalse);
+      expect(result.reconciledState.items.firstWhere((i) => i.id == 'item_cola').isAvailable, isFalse);
+      expect(result.reconciledState.snapshotVersion, 'v3');
+    });
+  });
 }
+
 
 class MockMenuRepository implements MenuRepository {
   MenuSnapshot? cachedSnapshot;
