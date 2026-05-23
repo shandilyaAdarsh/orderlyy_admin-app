@@ -1,0 +1,10 @@
+// lib/features/tables/domain/repositories/tables_repository.dart
+import '../entities/restaurant_table.dart';
+
+abstract class TablesRepository {
+  Future<List<RestaurantTable>> getTables();
+  Future<RestaurantTable> updateTableStatus(String id, TableStatus status, {String? orderId});
+  Stream<List<RestaurantTable>> watchTables();
+  Future<void> mergeTables(List<String> sourceTableIds, String targetTableId);
+  Future<void> splitTable(String tableId, List<Map<String, dynamic>> splitPartitions);
+}

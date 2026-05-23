@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
 import 'core/network/secure_storage.dart';
+import 'core/network/network_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/data/mock/mock_auth_repository.dart';
@@ -23,6 +25,8 @@ Future<void> main() async {
 
   // Initialize Local Hive Database Snapshot Cache
   await HiveStorage.initialize();
+  final apiCacheBox = await Hive.openBox<String>('api_cache');
+  final offlineQueueBox = await Hive.openBox<String>('offline_writes');
 
   // Initialize App Configuration
   AppConfig.initialize();
@@ -36,10 +40,10 @@ Future<void> main() async {
   // This ensures currentUserIdProvider has the correct value on first frame,
   // preventing the splash → role-select flash for returning users.
   if (kUseMockRepositories) {
-    debugPrint('[Main] 🔄 Restoring mock session...');
+    debugPrint('[Main] 🔄 Force sign out to start from login page...');
     final mockRepo = MockAuthRepository();
     debugPrint('[AUTH INSTANCE] [Main] mockRepo.hashCode=${mockRepo.hashCode}');
-    await mockRepo.restoreSession();
+    await mockRepo.signOut();
     // Override the providers with pre-seeded instances
     runApp(
       ProviderScope(
@@ -47,6 +51,8 @@ Future<void> main() async {
           sharedPreferencesProvider.overrideWithValue(prefs),
           localStorageProvider.overrideWithValue(localStorage),
           authRepositoryProvider.overrideWithValue(mockRepo),
+          apiCacheBoxProvider.overrideWithValue(apiCacheBox),
+          offlineQueueBoxProvider.overrideWithValue(offlineQueueBox),
         ],
         child: const OrderlliApp(),
       ),
@@ -71,6 +77,8 @@ Future<void> main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         localStorageProvider.overrideWithValue(localStorage),
+        apiCacheBoxProvider.overrideWithValue(apiCacheBox),
+        offlineQueueBoxProvider.overrideWithValue(offlineQueueBox),
       ],
       child: const OrderlliApp(),
     ),
