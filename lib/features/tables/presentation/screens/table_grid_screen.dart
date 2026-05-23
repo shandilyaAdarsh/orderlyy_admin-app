@@ -18,6 +18,7 @@ class _TableGridScreenState extends ConsumerState<TableGridScreen> {
   TableStatus? _selectedFilter;
   bool _isManagementMode = false;
   final Set<String> _selectedTableIds = {};
+  bool _isFloorPlanView = false;
 
   void _executeMerge(List<RestaurantTable> allTables) async {
     final selectedTables = allTables.where((t) => _selectedTableIds.contains(t.id)).toList();
@@ -150,6 +151,15 @@ class _TableGridScreenState extends ConsumerState<TableGridScreen> {
         actions: [
           if (!_isManagementMode) ...[
             IconButton(
+              icon: Icon(_isFloorPlanView ? Icons.grid_view_rounded : Icons.map_rounded),
+              tooltip: _isFloorPlanView ? 'Switch to Grid View' : 'Switch to Floor Plan Map',
+              onPressed: () {
+                setState(() {
+                  _isFloorPlanView = !_isFloorPlanView;
+                });
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.merge_type_rounded),
               tooltip: 'Floor Management Mode',
               onPressed: () {
@@ -227,81 +237,83 @@ class _TableGridScreenState extends ConsumerState<TableGridScreen> {
                           ),
                         ),
                       )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 220,
-                          mainAxisExtent: 160,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: filteredTables.length,
-                        itemBuilder: (context, index) {
-                          final table = filteredTables[index];
-                          final isSelected = _selectedTableIds.contains(table.id);
+                    : (_isFloorPlanView
+                        ? _buildFloorPlanView(filteredTables, isDark, theme)
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 220,
+                              mainAxisExtent: 160,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: filteredTables.length,
+                            itemBuilder: (context, index) {
+                              final table = filteredTables[index];
+                              final isSelected = _selectedTableIds.contains(table.id);
 
-                          Widget card = TableCard(
-                            table: table,
-                            onTap: () {
-                              if (_isManagementMode) {
-                                setState(() {
-                                  if (isSelected) {
-                                    _selectedTableIds.remove(table.id);
+                              Widget card = TableCard(
+                                table: table,
+                                onTap: () {
+                                  if (_isManagementMode) {
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedTableIds.remove(table.id);
+                                      } else {
+                                        _selectedTableIds.add(table.id);
+                                      }
+                                    });
                                   } else {
-                                    _selectedTableIds.add(table.id);
+                                    context.push('/tables/${table.id}');
                                   }
-                                });
-                              } else {
-                                context.push('/tables/${table.id}');
+                                },
+                                onStatusChange: (newStatus) {
+                                  ref
+                                      .read(tableGridNotifierProvider.notifier)
+                                      .updateStatus(table.id, newStatus);
+                                },
+                              );
+
+                              if (_isManagementMode) {
+                                card = Stack(
+                                  children: [
+                                    card,
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: isSelected ? AppColors.primary : Colors.transparent,
+                                            width: 3.0,
+                                          ),
+                                          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.primary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
                               }
-                            },
-                            onStatusChange: (newStatus) {
-                              ref
-                                  .read(tableGridNotifierProvider.notifier)
-                                  .updateStatus(table.id, newStatus);
-                            },
-                          );
 
-                          if (_isManagementMode) {
-                            card = Stack(
-                              children: [
-                                card,
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: isSelected ? AppColors.primary : Colors.transparent,
-                                        width: 3.0,
-                                      ),
-                                      color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-                                    ),
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          }
-
-                          return card;
-                        },
-                      ),
+                              return card;
+                            },
+                          )),
               ),
             ],
           );
@@ -392,6 +404,164 @@ class _TableGridScreenState extends ConsumerState<TableGridScreen> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Offset _getTableCoordinates(String tableId, double maxWidth, double maxHeight) {
+    final hash = tableId.hashCode;
+    final map = {
+      '1': const Offset(0.12, 0.12),
+      '2': const Offset(0.40, 0.12),
+      '3': const Offset(0.68, 0.12),
+      '4': const Offset(0.88, 0.12),
+      '5': const Offset(0.12, 0.38),
+      '6': const Offset(0.40, 0.38),
+      '7': const Offset(0.68, 0.38),
+      '8': const Offset(0.88, 0.38),
+      '9': const Offset(0.12, 0.64),
+      '10': const Offset(0.40, 0.64),
+      '11': const Offset(0.68, 0.64),
+      '12': const Offset(0.88, 0.64),
+      '13': const Offset(0.12, 0.88),
+      '14': const Offset(0.40, 0.88),
+      '15': const Offset(0.68, 0.88),
+      '16': const Offset(0.88, 0.88),
+    };
+    final percentage = map[tableId] ?? Offset(((hash % 7) * 0.12) + 0.1, ((hash % 5) * 0.16) + 0.1);
+    return Offset(percentage.dx * maxWidth, percentage.dy * maxHeight);
+  }
+
+  Widget _buildFloorPlanView(List<RestaurantTable> tables, bool isDark, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+
+          return Stack(
+            children: [
+              Positioned(
+                top: 16,
+                left: 16,
+                child: Text(
+                  'MAIN DINING HALL',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: Text(
+                  'PATIO & BAR AREA',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              ...tables.map((table) {
+                final isSelected = _selectedTableIds.contains(table.id);
+                final offset = _getTableCoordinates(table.id, width - 80, height - 80);
+
+                Color statusColor;
+                switch (table.status) {
+                  case TableStatus.available:
+                    statusColor = AppColors.success;
+                    break;
+                  case TableStatus.occupied:
+                    statusColor = AppColors.primary;
+                    break;
+                  case TableStatus.reserved:
+                    statusColor = AppColors.warning;
+                    break;
+                  case TableStatus.needsAttention:
+                    statusColor = AppColors.error;
+                    break;
+                  case TableStatus.cleaning:
+                    statusColor = Colors.grey;
+                    break;
+                }
+
+                return Positioned(
+                  left: offset.dx,
+                  top: offset.dy,
+                  child: InkWell(
+                    onTap: () {
+                      if (_isManagementMode) {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedTableIds.remove(table.id);
+                          } else {
+                            _selectedTableIds.add(table.id);
+                          }
+                        });
+                      } else {
+                        context.push('/tables/${table.id}');
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(36),
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? AppColors.darkSurfaceCard : Colors.grey[50],
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : statusColor,
+                          width: isSelected ? 3.5 : 2.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isSelected ? AppColors.primary : statusColor).withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            table.label,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppColors.info,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.person, size: 10, color: Colors.grey),
+                              Text(
+                                '${table.capacity}',
+                                style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          );
+        },
       ),
     );
   }

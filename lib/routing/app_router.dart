@@ -45,6 +45,9 @@ import '../features/profile/presentation/screens/runtime_diagnostics_screen.dart
 import '../features/manager/presentation/screens/floor_analytics_screen.dart';
 import '../features/manager/presentation/screens/staff_performance_screen.dart';
 import '../features/manager/presentation/screens/operational_alerts_screen.dart';
+import '../features/customer/presentation/screens/customer_landing_screen.dart';
+import '../features/customer/presentation/screens/customer_menu_screen.dart';
+
 
 // Derived provider: count of active (unresolved) waiter calls for badge display
 final activeWaiterCallsCountProvider = Provider<int>((ref) {
@@ -89,6 +92,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // If we are on the splash screen, do NOT redirect. Let it perform its bootloader diagnostics.
       if (loc == '/splash') {
+        return null;
+      }
+
+      // Bypass auth rules for customer paths
+      if (loc.startsWith('/customer')) {
         return null;
       }
 
@@ -148,6 +156,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/customer/landing',
+        name: 'customer-landing',
+        builder: (context, state) {
+          final tenantId = state.uri.queryParameters['tenantId'];
+          final branchId = state.uri.queryParameters['branchId'];
+          final tableId = state.uri.queryParameters['tableId'];
+          return CustomerLandingScreen(
+            tenantId: tenantId,
+            branchId: branchId,
+            tableId: tableId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/customer/menu',
+        name: 'customer-menu',
+        builder: (context, state) => const CustomerMenuScreen(),
+      ),
       GoRoute(
         path: '/splash',
         name: 'splash',

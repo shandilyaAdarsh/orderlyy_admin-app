@@ -11,6 +11,7 @@ import '../../../orders/domain/entities/menu_product.dart' as orders_entities;
 import '../../data/repositories/menu_repository_impl.dart';
 import '../../domain/entities/menu_snapshot.dart';
 import '../../domain/repositories/menu_repository.dart';
+import '../../../customer/presentation/state/customer_providers.dart';
 
 final menuRepositoryProvider = Provider<MenuRepository>((ref) {
   final dioClient = ref.watch(dioClientProvider);
@@ -50,8 +51,9 @@ class MenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>> {
 
   Future<void> _fetch({bool forceRefresh = false}) async {
     try {
+      final customerSession = _ref.read(customerSessionProvider);
       final authState = _ref.read(authNotifierProvider);
-      final branchId = authState.selectedBranch?.id ?? 'mock_branch';
+      final branchId = customerSession?.branchId ?? authState.selectedBranch?.id ?? 'mock_branch';
       final isConnected = await _ref.read(networkInfoProvider).isConnected;
 
       final snapshot = await _repository.getMenuSnapshot(
