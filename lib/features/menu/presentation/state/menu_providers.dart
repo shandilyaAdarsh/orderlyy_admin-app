@@ -16,7 +16,7 @@ import '../../domain/entities/menu_snapshot.dart';
 import '../../domain/repositories/menu_repository.dart';
 import '../../../customer/presentation/state/customer_providers.dart';
 
-final menuRepositoryProvider = Provider<MenuRepository>((ref) {
+final menuSnapshotRepositoryProvider = Provider<MenuRepository>((ref) {
   final dioClient = ref.watch(dioClientProvider);
   final cacheBox = ref.watch(apiCacheBoxProvider);
   final networkInfo = ref.watch(networkInfoProvider);
@@ -123,7 +123,7 @@ class MenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>> {
 }
 
 final menuSnapshotNotifierProvider = StateNotifierProvider<MenuSnapshotNotifier, AsyncValue<MenuSnapshot>>((ref) {
-  final repository = ref.watch(menuRepositoryProvider);
+  final repository = ref.watch(menuSnapshotRepositoryProvider);
   final talker = ref.watch(talkerProvider);
   return MenuSnapshotNotifier(repository, ref, talker);
 });
@@ -151,7 +151,7 @@ final menuStalenessProvider = Provider<SyncState>((ref) {
 
 /// Availability polling provider that triggers background polling when active
 final menuAvailabilityPollingProvider = Provider.autoDispose<void>((ref) {
-  final repository = ref.watch(menuRepositoryProvider);
+  final repository = ref.watch(menuSnapshotRepositoryProvider);
   final notifier = ref.watch(menuSnapshotNotifierProvider.notifier);
   final talker = ref.watch(talkerProvider);
   final networkInfo = ref.watch(networkInfoProvider);
