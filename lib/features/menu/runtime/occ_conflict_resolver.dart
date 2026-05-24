@@ -1,16 +1,24 @@
 // lib/features/menu/runtime/occ_conflict_resolver.dart
 import 'package:talker_flutter/talker_flutter.dart';
 import '../domain/entities/menu_snapshot.dart';
+import 'merge_policy_registry.dart';
+
+enum OccConflictState {
+  resolvedAuto,
+  requiresManualReview,
+}
 
 class OccConflictResult<T> {
   final bool hasConflict;
+  final OccConflictState? state;
   final T reconciledState;
-  final String? conflictMessage;
+  final ConflictEnvelope? envelope;
 
   const OccConflictResult({
     required this.hasConflict,
     required this.reconciledState,
-    this.conflictMessage,
+    this.state,
+    this.envelope,
   });
 }
 
@@ -19,44 +27,56 @@ class OccConflictResolver {
 
   OccConflictResolver(this._talker);
 
-  /// Resolves concurrency conflicts between the local optimistic MenuSnapshot
-  /// and the authoritative server MenuSnapshot using version tokens.
-  /// Uses a three-way merge algorithm if [baseSnapshot] is supplied.
+  /// Resolves concurrency conflicts using a deterministic three-way merge.
+  /// Enforces field-level policies via MergePolicyRegistry and respects tombstones.
   OccConflictResult<MenuSnapshot> resolveSnapshotConflict({
     required MenuSnapshot localOptimistic,
     required MenuSnapshot serverAuthoritative,
-    required String expectedBaseVersion,
+    required int expectedBaseRevision,
+    required String deviceId,
+    required String sessionId,
     MenuSnapshot? baseSnapshot,
   }) {
-    final serverVersion = serverAuthoritative.snapshotVersion;
+    final serverRevisionStr = serverAuthoritative.snapshotVersion ?? '0';
+    final serverRevision = int.tryParse(serverRevisionStr) ?? 0;
 
     // Case 1: No conflict. Server is at the expected base version.
-    if (serverVersion == expectedBaseVersion) {
-      _talker.info('[OCC] Version match: Server is at expected base version ($expectedBaseVersion). Applying local changes.');
+    if (serverRevision == expectedBaseRevision) {
+      _talker.info('[OCC] Version match ($expectedBaseRevision). Applying local changes.');
       return OccConflictResult(
         hasConflict: false,
         reconciledState: localOptimistic.copyWith(
-          snapshotVersion: serverVersion,
+          snapshotVersion: serverRevisionStr,
         ),
       );
     }
 
     // Case 2: Conflict detected. Server has progressed to a newer version in the interim.
-    _talker.warning('[OCC] Concurrency conflict detected! Expected base version: $expectedBaseVersion, actual server version: $serverVersion.');
+    _talker.warning('[OCC] Concurrency conflict! Base: $expectedBaseRevision, Server: $serverRevision.');
     
     if (baseSnapshot == null) {
-      _talker.warning('[OCC] No base snapshot provided for three-way merge. Falling back to server state to preserve safety.');
+      _talker.warning('[OCC] No base snapshot provided. Falling back to server state.');
       return OccConflictResult(
         hasConflict: true,
+        state: OccConflictState.requiresManualReview,
         reconciledState: serverAuthoritative,
-        conflictMessage: 'Conflict detected and base version is unavailable to perform automatic merge.',
+        envelope: ConflictEnvelope(
+          baseRevision: expectedBaseRevision,
+          localRevision: expectedBaseRevision + 1,
+          remoteRevision: serverRevision,
+          mergePolicy: MergePolicy.manualReviewRequired,
+          conflictFields: const ['ALL'],
+          sourceDeviceId: deviceId,
+          sourceSessionId: sessionId,
+        ),
       );
     }
 
-    // Case 3: Three-way merge
+    // Case 3: Deterministic Three-way merge
     try {
       final mergedItems = <MenuItem>[];
-      bool overlapConflict = false;
+      bool requiresReview = false;
+      final conflictFields = <String>[];
 
       final baseItemMap = {for (final item in baseSnapshot.items) item.id: item};
       final localItemMap = {for (final item in localOptimistic.items) item.id: item};
@@ -72,37 +92,45 @@ class OccConflictResolver {
         }
 
         if (localItem == null) {
-          // Item deleted locally, check if server changed it
-          final serverChanged = serverItem != baseItem;
-          if (serverChanged) {
-            // Server changed it, local deleted it: overlap conflict
-            overlapConflict = true;
+          // Item deleted locally (either physically or logically)
+          // Ensure we respect Tombstone rules. If server changed it, we might have a conflict.
+          // But Tombstone policy dictates tombstone wins unless explicit restore.
+          if (MergePolicyRegistry.getPolicyForField('deletedAt') == MergePolicy.tombstoneWins) {
+            continue; // Tombstone wins. Do not add.
           }
-          // If server didn't change it, let local deletion stand (do not add it)
-          continue;
         }
 
         final localChanged = localItem != baseItem;
         final serverChanged = serverItem != baseItem;
 
         if (localChanged && serverChanged) {
-          // Check for attribute collision
-          final bool categoryCollision = (localItem.categoryId != baseItem.categoryId &&
-              serverItem.categoryId != baseItem.categoryId &&
-              localItem.categoryId != serverItem.categoryId);
-          final bool nameCollision = (localItem.name != baseItem.name &&
-              serverItem.name != baseItem.name &&
-              localItem.name != serverItem.name);
-          final bool descriptionCollision = (localItem.description != baseItem.description &&
-              serverItem.description != baseItem.description &&
-              localItem.description != serverItem.description);
-          final bool priceCollision = (localItem.price != baseItem.price &&
-              serverItem.price != baseItem.price &&
-              localItem.price != serverItem.price);
-          final bool isAvailableCollision = (localItem.isAvailable != baseItem.isAvailable &&
-              serverItem.isAvailable != baseItem.isAvailable &&
-              localItem.isAvailable != serverItem.isAvailable);
+          // Both changed. Check field-level overlap.
+          final Map<String, dynamic> mergedProps = {};
+          
+          bool mergeField<T>(String field, T baseVal, T localVal, T serverVal) {
+            if (localVal != baseVal && serverVal != baseVal && localVal != serverVal) {
+              final policy = MergePolicyRegistry.getPolicyForField(field);
+              if (policy == MergePolicy.manualReviewRequired) {
+                requiresReview = true;
+                conflictFields.add(field);
+                return false; // Server wins by default in conflict until reviewed
+              } else if (policy == MergePolicy.lastWriteWins) {
+                // In this optimistic system, local is technically the "last" write conceptually, 
+                // but server is authoritative. We defer to server for strict LWW unless timestamps exist.
+                return false;
+              }
+            }
+            // Auto-merge non-colliding fields
+            return (localVal != baseVal) ? true : false;
+          }
 
+          final useLocalCategory = mergeField('categoryId', baseItem.categoryId, localItem!.categoryId, serverItem.categoryId);
+          final useLocalName = mergeField('name', baseItem.name, localItem.name, serverItem.name);
+          final useLocalDesc = mergeField('description', baseItem.description, localItem.description, serverItem.description);
+          final useLocalPrice = mergeField('price', baseItem.price, localItem.price, serverItem.price);
+          final useLocalAvail = mergeField('isAvailable', baseItem.isAvailable, localItem.isAvailable, serverItem.isAvailable);
+
+          // Modifiers (List comparison)
           bool listEquals(List a, List b) {
             if (a.length != b.length) return false;
             for (int i = 0; i < a.length; i++) {
@@ -110,86 +138,79 @@ class OccConflictResolver {
             }
             return true;
           }
+          final useLocalMods = mergeField('modifierGroupIds', 
+            baseItem.modifierGroupIds.join(','), 
+            localItem.modifierGroupIds.join(','), 
+            serverItem.modifierGroupIds.join(','));
 
-          final bool localModifiersChanged =
-              !listEquals(localItem.modifierGroupIds, baseItem.modifierGroupIds);
-          final bool serverModifiersChanged =
-              !listEquals(serverItem.modifierGroupIds, baseItem.modifierGroupIds);
-          final bool modifiersCollision = localModifiersChanged &&
-              serverModifiersChanged &&
-              !listEquals(localItem.modifierGroupIds, serverItem.modifierGroupIds);
+          mergedItems.add(MenuItem(
+            id: serverItem.id,
+            categoryId: useLocalCategory ? localItem.categoryId : serverItem.categoryId,
+            name: useLocalName ? localItem.name : serverItem.name,
+            description: useLocalDesc ? localItem.description : serverItem.description,
+            price: useLocalPrice ? localItem.price : serverItem.price,
+            isAvailable: useLocalAvail ? localItem.isAvailable : serverItem.isAvailable,
+            modifierGroupIds: useLocalMods ? localItem.modifierGroupIds : serverItem.modifierGroupIds,
+            deletedAt: serverItem.deletedAt ?? localItem.deletedAt,
+          ));
 
-          if (categoryCollision ||
-              nameCollision ||
-              descriptionCollision ||
-              priceCollision ||
-              isAvailableCollision ||
-              modifiersCollision) {
-            _talker.warning(
-              '[OCC] Overlap collision on item ${serverItem.id}. Both edited same property differently.',
-            );
-            overlapConflict = true;
-            mergedItems.add(serverItem); // Server version takes precedence in conflict
-          } else {
-            // Auto-merge non-colliding fields!
-            final mergedItem = MenuItem(
-              id: serverItem.id,
-              categoryId: localItem.categoryId != baseItem.categoryId
-                  ? localItem.categoryId
-                  : serverItem.categoryId,
-              name: localItem.name != baseItem.name ? localItem.name : serverItem.name,
-              description: localItem.description != baseItem.description
-                  ? localItem.description
-                  : serverItem.description,
-              price: localItem.price != baseItem.price ? localItem.price : serverItem.price,
-              isAvailable: localItem.isAvailable != baseItem.isAvailable
-                  ? localItem.isAvailable
-                  : serverItem.isAvailable,
-              modifierGroupIds:
-                  localModifiersChanged ? localItem.modifierGroupIds : serverItem.modifierGroupIds,
-            );
-            mergedItems.add(mergedItem);
-          }
         } else if (localChanged) {
-          // Only local changed: keep local change
-          mergedItems.add(localItem);
+          mergedItems.add(localItem!);
         } else {
-          // Only server changed, or neither changed: keep server change
           mergedItems.add(serverItem);
         }
       }
 
-      // Add items that were added locally but are not present on the server
+      // Add local-only items
       for (final localItem in localOptimistic.items) {
         if (!baseItemMap.containsKey(localItem.id)) {
           mergedItems.add(localItem);
         }
       }
 
-      if (overlapConflict) {
+      final mergedSnapshot = serverAuthoritative.copyWith(
+        items: mergedItems,
+        snapshotVersion: serverRevisionStr,
+      );
+
+      if (requiresReview) {
         return OccConflictResult(
           hasConflict: true,
-          reconciledState: serverAuthoritative,
-          conflictMessage: 'Collision detected: Another admin updated the same item you were editing.',
+          state: OccConflictState.requiresManualReview,
+          reconciledState: mergedSnapshot,
+          envelope: ConflictEnvelope(
+            baseRevision: expectedBaseRevision,
+            localRevision: expectedBaseRevision + 1,
+            remoteRevision: serverRevision,
+            mergePolicy: MergePolicy.manualReviewRequired,
+            conflictFields: conflictFields,
+            sourceDeviceId: deviceId,
+            sourceSessionId: sessionId,
+          ),
         );
       }
 
-      _talker.info('[OCC] Three-way merge successfully completed.');
-      final mergedSnapshot = serverAuthoritative.copyWith(
-        items: mergedItems,
-        snapshotVersion: serverVersion,
-      );
-
+      _talker.info('[OCC] Auto-merge successful.');
       return OccConflictResult(
-        hasConflict: false,
+        hasConflict: true,
+        state: OccConflictState.resolvedAuto,
         reconciledState: mergedSnapshot,
       );
     } catch (e) {
-      _talker.error('[OCC] Three-way merge failed: $e');
+      _talker.error('[OCC] Merge failed: $e');
       return OccConflictResult(
         hasConflict: true,
+        state: OccConflictState.requiresManualReview,
         reconciledState: serverAuthoritative,
-        conflictMessage: 'Failed to auto-merge changes: $e',
+        envelope: ConflictEnvelope(
+          baseRevision: expectedBaseRevision,
+          localRevision: expectedBaseRevision + 1,
+          remoteRevision: serverRevision,
+          mergePolicy: MergePolicy.manualReviewRequired,
+          conflictFields: const ['MERGE_FAILURE'],
+          sourceDeviceId: deviceId,
+          sourceSessionId: sessionId,
+        ),
       );
     }
   }

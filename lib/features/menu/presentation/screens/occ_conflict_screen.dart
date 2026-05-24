@@ -74,8 +74,10 @@ class _OccConflictScreenState extends State<OccConflictScreen> {
     final result = resolver.resolveSnapshotConflict(
       localOptimistic: _localOptimistic,
       serverAuthoritative: _serverAuthoritative,
-      expectedBaseVersion: 'v2',
+      expectedBaseRevision: 2,
       baseSnapshot: _baseSnapshot,
+      deviceId: 'admin-device',
+      sessionId: 'admin-session',
     );
     setState(() {
       _mergeResult = result;
