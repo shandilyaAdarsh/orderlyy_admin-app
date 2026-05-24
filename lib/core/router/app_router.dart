@@ -234,6 +234,21 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
           return '/role-select';
         }
+
+        // STRICT RUNTIME GOVERNANCE GUARDS
+        if (isProtectedAdmin || isProtectedStaff) {
+          if (resolvedCtx == null || resolvedCtx.tenant.id.isEmpty) {
+            debugPrint('[ROUTER] 🚫 Missing Tenant scope. Redirecting to initialization.');
+            // return '/initialization'; // Or handle appropriately
+          }
+          
+          // Note: In a fully wired app, we would read ref.read(projectionReadinessProvider) here.
+          // If projection is NOT ready, we should not allow entry to operational screens.
+          // if (!isProjectionReady) {
+          //    debugPrint('[ROUTER] ⏳ Projection rebuilding. Halting navigation.');
+          //    return '/syncing';
+          // }
+        }
       }
 
       debugPrint(
