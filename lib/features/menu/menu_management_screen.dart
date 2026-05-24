@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/auth/mock_auth_provider.dart';
 import '../../core/data/dtos/menu_dto.dart';
 import '../../core/providers/menu_providers.dart';
+import '../../core/runtime/runtime_context.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/uuid.dart';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const _kPrimary = Color(0xFFC0272D);
@@ -19,11 +22,6 @@ const _kCategories = [
   'DESSERTS',
   'BEVERAGES',
 ];
-
-// ── Tenant ID used when creating new items ────────────────────────────────────
-// TODO: replace with real tenant from staffSessionProvider when auth is wired.
-const _kDevTenantId = 'mock-tenant-001';
-// _kDevCategoryId removed — category is resolved dynamically via _catLabelToId()
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 class MenuManagementScreen extends ConsumerStatefulWidget {
@@ -620,6 +618,12 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
 
     setState(() => _isSaving = true);
     try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = requireContextValue(
+        value: profile?['tenant_id'] as String?,
+        field: 'tenantId',
+        source: 'MenuItemSheet._save',
+      );
       final imageUrl = await _resolveImageUrl();
       final categoryLabel = _useCustomCat
           ? _customCatCtrl.text.trim().toUpperCase()
@@ -629,8 +633,8 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
       if (widget.item == null) {
         // Create
         final newItem = MenuItemDto(
-          id: 'item-${DateTime.now().millisecondsSinceEpoch}',
-          tenantId: _kDevTenantId,
+          id: UuidGenerator.generateRuntimeId(prefix: 'menu-item'),
+          tenantId: tenantId,
           categoryId: categoryId,
           name: name,
           price: double.tryParse(_priceCtrl.text) ?? 0,

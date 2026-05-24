@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/orders_repository_interface.dart';
 import '../../../../core/storage/state_persistence.dart';
+import '../../../../core/utils/uuid.dart';
 import '../../../../shared/models/result.dart';
 import '../../../../shared/models/failures.dart';
 import '../../domain/models/order.dart';
@@ -17,7 +18,8 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
   final IOrdersRepository _repository;
   final StatePersistence _persistence;
   final String _tenantId;
-  static const String _stateKey = 'orders_state';
+  static const String _stateKeyPrefix = 'orders_state';
+  static const int _stateEnvelopeVersion = 1;
 
   OrdersNotifier({
     required IOrdersRepository repository,
@@ -45,8 +47,37 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
   Future<void> _hydrateState() async {
     try {
       final json = await _persistence.loadState(_stateKey);
-      if (json != null) {
+      if (json == null) return;
+
+      final version = json['version'];
+      final contextScope = json['contextScope'];
+      final payload = json['payload'];
+
+      // Legacy payload compatibility (no envelope/version).
+      if (version == null) {
         state = OrdersState.fromJson(json);
+        await _persistState();
+        return;
+      }
+
+      if (version is! int || version > _stateEnvelopeVersion) {
+        debugPrint(
+          'Unsupported orders state version ($version) for $_stateKey. Falling back to fresh state.',
+        );
+        state = OrdersState.initial();
+        return;
+      }
+
+      if (contextScope is! String || contextScope != _tenantId) {
+        debugPrint(
+          'Orders state context mismatch for $_stateKey. Expected=$_tenantId got=$contextScope.',
+        );
+        state = OrdersState.initial();
+        return;
+      }
+
+      if (payload is Map) {
+        state = OrdersState.fromJson(Map<String, dynamic>.from(payload));
       }
     } catch (e) {
       // If hydration fails, continue with initial state
@@ -58,7 +89,11 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
 
   Future<void> _persistState() async {
     try {
-      await _persistence.saveState(_stateKey, state.toJson());
+      await _persistence.saveState(_stateKey, {
+        'version': _stateEnvelopeVersion,
+        'contextScope': _tenantId,
+        'payload': state.toJson(),
+      });
     } catch (e) {
       // Log but don't throw - persistence failure shouldn't crash app
       debugPrint('Failed to persist orders state: $e');
@@ -97,7 +132,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
 
   Future<Result<Order, AppFailure>> createOrder(Order order) async {
     // Generate temporary ID for optimistic update
-    final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
+    final tempId = UuidGenerator.generateRuntimeId(prefix: 'temp-order');
     final optimisticOrder = order.copyWith(id: tempId);
 
     // Optimistic update
@@ -208,5 +243,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
     } catch (e) {
       return null;
     }
+
+    String get _stateKey => '$_stateKeyPrefix:$_tenantId';
   }
 }
