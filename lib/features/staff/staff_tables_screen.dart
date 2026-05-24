@@ -5,9 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/data/dtos/order_dto.dart';
 import '../../core/data/dtos/table_dto.dart' as table_dto;
+import '../../core/auth/mock_auth_provider.dart';
 import '../../core/providers/orders_providers.dart';
 import '../../core/providers/tables_providers.dart';
+import '../../core/runtime/runtime_context.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/uuid.dart';
 
 // ── Table Status (local UI enum, separate from DTO enum) ──────────────────────
 enum TableStatus { vacant, occupied, payment, cleaning }
@@ -191,9 +194,15 @@ class _StaffTablesScreenState extends ConsumerState<StaffTablesScreen> {
     if (tableNum == null) return;
 
     try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = requireContextValue(
+        value: profile?['tenant_id'] as String?,
+        field: 'tenantId',
+        source: 'StaffTablesScreen._addTableDialog',
+      );
       final newTable = table_dto.RestaurantTableDto(
-        id: 'tbl-${DateTime.now().millisecondsSinceEpoch}',
-        tenantId: 'mock-tenant-001',
+        id: UuidGenerator.generateRuntimeId(prefix: 'table'),
+        tenantId: tenantId,
         label: 'T${tableNum.toString().padLeft(2, '0')}',
         capacity: capacity,
         status: table_dto.TableStatus.available,
@@ -409,17 +418,15 @@ class _StaffTablesScreenState extends ConsumerState<StaffTablesScreen> {
 
     // Look up the underlying table DTO to get database table ID
     final tablesAsync = ref.read(tablesStreamProvider);
-    final tableDto = tablesAsync.valueOrNull?.firstWhere(
-      (t) => t.label.replaceAll('-', '') == table.id,
-      orElse: () => table_dto.RestaurantTableDto(
-        id: 'tbl-${table.id}',
-        tenantId: 'mock-tenant-001',
-        label: table.id,
-        capacity: table.capacity,
-        status: table_dto.TableStatus.available,
-        updatedAt: DateTime.now(),
-      ),
-    );
+    final tableDto = tablesAsync.valueOrNull
+        ?.where((t) => t.label.replaceAll('-', '') == table.id)
+        .cast<table_dto.RestaurantTableDto?>()
+        .firstOrNull;
+    if (tableDto == null) {
+      throw RuntimeInitializationException(
+        'Unable to resolve authoritative table context for ${table.id}.',
+      );
+    }
 
     showModalBottomSheet(
       context: context,

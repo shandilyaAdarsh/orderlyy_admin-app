@@ -12,6 +12,7 @@ import '../data/dtos/table_dto.dart';
 import 'repository_providers.dart';
 
 import '../auth/mock_auth_provider.dart';
+import '../runtime/runtime_context.dart';
 
 // ── Tables stream ─────────────────────────────────────────────────────────────
 // Emits every time the underlying repository pushes an update.
@@ -19,16 +20,11 @@ final tablesStreamProvider = StreamProvider<List<RestaurantTableDto>>((
   ref,
 ) async* {
   final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = profile?['tenant_id'];
-
-  if (tenantId == null) {
-    if (kUseMockRepositories) {
-      yield* ref.watch(tablesRepositoryProvider).watchTables('mock-tenant-001');
-    } else {
-      yield [];
-    }
-    return;
-  }
+  final tenantId = requireContextValue(
+    value: profile?['tenant_id'] as String?,
+    field: 'tenantId',
+    source: 'tablesStreamProvider',
+  );
 
   final repo = ref.watch(tablesRepositoryProvider);
   yield* repo.watchTables(tenantId);

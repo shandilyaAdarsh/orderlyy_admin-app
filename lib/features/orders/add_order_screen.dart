@@ -8,7 +8,9 @@ import '../../core/data/dtos/menu_dto.dart';
 import '../../core/data/dtos/order_dto.dart';
 import '../../core/providers/menu_providers.dart';
 import '../../core/providers/orders_providers.dart';
+import '../../core/runtime/runtime_context.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/uuid.dart';
 
 class AddOrderScreen extends ConsumerStatefulWidget {
   final String tableId;
@@ -104,9 +106,16 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     }
 
     try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = requireContextValue(
+        value: profile?['tenant_id'] as String?,
+        field: 'tenantId',
+        source: 'AddOrderScreen._submitOrder',
+      );
+
       final orderItems = _cart.values.map((item) {
         return OrderItemDto(
-          id: 'item-${DateTime.now().millisecondsSinceEpoch}-${item.itemId}',
+          id: UuidGenerator.generateRuntimeId(prefix: 'order-item'),
           menuItemId: item.itemId,
           menuItemName: item.name,
           quantity: item.quantity,
@@ -144,8 +153,8 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
       } else {
         // Create flow
         final newOrder = OrderDto(
-          id: 'ord-${DateTime.now().millisecondsSinceEpoch}',
-          tenantId: 'mock-tenant-001',
+          id: UuidGenerator.generateRuntimeId(prefix: 'order'),
+          tenantId: tenantId,
           tableId: widget.tableId,
           tableLabel: widget.tableLabel,
           status: OrderStatus.pending,

@@ -1,6 +1,7 @@
 // lib/features/reservations/presentation/state/reservations_notifier.dart
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/utils/uuid.dart';
 import '../../domain/entities/reservation.dart';
 import '../../domain/repositories/reservations_repository.dart';
 import '../../data/repositories/reservations_repository_impl.dart';
@@ -122,7 +123,7 @@ class ReservationsNotifier extends _$ReservationsNotifier {
   Future<void> checkInWalkIn(String guestName, String phone, int partySize, bool isVip) async {
     final repository = ref.read(reservationsRepositoryProvider);
     final entry = WaitlistEntry(
-      id: 'wait-${DateTime.now().millisecondsSinceEpoch}',
+      id: UuidGenerator.generateRuntimeId(prefix: 'waitlist'),
       guestName: guestName,
       guestPhone: phone,
       guestCount: partySize,
@@ -146,7 +147,7 @@ class ReservationsNotifier extends _$ReservationsNotifier {
       await repository.removeFromWaitlist(waitlistId);
       // Add as a seated reservation
       final reservation = Reservation(
-        id: 'res-${DateTime.now().millisecondsSinceEpoch}',
+        id: UuidGenerator.generateRuntimeId(prefix: 'reservation'),
         guestName: walkIn.guestName,
         guestPhone: walkIn.guestPhone,
         guestCount: walkIn.guestCount,

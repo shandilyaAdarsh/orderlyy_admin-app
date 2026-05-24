@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../config/app_config.dart';
+import '../utils/uuid.dart';
 
 class LocalSyncClient {
-  static bool enabled = !kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST');
+  static bool enabled = _isEnabled();
 
   static final LocalSyncClient _instance = LocalSyncClient._internal();
   factory LocalSyncClient() => _instance;
@@ -18,6 +20,18 @@ class LocalSyncClient {
   WebSocketChannel? _channel;
   bool _isConnected = false;
   bool _isConnecting = false;
+  int _sequenceNumber = 0;
+
+  static bool _isEnabled() {
+    try {
+      final flag = AppConfig.instance.featureFlags['enableExperimentalRealtime'] ?? false;
+      return !kIsWeb &&
+          !Platform.environment.containsKey('FLUTTER_TEST') &&
+          flag;
+    } catch (_) {
+      return false;
+    }
+  }
 
   bool get isConnected => _isConnected;
 
@@ -89,9 +103,10 @@ class LocalSyncClient {
       return;
     }
 
+    _sequenceNumber += 1;
     final event = {
-      'idempotencyKey': DateTime.now().microsecondsSinceEpoch.toString(),
-      'sequenceNumber': DateTime.now().millisecondsSinceEpoch,
+      'idempotencyKey': UuidGenerator.generateRuntimeId(prefix: 'sync'),
+      'sequenceNumber': _sequenceNumber,
       'type': type,
       'payload': payload,
     };

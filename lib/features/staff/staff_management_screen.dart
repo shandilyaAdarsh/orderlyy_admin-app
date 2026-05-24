@@ -5,6 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/data/dtos/staff_dto.dart';
 import '../../core/providers/staff_providers.dart';
+import '../../core/auth/mock_auth_provider.dart';
+import '../../core/runtime/runtime_context.dart';
+import '../../core/utils/uuid.dart';
 import '../../core/theme/app_theme.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -382,11 +385,17 @@ class _StaffSheetState extends ConsumerState<_StaffSheet> {
 
     setState(() => _isSaving = true);
     try {
+      final profile = await ref.read(userProfileProvider.future);
+      final tenantId = requireContextValue(
+        value: profile?['tenant_id'] as String?,
+        field: 'tenantId',
+        source: 'StaffFormSheet._save',
+      );
       if (widget.member == null) {
         // Create
         final newStaff = StaffDto(
-          id: 'stf-${DateTime.now().millisecondsSinceEpoch}',
-          tenantId: 'mock-tenant-001',
+          id: UuidGenerator.generateRuntimeId(prefix: 'staff'),
+          tenantId: tenantId,
           name: name,
           role: _role,
           pin: pin,
