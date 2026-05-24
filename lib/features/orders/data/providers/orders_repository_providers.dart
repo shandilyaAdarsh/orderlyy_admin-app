@@ -4,10 +4,12 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/providers/repository_providers.dart' show sharedPreferencesProvider;
 import '../repositories/orders_repository_interface.dart';
 import '../repositories/orders_repository_factory.dart';
 import '../datasources/orders_mock_datasource.dart';
 import '../datasources/orders_local_datasource.dart';
+import '../datasources/orders_shared_prefs_datasource.dart';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -31,9 +33,9 @@ final ordersMockDataSourceProvider = Provider<OrdersMockDataSource>((ref) {
 });
 
 /// Local data source provider
-final ordersLocalDataSourceProvider = Provider<OrdersLocalDataSource>((ref) {
-  final localStorage = ref.watch(localStorageProvider);
-  return OrdersSharedPrefsDataSource(localStorage);
+final ordersLocalDataSourceProvider = Provider<OrdersLocalDatasource>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return OrdersLocalDatasourceImpl(prefs);
 });
 
 /// Remote data source provider (placeholder for future implementation)

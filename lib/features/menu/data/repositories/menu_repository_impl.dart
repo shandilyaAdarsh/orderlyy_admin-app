@@ -77,8 +77,12 @@ class MenuRepositoryImpl implements MenuRepository {
       }
 
       // StatusCode == 200
-      final body = response.data;
+      final Map<String, dynamic> body = Map<String, dynamic>.from(response.data as Map);
       final newEtag = response.headers.value('etag') ?? response.headers.value('ETag');
+      if (newEtag != null) {
+        body['etag'] = newEtag;
+      }
+      body['branch_id'] = branchId;
 
       await _apiCacheBox.put(cacheKey, jsonEncode(body));
       if (newEtag != null) {
@@ -88,7 +92,7 @@ class MenuRepositoryImpl implements MenuRepository {
         await _apiCacheBox.delete(etagKey);
       }
 
-      final snapshotDto = MenuSnapshotDto.fromJson(body as Map<String, dynamic>);
+      final snapshotDto = MenuSnapshotDto.fromJson(body);
       return snapshotDto.toDomain();
     } catch (e) {
       _talker.error('[MenuRepo] Failed to fetch menu from server: $e. Checking cache fallback...');
@@ -120,13 +124,96 @@ class MenuRepositoryImpl implements MenuRepository {
 
       if (response.statusCode == 200 && response.data is Map) {
         final rawMap = response.data as Map<String, dynamic>;
-        return rawMap.map((key, value) => MapEntry(key, value as bool));
+        final overlay = rawMap.map((key, value) => MapEntry(key, value as bool));
+        // Cache overlay whenever we successfully fetch it
+        await saveAvailabilityOverlay(branchId, overlay);
+        return overlay;
       }
       return {};
     } catch (e) {
       _talker.error('[MenuRepo] Failed to fetch availability polling data: $e');
       return {};
     }
+  }
+
+  @override
+  Future<void> saveMenuSnapshot(MenuSnapshot snapshot) async {
+    final cacheKey = 'menu_snapshot_${snapshot.branchId}';
+    final etagKey = 'menu_etag_${snapshot.branchId}';
+    final dto = MenuSnapshotDto(
+      categories: snapshot.categories.map((c) => MenuCategoryDto(id: c.id, name: c.name, sortOrder: c.sortOrder)).toList(),
+      items: snapshot.items.map((i) => MenuItemDto(
+        id: i.id,
+        categoryId: i.categoryId,
+        name: i.name,
+        description: i.description,
+        priceInCents: i.price.amountInCents,
+        isAvailable: i.isAvailable,
+        modifierGroupIds: i.modifierGroupIds,
+      )).toList(),
+      modifierGroups: snapshot.modifierGroups.map((g) => ModifierGroupDto(
+        id: g.id,
+        name: g.name,
+        options: g.options.map((o) => ModifierOptionDto(id: o.id, name: o.name, priceInCents: o.price.amountInCents)).toList(),
+      )).toList(),
+      taxConfig: TaxConfigDto(vatRate: snapshot.taxConfig.vatRate, serviceChargeRate: snapshot.taxConfig.serviceChargeRate),
+      metadata: snapshot.metadata,
+      availabilityOverlay: snapshot.availabilityOverlay,
+      etag: snapshot.etag,
+      snapshotVersion: snapshot.snapshotVersion,
+      generatedAt: snapshot.generatedAt,
+      branchId: snapshot.branchId,
+    );
+    await _apiCacheBox.put(cacheKey, jsonEncode(dto.toJson()));
+    if (snapshot.etag != null) {
+      await _apiCacheBox.put(etagKey, snapshot.etag!);
+    }
+  }
+
+  @override
+  Future<MenuSnapshot?> getCachedMenuSnapshot(String branchId) async {
+    final cacheKey = 'menu_snapshot_$branchId';
+    final cachedJson = _apiCacheBox.get(cacheKey);
+    if (cachedJson != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(cachedJson) as Map<String, dynamic>;
+        final dto = MenuSnapshotDto.fromJson(decoded);
+        return dto.toDomain();
+      } catch (e) {
+        _talker.error('[MenuRepo] Failed to parse cached snapshot for $branchId: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<void> saveAvailabilityOverlay(String branchId, Map<String, bool> overlay) async {
+    final cacheKey = 'menu_availability_$branchId';
+    await _apiCacheBox.put(cacheKey, jsonEncode(overlay));
+  }
+
+  @override
+  Future<Map<String, bool>> getCachedAvailabilityOverlay(String branchId) async {
+    final cacheKey = 'menu_availability_$branchId';
+    final cachedJson = _apiCacheBox.get(cacheKey);
+    if (cachedJson != null) {
+      try {
+        final Map<dynamic, dynamic> decoded = jsonDecode(cachedJson) as Map;
+        return decoded.map((k, v) => MapEntry(k.toString(), v as bool));
+      } catch (e) {
+        _talker.error('[MenuRepo] Failed to parse cached availability overlay for $branchId: $e');
+        return {};
+      }
+    }
+    return {};
+  }
+
+  @override
+  Future<void> clearCache(String branchId) async {
+    await _apiCacheBox.delete('menu_snapshot_$branchId');
+    await _apiCacheBox.delete('menu_etag_$branchId');
+    await _apiCacheBox.delete('menu_availability_$branchId');
   }
 
   /// Default mock snapshot payload corresponding to initial static products
