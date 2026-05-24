@@ -15,21 +15,17 @@ import 'repository_providers.dart';
 import '../auth/mock_auth_provider.dart';
 import '../data/local/offline_sync_queue.dart';
 import '../data/repositories/offline_first_orders_repository.dart';
+import '../runtime/runtime_context.dart';
 
 // ── Orders stream ─────────────────────────────────────────────────────────────
 // Emits every time the underlying repository pushes an update.
 final ordersStreamProvider = StreamProvider<List<OrderDto>>((ref) async* {
   final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = profile?['tenant_id'];
-
-  if (tenantId == null) {
-    if (kUseMockRepositories) {
-      yield* ref.watch(ordersRepositoryProvider).watchOrders('mock-tenant-001');
-    } else {
-      yield [];
-    }
-    return;
-  }
+  final tenantId = requireContextValue(
+    value: profile?['tenant_id'] as String?,
+    field: 'tenantId',
+    source: 'ordersStreamProvider',
+  );
 
   final repo = ref.watch(ordersRepositoryProvider);
   yield* repo.watchOrders(tenantId);

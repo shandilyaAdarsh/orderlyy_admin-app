@@ -53,6 +53,14 @@ class AppConfig {
       featureFlags: featureFlags ?? {
         'useOfflineMode': const bool.fromEnvironment('FLAG_OFFLINE_MODE', defaultValue: true),
         'experimentalKds': const bool.fromEnvironment('FLAG_EXPERIMENTAL_KDS', defaultValue: false),
+        'enableExperimentalRealtime': const bool.fromEnvironment(
+          'FLAG_EXPERIMENTAL_REALTIME',
+          defaultValue: false,
+        ),
+        'enableExperimentalOcc': const bool.fromEnvironment(
+          'FLAG_EXPERIMENTAL_OCC',
+          defaultValue: false,
+        ),
       },
     );
   }

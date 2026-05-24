@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../data/dtos/order_dto.dart';
 import '../../data/dtos/sync_action.dart';
 import '../../data/local/offline_sync_queue.dart';
+import '../../utils/uuid.dart';
 import 'orders_repository.dart';
 
 class OfflineFirstOrdersRepository implements OrdersRepository {
@@ -174,11 +175,11 @@ class OfflineFirstOrdersRepository implements OrdersRepository {
   @override
   Future<OrderDto> createOrder(OrderDto order) async {
     final action = SyncAction(
-      id: 'act-${DateTime.now().millisecondsSinceEpoch}-create',
+      id: UuidGenerator.generateRuntimeId(prefix: 'act-create'),
       type: 'createOrder',
       payload: order.toJson(),
       timestamp: DateTime.now(),
-      idempotencyKey: 'idem-create-${order.id}',
+      idempotencyKey: UuidGenerator.generateRuntimeId(prefix: 'idem-create'),
     );
 
     await _queue.enqueue(action);
@@ -196,11 +197,11 @@ class OfflineFirstOrdersRepository implements OrdersRepository {
   @override
   Future<OrderDto> updateOrder(OrderDto order) async {
     final action = SyncAction(
-      id: 'act-${DateTime.now().millisecondsSinceEpoch}-update',
+      id: UuidGenerator.generateRuntimeId(prefix: 'act-update'),
       type: 'updateOrder',
       payload: order.toJson(),
       timestamp: DateTime.now(),
-      idempotencyKey: 'idem-update-${order.id}',
+      idempotencyKey: UuidGenerator.generateRuntimeId(prefix: 'idem-update'),
     );
 
     await _queue.enqueue(action);
@@ -224,24 +225,16 @@ class OfflineFirstOrdersRepository implements OrdersRepository {
     final idx = cachedList.indexWhere((o) => o.id == orderId);
     final order = idx != -1
         ? cachedList[idx].copyWith(status: newStatus, updatedAt: DateTime.now())
-        : OrderDto(
-            id: orderId,
-            tenantId: 'mock-tenant-001',
-            tableId: 'tbl-unknown',
-            tableLabel: 'Unknown',
-            status: newStatus,
-            items: [],
-            totalAmount: 0.0,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
+        : (throw StateError(
+            'Cannot update status for unknown order $orderId without resolved tenant/table context.',
+          ));
 
     final action = SyncAction(
-      id: 'act-${DateTime.now().millisecondsSinceEpoch}-status',
+      id: UuidGenerator.generateRuntimeId(prefix: 'act-status'),
       type: 'updateOrderStatus',
       payload: {'orderId': orderId, 'status': newStatus.name},
       timestamp: DateTime.now(),
-      idempotencyKey: 'idem-status-$orderId-${newStatus.name}',
+      idempotencyKey: UuidGenerator.generateRuntimeId(prefix: 'idem-status'),
     );
 
     await _queue.enqueue(action);
@@ -259,11 +252,11 @@ class OfflineFirstOrdersRepository implements OrdersRepository {
   @override
   Future<void> cancelOrder(String orderId) async {
     final action = SyncAction(
-      id: 'act-${DateTime.now().millisecondsSinceEpoch}-cancel',
+      id: UuidGenerator.generateRuntimeId(prefix: 'act-cancel'),
       type: 'cancelOrder',
       payload: {'orderId': orderId},
       timestamp: DateTime.now(),
-      idempotencyKey: 'idem-cancel-$orderId',
+      idempotencyKey: UuidGenerator.generateRuntimeId(prefix: 'idem-cancel'),
     );
 
     await _queue.enqueue(action);

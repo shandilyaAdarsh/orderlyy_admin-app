@@ -5,6 +5,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../config/app_config.dart';
 
 import '../../features/orders/providers/orders_providers.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
@@ -31,7 +32,7 @@ class SyncEvent {
 }
 
 class RealtimeSyncManager {
-  static bool enabled = !kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST');
+  static bool enabled = _isEnabled();
 
   final Ref ref;
   final Set<String> _processedKeys = {};
@@ -50,6 +51,17 @@ class RealtimeSyncManager {
     // Establish WebSocket connection
     if (enabled) {
       connectLocal();
+    }
+
+    static bool _isEnabled() {
+      try {
+        final flag = AppConfig.instance.featureFlags['enableExperimentalRealtime'] ?? false;
+        return !kIsWeb &&
+            !Platform.environment.containsKey('FLUTTER_TEST') &&
+            flag;
+      } catch (_) {
+        return false;
+      }
     }
   }
 

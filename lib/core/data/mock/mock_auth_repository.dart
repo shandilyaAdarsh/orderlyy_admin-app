@@ -217,8 +217,9 @@ class MockAuthRepository implements AuthRepository {
       id: 'staff-${match['role']}-001',
       name: match['name'] as String,
       role: match['role'] as String,
-      tenantId: 'mock-tenant-001',
-      tenantName: 'The Spice Garden',
+      tenantId: (json['context'] as Map<String, dynamic>)['tenant']['id'] as String,
+      tenantName:
+          (json['context'] as Map<String, dynamic>)['tenant']['name'] as String,
       tenantSlug: match['tenant_slug'] as String,
       isActive: true,
     );

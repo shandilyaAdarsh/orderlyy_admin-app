@@ -2,21 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/dtos/settings_dto.dart';
 import 'repository_providers.dart';
 import '../auth/mock_auth_provider.dart';
+import '../runtime/runtime_context.dart';
 
 /// Provides the current settings for the active tenant.
 final tenantSettingsProvider = FutureProvider<TenantSettingsDto?>((ref) async {
   final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = profile?['tenant_id'];
-
-  if (tenantId == null) {
-    // Return default settings for mock tenant if no auth context exists
-    if (kUseMockRepositories) {
-      return ref
-          .watch(settingsRepositoryProvider)
-          .getSettings('mock-tenant-001');
-    }
-    return null;
-  }
+  final tenantId = requireContextValue(
+    value: profile?['tenant_id'] as String?,
+    field: 'tenantId',
+    source: 'tenantSettingsProvider',
+  );
 
   final repo = ref.watch(settingsRepositoryProvider);
   return repo.getSettings(tenantId);

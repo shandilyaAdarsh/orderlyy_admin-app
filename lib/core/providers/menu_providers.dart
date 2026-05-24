@@ -12,23 +12,17 @@ import '../data/dtos/menu_dto.dart';
 import 'repository_providers.dart';
 
 import '../auth/mock_auth_provider.dart';
+import '../runtime/runtime_context.dart';
 
 // ── Menu items stream ─────────────────────────────────────────────────────────
 // Emits every time the underlying repository pushes an update.
 final menuItemsStreamProvider = StreamProvider<List<MenuItemDto>>((ref) async* {
   final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = profile?['tenant_id'];
-
-  if (tenantId == null) {
-    if (kUseMockRepositories) {
-      yield* ref
-          .watch(menuRepositoryProvider)
-          .watchMenuItems('mock-tenant-001');
-    } else {
-      yield [];
-    }
-    return;
-  }
+  final tenantId = requireContextValue(
+    value: profile?['tenant_id'] as String?,
+    field: 'tenantId',
+    source: 'menuItemsStreamProvider',
+  );
 
   final repo = ref.watch(menuRepositoryProvider);
   yield* repo.watchMenuItems(tenantId);
@@ -69,7 +63,11 @@ final menuCategoriesFutureProvider = FutureProvider<List<MenuCategoryDto>>((
   ref,
 ) async {
   final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = profile?['tenant_id'] ?? 'mock-tenant-001';
+  final tenantId = requireContextValue(
+    value: profile?['tenant_id'] as String?,
+    field: 'tenantId',
+    source: 'menuCategoriesFutureProvider',
+  );
   final repo = ref.watch(menuRepositoryProvider);
   return repo.getCategories(tenantId);
 });
