@@ -4,16 +4,22 @@ import '../../../../shared/models/result.dart';
 import '../../../../core/data/dtos/order_dto.dart' as dto;
 import '../../domain/models/order.dart';
 import '../../domain/models/order_status.dart' as domain;
-import '../datasources/orders_shared_prefs_datasource.dart';
 import '../datasources/orders_mock_datasource.dart';
 import '../datasources/orders_remote_datasource.dart';
 import '../mappers/order_mappers.dart';
 import 'orders_repository_interface.dart';
 
+/// Orders repository implementation.
+///
+/// Supports mock and remote (live) modes.
+/// Offline-first persistence is now handled by the Drift-backed
+/// MutationJournalService and CartRuntime (see orders/runtime/).
 class IOrdersRepositoryImpl implements IOrdersRepository {
   final OrdersRemoteDataSource? remoteDataSource;
   final OrdersMockDataSource? mockDataSource;
-  final OrdersSharedPrefsDataSource? localDataSource;
+  // NOTE: localDataSource (SharedPrefs) has been deprecated.
+  // Offline order persistence is now governed by Drift via MutationJournalService.
+  final dynamic localDataSource;
   final bool useCache;
 
   IOrdersRepositoryImpl({
@@ -43,18 +49,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         }
         return Result.success(domainList);
       }
-      if (useCache && localDataSource != null) {
-        final list = await localDataSource!.getCachedOrders();
-        var domainList = list.map((e) => e.toDomain()).toList();
-        if (status != null) {
-          domainList = domainList.where((o) => o.status == status).toList();
-        }
-        if (tableId != null) {
-          domainList = domainList.where((o) => o.tableId == tableId).toList();
-        }
-        return Result.success(domainList);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -65,10 +60,6 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
     try {
       if (mockDataSource != null) {
         final o = await mockDataSource!.getMockById(orderId);
-        if (o != null) return Result.success(o.toDomain());
-      }
-      if (useCache && localDataSource != null) {
-        final o = await localDataSource!.getCachedOrderById(orderId);
         if (o != null) return Result.success(o.toDomain());
       }
       return Result.failure(const AppFailure.notFound(message: 'Order not found'));
@@ -88,15 +79,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
             .toList();
         return Result.success(domainList);
       }
-      if (useCache && localDataSource != null) {
-        final list = await localDataSource!.getCachedOrders();
-        final domainList = list
-            .where((e) => e.tableId == tableId)
-            .map((e) => e.toDomain())
-            .toList();
-        return Result.success(domainList);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -121,15 +104,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
             .toList();
         return Result.success(domainList);
       }
-      if (useCache && localDataSource != null) {
-        final list = await localDataSource!.getCachedOrders();
-        final domainList = list
-            .map((e) => e.toDomain())
-            .where((o) => o.isActive)
-            .toList();
-        return Result.success(domainList);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -143,11 +118,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         final res = await mockDataSource!.mockCreate(orderDto);
         return Result.success(res.toDomain());
       }
-      if (useCache && localDataSource != null) {
-        await localDataSource!.cacheOrder(orderDto);
-        return Result.success(order);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -170,16 +141,6 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
           return Result.success(res.toDomain());
         }
       }
-      if (useCache && localDataSource != null) {
-        final orderDto = await localDataSource!.getCachedOrderById(orderId);
-        if (orderDto != null) {
-          final updated = orderDto.copyWith(
-            status: dto.OrderStatus.values.firstWhere((e) => e.name == newStatus.name),
-          );
-          await localDataSource!.cacheOrder(updated);
-          return Result.success(updated.toDomain());
-        }
-      }
       return Result.failure(const AppFailure.notFound(message: 'Order not found'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
@@ -194,11 +155,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         final res = await mockDataSource!.mockUpdate(orderDto);
         return Result.success(res.toDomain());
       }
-      if (useCache && localDataSource != null) {
-        await localDataSource!.cacheOrder(orderDto);
-        return Result.success(order);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -217,13 +174,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         await mockDataSource!.mockDelete(orderId);
         return const Result.success(null);
       }
-      if (useCache && localDataSource != null) {
-        final list = await localDataSource!.getCachedOrders();
-        list.removeWhere((o) => o.id == orderId);
-        await localDataSource!.cacheOrders(list);
-        return const Result.success(null);
-      }
-      return Result.failure(const AppFailure.unknown(message: 'Not implemented'));
+      return Result.failure(const AppFailure.unknown(message: 'No data source configured'));
     } catch (e) {
       return Result.failure(AppFailure.unknown(message: e.toString()));
     }
@@ -241,17 +192,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         );
       });
     }
-    if (useCache && localDataSource != null) {
-      return localDataSource!.watchCachedOrders().map((list) {
-        return Result.success(
-          list
-              .where((e) => e.tenantId == tenantId)
-              .map((e) => e.toDomain())
-              .toList(),
-        );
-      });
-    }
-    return Stream.value(Result.failure(const AppFailure.unknown(message: 'Not implemented')));
+    return Stream.value(Result.failure(const AppFailure.unknown(message: 'No data source configured')));
   }
 
   @override
@@ -265,16 +206,7 @@ class IOrdersRepositoryImpl implements IOrdersRepository {
         return Result.failure(const AppFailure.notFound(message: 'Order not found'));
       });
     }
-    if (useCache && localDataSource != null) {
-      return localDataSource!.watchCachedOrders().map((list) {
-        final idx = list.indexWhere((o) => o.id == orderId);
-        if (idx != -1) {
-          return Result.success(list[idx].toDomain());
-        }
-        return Result.failure(const AppFailure.notFound(message: 'Order not found'));
-      });
-    }
-    return Stream.value(Result.failure(const AppFailure.unknown(message: 'Not implemented')));
+    return Stream.value(Result.failure(const AppFailure.unknown(message: 'No data source configured')));
   }
 
   @override

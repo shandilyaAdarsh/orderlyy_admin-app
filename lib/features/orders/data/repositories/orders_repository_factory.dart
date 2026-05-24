@@ -6,7 +6,6 @@ import '../../../../core/storage/local_storage.dart';
 import '../datasources/orders_remote_datasource.dart';
 import '../datasources/orders_local_datasource.dart';
 import '../datasources/orders_mock_datasource.dart';
-import '../datasources/orders_shared_prefs_datasource.dart';
 import 'orders_repository_interface.dart';
 import 'i_orders_repository_impl.dart';
 
@@ -97,23 +96,12 @@ class OrdersRepositoryFactory {
     dynamic httpClient,
     String? baseUrl,
   }) {
-    if (localStorage == null) {
-      throw ArgumentError('localStorage is required for offline-first mode');
-    }
-
-    final remote =
-        remoteDataSource ??
-        OrdersRestDataSource(
-          httpClient ?? _createDefaultHttpClient(),
-          baseUrl ?? _getDefaultBaseUrl(),
-        );
-
-    final local = OrdersSharedPrefsDataSource(localStorage);
-
-    return IOrdersRepositoryImpl(
-      remoteDataSource: remote,
-      localDataSource: local,
-      useCache: true,
+    // TODO: Replace with Drift-backed datasource when migration is complete.
+    // SharedPrefs-based offline persistence has been deprecated.
+    // Use ordersRepositoryProvider from orders_repository_providers.dart instead.
+    throw UnimplementedError(
+      'Offline-first mode requires Drift migration. '
+      'Use ordersRepositoryProvider from orders_repository_providers.dart instead.',
     );
   }
 
@@ -124,23 +112,10 @@ class OrdersRepositoryFactory {
     dynamic httpClient,
     String? baseUrl,
   }) {
-    if (localStorage == null) {
-      throw ArgumentError('localStorage is required for hybrid mode');
-    }
-
-    final remote =
-        remoteDataSource ??
-        OrdersRestDataSource(
-          httpClient ?? _createDefaultHttpClient(),
-          baseUrl ?? _getDefaultBaseUrl(),
-        );
-
-    final local = OrdersSharedPrefsDataSource(localStorage);
-
-    return IOrdersRepositoryImpl(
-      remoteDataSource: remote,
-      localDataSource: local,
-      useCache: true,
+    // TODO: Replace with Drift-backed datasource when migration is complete.
+    throw UnimplementedError(
+      'Hybrid mode requires Drift migration. '
+      'Use ordersRepositoryProvider from orders_repository_providers.dart instead.',
     );
   }
 
