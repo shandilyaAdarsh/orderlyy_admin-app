@@ -7,15 +7,17 @@ class MenuCategory extends Equatable {
   final String id;
   final String name;
   final int sortOrder;
+  final DateTime? deletedAt;
 
   const MenuCategory({
     required this.id,
     required this.name,
     required this.sortOrder,
+    this.deletedAt,
   });
 
   @override
-  List<Object?> get props => [id, name, sortOrder];
+  List<Object?> get props => [id, name, sortOrder, deletedAt];
 }
 
 class MenuItem extends Equatable {
@@ -26,6 +28,7 @@ class MenuItem extends Equatable {
   final Money price;
   final bool isAvailable;
   final List<String> modifierGroupIds;
+  final DateTime? deletedAt;
 
   const MenuItem({
     required this.id,
@@ -35,6 +38,7 @@ class MenuItem extends Equatable {
     required this.price,
     required this.isAvailable,
     required this.modifierGroupIds,
+    this.deletedAt,
   });
 
   MenuItem copyWith({
@@ -45,6 +49,7 @@ class MenuItem extends Equatable {
     Money? price,
     bool? isAvailable,
     List<String>? modifierGroupIds,
+    DateTime? deletedAt,
   }) {
     return MenuItem(
       id: id ?? this.id,
@@ -54,41 +59,46 @@ class MenuItem extends Equatable {
       price: price ?? this.price,
       isAvailable: isAvailable ?? this.isAvailable,
       modifierGroupIds: modifierGroupIds ?? this.modifierGroupIds,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, categoryId, name, description, price, isAvailable, modifierGroupIds];
+  List<Object?> get props => [id, categoryId, name, description, price, isAvailable, modifierGroupIds, deletedAt];
 }
 
 class ModifierGroup extends Equatable {
   final String id;
   final String name;
   final List<ModifierOption> options;
+  final DateTime? deletedAt;
 
   const ModifierGroup({
     required this.id,
     required this.name,
     required this.options,
+    this.deletedAt,
   });
 
   @override
-  List<Object?> get props => [id, name, options];
+  List<Object?> get props => [id, name, options, deletedAt];
 }
 
 class ModifierOption extends Equatable {
   final String id;
   final String name;
   final Money price;
+  final DateTime? deletedAt;
 
   const ModifierOption({
     required this.id,
     required this.name,
     required this.price,
+    this.deletedAt,
   });
 
   @override
-  List<Object?> get props => [id, name, price];
+  List<Object?> get props => [id, name, price, deletedAt];
 }
 
 class TaxConfig extends Equatable {
