@@ -1,6 +1,5 @@
 // lib/features/menu/runtime/snapshot_migration.dart
 import 'package:talker_flutter/talker_flutter.dart';
-import '../domain/entities/menu_snapshot.dart';
 import '../domain/repositories/menu_repository.dart';
 
 class SnapshotMigration {
@@ -12,8 +11,8 @@ class SnapshotMigration {
   const SnapshotMigration({
     required MenuRepository repository,
     required Talker talker,
-  })  : _repository = repository,
-        _talker = talker;
+  }) : _repository = repository,
+       _talker = talker;
 
   /// Check if the cached snapshot version is compatible.
   /// If incompatible or null, triggers cache invalidation for the branch.
@@ -26,18 +25,24 @@ class SnapshotMigration {
       }
 
       final cachedVersion = cached.snapshotVersion;
-      _talker.info('[Migration] Cached version: $cachedVersion, Current code version: $currentSchemaVersion');
+      _talker.info(
+        '[Migration] Cached version: $cachedVersion, Current code version: $currentSchemaVersion',
+      );
 
       if (cachedVersion != currentSchemaVersion) {
         _talker.warning('[Migration] Version mismatch! Invalidation required.');
         await _repository.clearCache(branchId);
-        _talker.info('[Migration] Cache successfully cleared/invalidated for $branchId');
+        _talker.info(
+          '[Migration] Cache successfully cleared/invalidated for $branchId',
+        );
         return false;
       }
 
       return true;
     } catch (e) {
-      _talker.error('[Migration] Failed during verification: $e. Clearing cache to be safe.');
+      _talker.error(
+        '[Migration] Failed during verification: $e. Clearing cache to be safe.',
+      );
       await _repository.clearCache(branchId);
       return false;
     }

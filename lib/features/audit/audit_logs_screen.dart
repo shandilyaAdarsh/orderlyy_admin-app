@@ -21,7 +21,8 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
       'actor': 'Jane Doe',
       'role': 'Store Manager',
       'action': 'Toggled Availability',
-      'details': "Changed Classic Cheeseburger state to 'Unavailable' at London Soho.",
+      'details':
+          "Changed Classic Cheeseburger state to 'Unavailable' at London Soho.",
       'scope': 'AVAILABILITY',
       'branch': 'London Soho',
     },
@@ -30,7 +31,8 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
       'actor': 'John Smith',
       'role': 'HQ Administrator',
       'action': 'Pricing Override Applied',
-      'details': 'Set London Soho price override for Sweet Potato Fries to ₹6.00 (Base: ₹5.00).',
+      'details':
+          'Set London Soho price override for Sweet Potato Fries to ₹6.00 (Base: ₹5.00).',
       'scope': 'PRICING',
       'branch': 'London Soho',
     },
@@ -39,7 +41,8 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
       'actor': 'System Job',
       'role': 'Scheduler',
       'action': 'Tax Code Auto-Applied',
-      'details': "Updated VAT rules to match new legal guidelines (Standard category set to 20%).",
+      'details':
+          "Updated VAT rules to match new legal guidelines (Standard category set to 20%).",
       'scope': 'TAXES',
       'branch': 'System Wide',
     },
@@ -56,8 +59,10 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
 
   List<Map<String, dynamic>> get _filteredLogs {
     return _auditLogs.where((log) {
-      final matchesScope = _selectedScope == 'ALL' || log['scope'] == _selectedScope;
-      final matchesBranch = _selectedBranch == 'ALL' || log['branch'] == _selectedBranch;
+      final matchesScope =
+          _selectedScope == 'ALL' || log['scope'] == _selectedScope;
+      final matchesBranch =
+          _selectedBranch == 'ALL' || log['branch'] == _selectedBranch;
       return matchesScope && matchesBranch;
     }).toList();
   }
@@ -70,7 +75,10 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
         backgroundColor: AppTheme.surfaceContainerLowest,
         title: Text(
           'Operational Ledger Logs',
-          style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         elevation: 0,
       ),
@@ -103,14 +111,20 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                     ),
                   ],
                 ),
-                
+
                 // Filters Row
                 Row(
                   children: [
                     _filterDropdown(
                       label: 'Action Scope',
                       value: _selectedScope,
-                      items: ['ALL', 'AVAILABILITY', 'PRICING', 'TAXES', 'STAFF'],
+                      items: [
+                        'ALL',
+                        'AVAILABILITY',
+                        'PRICING',
+                        'TAXES',
+                        'STAFF',
+                      ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedScope = val);
                       },
@@ -119,7 +133,12 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                     _filterDropdown(
                       label: 'Target Branch',
                       value: _selectedBranch,
-                      items: ['ALL', 'London Soho', 'Manchester', 'System Wide'],
+                      items: [
+                        'ALL',
+                        'London Soho',
+                        'Manchester',
+                        'System Wide',
+                      ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedBranch = val);
                       },
@@ -129,7 +148,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
               ],
             ),
             SizedBox(height: 24.h),
-            
+
             // Ledger Timeline Card List
             Expanded(
               child: Container(
@@ -148,22 +167,28 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                     : ListView.separated(
                         padding: EdgeInsets.all(20.r),
                         itemCount: _filteredLogs.length,
-                        separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                        separatorBuilder: (_, _) => SizedBox(height: 16.h),
                         itemBuilder: (ctx, index) {
                           final log = _filteredLogs[index];
                           final String scope = log['scope'] as String;
                           Color badgeColor = const Color(0xFF64748B);
-                          if (scope == 'AVAILABILITY') badgeColor = const Color(0xFF16A34A);
-                          if (scope == 'PRICING') badgeColor = const Color(0xFFC0272D);
-                          if (scope == 'TAXES') badgeColor = const Color(0xFFF59E0B);
-                          if (scope == 'STAFF') badgeColor = const Color(0xFF7C3AED);
+                          if (scope == 'AVAILABILITY')
+                            badgeColor = const Color(0xFF16A34A);
+                          if (scope == 'PRICING')
+                            badgeColor = const Color(0xFFC0272D);
+                          if (scope == 'TAXES')
+                            badgeColor = const Color(0xFFF59E0B);
+                          if (scope == 'STAFF')
+                            badgeColor = const Color(0xFF7C3AED);
 
                           return Container(
                             padding: EdgeInsets.all(16.r),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceContainerLowest,
                               borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: AppTheme.surfaceContainerHigh),
+                              border: Border.all(
+                                color: AppTheme.surfaceContainerHigh,
+                              ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,59 +202,81 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
-                                    scope == 'PRICING' 
-                                        ? Icons.monetization_on_outlined 
-                                        : scope == 'TAXES' 
-                                            ? Icons.percent_rounded 
-                                            : scope == 'STAFF' 
-                                                ? Icons.badge_outlined 
-                                                : Icons.restaurant_menu_rounded,
+                                    scope == 'PRICING'
+                                        ? Icons.monetization_on_outlined
+                                        : scope == 'TAXES'
+                                        ? Icons.percent_rounded
+                                        : scope == 'STAFF'
+                                        ? Icons.badge_outlined
+                                        : Icons.restaurant_menu_rounded,
                                     color: badgeColor,
                                     size: 20.r,
                                   ),
                                 ),
                                 SizedBox(width: 16.w),
-                                
+
                                 // Details
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             log['action'] as String,
-                                            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15.sp),
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15.sp,
+                                            ),
                                           ),
                                           Text(
                                             log['timestamp'] as String,
-                                            style: GoogleFonts.jetBrainsMono(fontSize: 12.sp, color: AppTheme.secondary),
+                                            style: GoogleFonts.jetBrainsMono(
+                                              fontSize: 12.sp,
+                                              color: AppTheme.secondary,
+                                            ),
                                           ),
                                         ],
                                       ),
                                       SizedBox(height: 4.h),
                                       Text(
                                         log['details'] as String,
-                                        style: GoogleFonts.inter(fontSize: 13.sp, color: AppTheme.onSurface),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13.sp,
+                                          color: AppTheme.onSurface,
+                                        ),
                                       ),
                                       SizedBox(height: 8.h),
                                       Row(
                                         children: [
                                           Text(
                                             'Actor: ${log['actor']} (${log['role']})',
-                                            style: GoogleFonts.inter(fontSize: 11.sp, color: AppTheme.secondary, fontWeight: FontWeight.w500),
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11.sp,
+                                              color: AppTheme.secondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
                                           SizedBox(width: 12.w),
                                           Container(
                                             width: 4.r,
                                             height: 4.r,
-                                            decoration: const BoxDecoration(color: Color(0xFFCBD5E1), shape: BoxShape.circle),
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFFCBD5E1),
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
                                           SizedBox(width: 12.w),
                                           Text(
                                             'Branch: ${log['branch']}',
-                                            style: GoogleFonts.inter(fontSize: 11.sp, color: AppTheme.secondary, fontWeight: FontWeight.w500),
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11.sp,
+                                              color: AppTheme.secondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -277,10 +324,18 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
             child: DropdownButton<String>(
               value: value,
               items: items
-                  .map((it) => DropdownMenuItem(
-                        value: it,
-                        child: Text(it, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12.sp)),
-                      ))
+                  .map(
+                    (it) => DropdownMenuItem(
+                      value: it,
+                      child: Text(
+                        it,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ),
+                  )
                   .toList(),
               onChanged: onChanged,
             ),

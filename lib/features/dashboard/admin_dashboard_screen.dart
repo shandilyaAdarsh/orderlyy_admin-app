@@ -12,7 +12,7 @@ import '../orders/admin_orders_screen.dart';
 import '../analytics/analytics_screen.dart';
 
 // ── Bottom Nav State ──────────────────────────────────────────────────────────
-final _currentNavIndexProvider = StateProvider<int>((ref) => 0);
+final currentNavIndexProvider = StateProvider<int>((ref) => 0);
 
 // ── Root Shell ────────────────────────────────────────────────────────────────
 class AdminDashboardScreen extends ConsumerWidget {
@@ -20,7 +20,7 @@ class AdminDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final navIndex = ref.watch(_currentNavIndexProvider);
+    final navIndex = ref.watch(currentNavIndexProvider);
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: IndexedStack(
@@ -34,7 +34,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: navIndex,
-        onTap: (i) => ref.read(_currentNavIndexProvider.notifier).state = i,
+        onTap: (i) => ref.read(currentNavIndexProvider.notifier).state = i,
       ),
     );
   }
@@ -703,9 +703,9 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
                     // ── Quick Actions ──────────────────────────────────────────
                     _QuickActionsRow(
                       onOrders: () =>
-                          ref.read(_currentNavIndexProvider.notifier).state = 1,
+                          ref.read(currentNavIndexProvider.notifier).state = 1,
                       onAnalytics: () =>
-                          ref.read(_currentNavIndexProvider.notifier).state = 2,
+                          ref.read(currentNavIndexProvider.notifier).state = 2,
                       onMenu: () => context.push('/admin/menu'),
                       onStaff: () => context.push('/admin/staff'),
                     ).animate(delay: 200.ms).fadeIn(duration: 350.ms),
@@ -752,7 +752,7 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
                         TextButton(
                           onPressed: () =>
                               ref
-                                      .read(_currentNavIndexProvider.notifier)
+                                      .read(currentNavIndexProvider.notifier)
                                       .state =
                                   1,
                           style: TextButton.styleFrom(

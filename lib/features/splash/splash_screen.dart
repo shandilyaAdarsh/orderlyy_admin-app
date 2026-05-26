@@ -40,147 +40,106 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final primaryRed = const Color(0xFFE31E24);
+    
     return Scaffold(
-      backgroundColor: AppTheme.surfaceContainerLowest,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── Decorative background icons ──────────────────────────────────
-          Positioned(
-            top: -20.h,
-            right: -20.w,
-            child: Padding(
-              padding: EdgeInsets.all(48.r),
-              child: Icon(
-                Icons.deck_outlined,
-                size: 200.r,
-                color: AppTheme.onSurface.withValues(alpha: 0.025),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -20.h,
-            left: -20.w,
-            child: Padding(
-              padding: EdgeInsets.all(48.r),
-              child: Icon(
-                Icons.receipt_long_outlined,
-                size: 160.r,
-                color: AppTheme.onSurface.withValues(alpha: 0.025),
+          // ── Ambient background effect ─────────────────────────────────────
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.05,
+              child: Center(
+                child: Container(
+                  width: 800.r,
+                  height: 800.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        primaryRed,
+                        Colors.transparent,
+                      ],
+                      radius: 0.6,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
 
-          // ── Main branding cluster ─────────────────────────────────────────
+          // ── Central Logo Area ─────────────────────────────────────────────
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo mark
-                SizedBox(
-                      width: 64.r,
-                      height: 64.r,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 64.r,
-                            height: 64.r,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppTheme.primaryContainer.withValues(
-                                  alpha: 0.1,
-                                ),
-                                width: 6.r,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.restaurant_menu_rounded,
-                            size: 36.r,
-                            color: AppTheme.primaryContainer,
-                          ),
-                        ],
-                      ),
-                    )
-                    .animate()
-                    .fadeIn(duration: 600.ms)
-                    .scale(
-                      begin: const Offset(0.8, 0.8),
-                      curve: Curves.easeOutBack,
+                // Icon/Logo Graphic
+                Transform.rotate(
+                  angle: 12 * 3.1415926535 / 180, // 12 degrees
+                  child: Container(
+                    width: 96.r,
+                    height: 96.r,
+                    decoration: BoxDecoration(
+                      color: primaryRed,
+                      borderRadius: BorderRadius.circular(24.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryRed.withOpacity(0.25),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
+                    child: Icon(
+                      Icons.restaurant_rounded,
+                      size: 48.r,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+                .animate()
+                .fadeIn(duration: 800.ms)
+                .scale(
+                  begin: const Offset(0.9, 0.9),
+                  curve: Curves.easeOutBack,
+                ),
 
                 SizedBox(height: 24.h),
 
+                // Brand Name
                 Text(
-                      'Orderlli',
-                      style: GoogleFonts.inter(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.onSurface,
-                        letterSpacing: -0.5,
-                      ),
-                    )
-                    .animate(delay: 200.ms)
-                    .fadeIn(duration: 500.ms)
-                    .slideY(begin: 0.2, curve: Curves.easeOut),
-
-                SizedBox(height: 6.h),
-
-                Text(
-                  'RESTAURANT INTELLIGENCE PLATFORM',
-                  style: GoogleFonts.inter(
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.secondary.withValues(alpha: 0.7),
-                    letterSpacing: 2.0,
+                  'Orderlyy',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 40.sp,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF191C1D),
+                    letterSpacing: -1.0,
                   ),
-                ).animate(delay: 300.ms).fadeIn(duration: 500.ms),
+                )
+                .animate(delay: 200.ms)
+                .fadeIn(duration: 500.ms)
+                .slideY(begin: 0.2, curve: Curves.easeOut),
               ],
             ),
           ),
 
-          // ── Progress bar + version ────────────────────────────────────────
+          // ── Bottom Tagline Area ───────────────────────────────────────────
           Positioned(
             bottom: 48.h,
             left: 0,
             right: 0,
             child: Center(
-              child: SizedBox(
-                width: 240.w,
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(9999.r),
-                      child: SizedBox(
-                        height: 2.h,
-                        child: AnimatedBuilder(
-                          animation: _progressController,
-                          builder: (context, _) {
-                            return LinearProgressIndicator(
-                              value: _progressController.value,
-                              backgroundColor: AppTheme.surfaceContainerHighest,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.primaryContainer,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    Text(
-                      'v1.0.0 • mock mode',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10.sp,
-                        color: AppTheme.secondary.withValues(alpha: 0.5),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
+              child: Text(
+                'One app is enough for restaurant',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF5D3F3C).withOpacity(0.8),
                 ),
-              ),
-            ).animate(delay: 400.ms).fadeIn(duration: 400.ms),
+              ).animate(delay: 500.ms).fadeIn(duration: 500.ms).slideY(begin: 0.2),
+            ),
           ),
         ],
       ),

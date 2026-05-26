@@ -1,11 +1,6 @@
 // lib/features/menu/runtime/merge_policy_registry.dart
-import '../domain/entities/menu_snapshot.dart';
 
-enum MergePolicy {
-  lastWriteWins,
-  manualReviewRequired,
-  tombstoneWins,
-}
+enum MergePolicy { lastWriteWins, manualReviewRequired, tombstoneWins }
 
 class ConflictEnvelope {
   final int baseRevision;
@@ -43,10 +38,12 @@ class MergePolicyRegistry {
         return MergePolicy.lastWriteWins; // Low-risk, operational fields
 
       case 'deletedAt':
-        return MergePolicy.tombstoneWins; // Deletion is permanent until explicitly restored
+        return MergePolicy
+            .tombstoneWins; // Deletion is permanent until explicitly restored
 
       default:
-        return MergePolicy.manualReviewRequired; // Fallback to safe manual review
+        return MergePolicy
+            .manualReviewRequired; // Fallback to safe manual review
     }
   }
 }

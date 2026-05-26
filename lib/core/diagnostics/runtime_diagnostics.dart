@@ -7,7 +7,7 @@ class RuntimeDiagnostics {
   // Metrics
   int _replayGaps = 0;
   int _rebuildCounts = 0;
-  int _replayFailures = 0;
+  final int _replayFailures = 0;
   int _occConflicts = 0;
   int _reconnectStorms = 0;
 
@@ -20,17 +20,23 @@ class RuntimeDiagnostics {
 
   void recordRebuild() {
     _rebuildCounts++;
-    _talker.warning('[Diagnostics] Projection Rebuild triggered (Total: $_rebuildCounts)');
+    _talker.warning(
+      '[Diagnostics] Projection Rebuild triggered (Total: $_rebuildCounts)',
+    );
   }
 
   void recordOccConflict() {
     _occConflicts++;
-    _talker.warning('[Diagnostics] OCC Conflict occurred (Total: $_occConflicts)');
+    _talker.warning(
+      '[Diagnostics] OCC Conflict occurred (Total: $_occConflicts)',
+    );
   }
 
   void recordReconnectStorm() {
     _reconnectStorms++;
-    _talker.error('[Diagnostics] Reconnect storm detected (Total: $_reconnectStorms)');
+    _talker.error(
+      '[Diagnostics] Reconnect storm detected (Total: $_reconnectStorms)',
+    );
   }
 
   void printSummary() {
@@ -41,7 +47,7 @@ class RuntimeDiagnostics {
       'Replay Failures: $_replayFailures\n'
       'OCC Conflicts: $_occConflicts\n'
       'Reconnect Storms: $_reconnectStorms\n'
-      '---------------------------'
+      '---------------------------',
     );
   }
 }
