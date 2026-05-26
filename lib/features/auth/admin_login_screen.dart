@@ -176,7 +176,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 24.sp,
-                            fontWeight: FontWeight.extrabold,
+                            fontWeight: FontWeight.w800,
                             height: 1.25,
                             color: AppTheme.onSurface,
                           ),
@@ -210,7 +210,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(color: Colors.slate.shade100),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.06),
@@ -249,15 +249,15 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                                     'Table 4 • #ORD-882',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.sp,
-                                      fontWeight: FontWeight.extrabold,
-                                      color: Colors.slate.shade900,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF0F172A),
                                     ),
                                   ),
                                   Text(
                                     '1 x Spicy Paneer Burger\n1 x Masala Fries',
                                     style: GoogleFonts.inter(
                                       fontSize: 9.sp,
-                                      color: Colors.slate.shade500,
+                                      color: const Color(0xFF64748B),
                                       height: 1.3,
                                     ),
                                   ),
@@ -425,7 +425,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         decoration: BoxDecoration(
           color: AppTheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: Colors.slate.shade100),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: AppTheme.crimsonShadowLight,
         ),
         child: Column(
@@ -449,7 +449,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               title,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.sp,
-                fontWeight: FontWeight.extrabold,
+                fontWeight: FontWeight.w800,
                 color: AppTheme.onSurface,
               ),
             ),
@@ -479,7 +479,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           'Custom Session Login',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 22.sp,
-            fontWeight: FontWeight.extrabold,
+            fontWeight: FontWeight.w800,
             color: AppTheme.onSurface,
           ),
         ),
