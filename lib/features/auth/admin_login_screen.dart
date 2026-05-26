@@ -17,16 +17,11 @@ class AdminLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
-  // Password form
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: 'admin@orderlli.in');
+  final _passwordController = TextEditingController(text: 'password123');
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-
-  // Phone OTP form
-  final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
-  final bool _showPhonePanel = false;
+  bool _showManualCredentials = false;
 
   // Shared state
   bool _isLoading = false;
@@ -36,14 +31,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose();
-    _otpController.dispose();
     super.dispose();
   }
 
-  // ── Email + Password Login (via AuthRepository — backend-agnostic) ──────────
+  // ── Authentication Trigger (standard flow) ─────────────────────────────────
   Future<void> _loginWithPassword() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_showManualCredentials && !_formKey.currentState!.validate()) return;
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -57,7 +50,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         ),
       );
       if (response.isSuccess) {
-        // Step 2: resolve tenant context immediately after login
         final ctx = await ref
             .read(appContextProvider.notifier)
             .resolveContext();
@@ -108,42 +100,305 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryRed = const Color(0xFFE31E24);
+    
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.surfaceContainerLowest,
-        elevation: 1,
-        shadowColor: AppTheme.surfaceContainerHigh,
-        toolbarHeight: 64.h,
+        elevation: 0,
+        toolbarHeight: 68.h,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Admin Login',
-          style: GoogleFonts.inter(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.primaryContainer,
-          ),
+        title: Row(
+          children: [
+            // Custom Logo SVG-like Mark
+            Container(
+              width: 32.r,
+              height: 32.r,
+              decoration: BoxDecoration(
+                color: primaryRed.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.restaurant_menu_rounded,
+                size: 18.r,
+                color: primaryRed,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              'Orderlyy',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w800,
+                color: primaryRed,
+              ),
+            ),
+          ],
         ),
+        actions: [
+          if (!_showManualCredentials)
+            Padding(
+              padding: EdgeInsets.only(right: 16.w),
+              child: TextButton.icon(
+                onPressed: () => setState(() => _showManualCredentials = true),
+                icon: Icon(Icons.lock_open_rounded, size: 14.r, color: AppTheme.secondary),
+                label: Text(
+                  'Custom Sign In',
+                  style: GoogleFonts.inter(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondary,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── Branding ──────────────────────────────────────────────────
-                    _buildBrandingSection(),
-                    SizedBox(height: 32.h),
-                    // ── ID + Password form ─────────────────────────────────────────
-                    _buildIdPasswordCard(),
-                    SizedBox(height: 24.h),
+                    if (!_showManualCredentials) ...[
+                      // ── LANDING EXPANSION MODE ─────────────────────────────────
+                      
+                      // Hero Section
+                      Center(
+                        child: Text(
+                          'Welcome to Orderlyy - Your\nRestaurant Software',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.extrabold,
+                            height: 1.25,
+                            color: AppTheme.onSurface,
+                          ),
+                        ),
+                      ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                      
+                      SizedBox(height: 24.h),
 
-                    // ── Footer ────────────────────────────────────────────────────
-                    _buildFooter(),
+                      // Tablet Mockup and Floating Alert
+                      Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
+                        children: [
+                          // Main mockups
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16.r),
+                            child: Image.network(
+                              'https://lh3.googleusercontent.com/aida-public/AB6AXuDSyJ4bjHLNYS3SWZiFZnqOzMpqKyhb6htk3bfvmqumyuV61sy3oel_-V9G0H27eXIM_iH75Cx8VLD56b4cyhDqTcz3DOZFe5pdZwgH8nSYsUsC_x4N0zoDIHtaAVV0uQQ0jOOrNDPIBR3Hylw2CKTmtbJctj_sgR2f5pOh-QFOL3qw90R7DHqBG-r7SqRsFITwcTV3hfBQLpp-gWzzQgab0c1ChjAbHsRKeCtIld79NXoHQUNEbRm5jrmUsL1NbDzSBrDipKqbR15MuU0',
+                              height: 180.h,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          
+                          // Floating notification card
+                          Positioned(
+                            bottom: -10.h,
+                            right: 0,
+                            child: Container(
+                              width: 170.w,
+                              padding: EdgeInsets.all(12.r),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(color: Colors.slate.shade100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.06),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  )
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 6.r,
+                                        height: 6.r,
+                                        decoration: BoxDecoration(
+                                          color: primaryRed,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4.w),
+                                      Text(
+                                        'New Order Received',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 9.sp,
+                                          fontWeight: FontWeight.w800,
+                                          color: primaryRed,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 6.h),
+                                  Text(
+                                    'Table 4 • #ORD-882',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.extrabold,
+                                      color: Colors.slate.shade900,
+                                    ),
+                                  ),
+                                  Text(
+                                    '1 x Spicy Paneer Burger\n1 x Masala Fries',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9.sp,
+                                      color: Colors.slate.shade500,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  ElevatedButton(
+                                    onPressed: _isLoading ? null : _loginWithPassword,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryRed,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      minimumSize: Size(double.infinity, 28.h),
+                                      padding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8.r),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'View Order',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+                          )
+                        ],
+                      ).animate().fadeIn(duration: 500.ms),
+
+                      SizedBox(height: 36.h),
+
+                      // Feature interactive grid
+                      Text(
+                        'Explore Live Features',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.secondary,
+                          letterSpacing: 0.5,
+                        ),
+                      ).animate().fadeIn(delay: 200.ms),
+                      SizedBox(height: 10.h),
+
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12.r,
+                        mainAxisSpacing: 12.r,
+                        childAspectRatio: 1.45,
+                        children: [
+                          _buildFeatureCard(
+                            icon: Icons.notifications_active_outlined,
+                            title: 'Live KDS Feed',
+                            desc: 'Active orders feed',
+                            onTap: _loginWithPassword,
+                          ),
+                          _buildFeatureCard(
+                            icon: Icons.trending_up_rounded,
+                            title: 'Sales & Metrics',
+                            desc: 'Realtime analytics',
+                            onTap: _loginWithPassword,
+                          ),
+                          _buildFeatureCard(
+                            icon: Icons.restaurant_menu_rounded,
+                            title: 'Menu Manager',
+                            desc: 'Instant availability',
+                            onTap: _loginWithPassword,
+                          ),
+                          _buildFeatureCard(
+                            icon: Icons.inventory_2_outlined,
+                            title: 'Stock Control',
+                            desc: 'Low stock alerts',
+                            onTap: _loginWithPassword,
+                          ),
+                        ],
+                      ).animate().fadeIn(delay: 250.ms),
+
+                      SizedBox(height: 32.h),
+
+                      // Primary CTA
+                      SizedBox(
+                        height: 52.h,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _loginWithPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryRed,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? SizedBox(
+                                  width: 20.r,
+                                  height: 20.r,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Login to Live Dashboard',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    Icon(Icons.arrow_forward_rounded, size: 16.r),
+                                  ],
+                                ),
+                        ),
+                      ).animate().fadeIn(delay: 300.ms),
+
+                      SizedBox(height: 24.h),
+
+                      // Footer Subtext
+                      Center(
+                        child: Text(
+                          'One app is enough for your entire restaurant.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.secondary.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ).animate().fadeIn(delay: 350.ms),
+                    ] else ...[
+                      // ── MANUAL PASSWORD LOGIN FORM MODE ─────────────────────────
+                      _buildManualLoginFormHeader(),
+                      SizedBox(height: 28.h),
+                      _buildIdPasswordCard(),
+                    ],
                   ],
                 ),
               ),
@@ -154,57 +409,95 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     );
   }
 
-  Widget _buildBrandingSection() {
-    return Column(
-      children: [
-        Container(
-              width: 80.r,
-              height: 80.r,
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required VoidCallback onTap,
+  }) {
+    final primaryRed = const Color(0xFFE31E24);
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: Colors.slate.shade100),
+          boxShadow: AppTheme.crimsonShadowLight,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(6.r),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20.r),
+                color: primaryRed.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
-                Icons.shield_rounded,
-                size: 48.r,
-                color: AppTheme.primaryContainer,
+                icon,
+                color: primaryRed,
+                size: 18.r,
               ),
-            )
-            .animate()
-            .fadeIn(duration: 500.ms)
-            .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
-        SizedBox(height: 16.h),
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.extrabold,
+                color: AppTheme.onSurface,
+              ),
+            ),
+            Text(
+              desc,
+              style: GoogleFonts.inter(
+                fontSize: 9.sp,
+                color: AppTheme.secondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildManualLoginFormHeader() {
+    return Column(
+      children: [
+        IconButton(
+          onPressed: () => setState(() => _showManualCredentials = false),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 16.r, color: AppTheme.secondary),
+        ),
+        SizedBox(height: 12.h),
         Text(
-          'Welcome back',
-          style: GoogleFonts.inter(
-            fontSize: 26.sp,
-            fontWeight: FontWeight.w700,
+          'Custom Session Login',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 22.sp,
+            fontWeight: FontWeight.extrabold,
             color: AppTheme.onSurface,
-            letterSpacing: -0.5,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
+        ),
         SizedBox(height: 4.h),
         Text(
-          'Sign in to manage your restaurant',
+          'Sign in with custom administrative credentials',
           style: GoogleFonts.inter(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w500,
+            fontSize: 12.sp,
             color: AppTheme.secondary,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
+        ),
       ],
-    );
+    ).animate().fadeIn(duration: 300.ms);
   }
 
   Widget _buildIdPasswordCard() {
     return Container(
-      padding: EdgeInsets.all(24.r),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: AppTheme.radiusXl,
@@ -218,32 +511,8 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card header
-            Row(
-              children: [
-                Icon(
-                  Icons.key_rounded,
-                  color: AppTheme.primaryContainer,
-                  size: 20.r,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    'Email & Password',
-                    style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.onSurface,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24.h),
-
             // Error banner
-            if (_errorMessage.isNotEmpty && !_showPhonePanel) ...[
+            if (_errorMessage.isNotEmpty) ...[
               Container(
                 margin: EdgeInsets.only(bottom: 16.h),
                 padding: EdgeInsets.all(12.r),
@@ -295,34 +564,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               decoration: InputDecoration(
                 hintText: 'admin@orderlli.in',
-                hintStyle: GoogleFonts.jetBrainsMono(
-                  fontSize: 14.sp,
-                  color: AppTheme.secondary.withValues(alpha: 0.5),
-                ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16.w,
                   vertical: 14.h,
                 ),
                 filled: true,
                 fillColor: AppTheme.surface,
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh,
-                    width: 2.w,
-                  ),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh,
-                    width: 2.w,
-                  ),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.primaryContainer,
-                    width: 2.w,
-                  ),
-                ),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Please enter email';
@@ -344,23 +591,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                     color: AppTheme.secondary,
                   ),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Forgot?',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryContainer,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
               ],
             ),
             SizedBox(height: 8.h),
@@ -373,34 +603,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               decoration: InputDecoration(
                 hintText: '••••••••',
-                hintStyle: GoogleFonts.inter(
-                  fontSize: 14.sp,
-                  color: AppTheme.secondary.withValues(alpha: 0.5),
-                ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16.w,
                   vertical: 14.h,
                 ),
                 filled: true,
                 fillColor: AppTheme.surface,
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh,
-                    width: 2.w,
-                  ),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.surfaceContainerHigh,
-                    width: 2.w,
-                  ),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.primaryContainer,
-                    width: 2.w,
-                  ),
-                ),
                 suffixIcon: IconButton(
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
@@ -415,7 +623,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Please enter your password';
-                if (v.length < 6) return 'Password must be at least 6 chars';
                 return null;
               },
               onFieldSubmitted: (_) => _loginWithPassword(),
@@ -434,8 +641,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.r),
                   ),
-                  elevation: 0,
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.3),
                 ),
                 child: _isLoading
                     ? SizedBox(
@@ -449,14 +654,11 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Flexible(
-                            child: Text(
-                              'Login to Dashboard',
-                              style: GoogleFonts.inter(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            'Login to Dashboard',
+                            style: GoogleFonts.inter(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(width: 8.w),
@@ -468,77 +670,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           ],
         ),
       ),
-    ).animate(delay: 350.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1);
-  }
-
-  Widget _buildFooter() {
-    return Text.rich(
-      TextSpan(
-        style: GoogleFonts.inter(fontSize: 14.sp, color: AppTheme.secondary),
-        children: [
-          const TextSpan(text: 'Having trouble? '),
-          TextSpan(
-            text: 'Contact Support',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryContainer,
-              decoration: TextDecoration.underline,
-              decorationColor: AppTheme.primaryContainer.withValues(alpha: 0.4),
-              decorationThickness: 2,
-            ),
-          ),
-        ],
-      ),
-      textAlign: TextAlign.center,
-    ).animate(delay: 400.ms).fadeIn(duration: 400.ms);
-  }
-}
-
-// ── Method Button (flat card style) ───────────────────────────────────────────
-class _MethodButton extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-
-  const _MethodButton({required this.child, required this.onTap});
-
-  @override
-  State<_MethodButton> createState() => _MethodButtonState();
-}
-
-class _MethodButtonState extends State<_MethodButton> {
-  bool _hovered = false;
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: AnimatedScale(
-          scale: _pressed ? 0.98 : 1.0,
-          duration: const Duration(milliseconds: 100),
-          child: Container(
-            height: 52.h,
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            decoration: BoxDecoration(
-              color: _hovered
-                  ? AppTheme.surfaceContainerLow
-                  : AppTheme.surfaceContainerLowest,
-              borderRadius: AppTheme.radiusXl,
-              boxShadow: AppTheme.crimsonShadowLight,
-            ),
-            alignment: Alignment.centerLeft,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
   }
 }
