@@ -139,7 +139,7 @@ class AdminProfileScreen extends ConsumerWidget {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     await authService.signOut();
-                    if (context.mounted) context.go('/role-select');
+                    if (context.mounted) context.go('/admin/login');
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primary,

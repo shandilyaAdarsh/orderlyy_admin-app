@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +12,29 @@ class OfflineSyncQueue {
 
   final SharedPreferences _prefs;
 
+  // Push-based count stream — emits only when queue actually changes.
+  final _countController = StreamController<int>.broadcast();
+
   OfflineSyncQueue(this._prefs);
+
+  /// Reactive count stream. Use instead of polling.
+  Stream<int> watchCount() async* {
+    // Emit the current count immediately on subscription.
+    final initial = _prefs.getStringList(_kQueueKey)?.length ?? 0;
+    yield initial;
+    // Then yield on every change event.
+    yield* _countController.stream;
+  }
+
+  void _notifyCount(int count) {
+    if (!_countController.isClosed) {
+      _countController.add(count);
+    }
+  }
+
+  void dispose() {
+    _countController.close();
+  }
 
   // ── Pending Actions Queue ──────────────────────────────────────────────────
   Future<List<SyncAction>> getQueue() async {
@@ -34,6 +57,7 @@ class OfflineSyncQueue {
       final queue = await getQueue();
       queue.add(action);
       await _saveQueue(queue);
+      _notifyCount(queue.length);
       debugPrint(
         '[OfflineSyncQueue] Enqueued action: ${action.type} (idempotencyKey: ${action.idempotencyKey})',
       );
@@ -47,6 +71,7 @@ class OfflineSyncQueue {
       final queue = await getQueue();
       queue.removeWhere((a) => a.id == actionId);
       await _saveQueue(queue);
+      _notifyCount(queue.length);
       debugPrint('[OfflineSyncQueue] Dequeued action: $actionId');
     } catch (e) {
       debugPrint('[OfflineSyncQueue] Error dequeuing action: $e');
@@ -55,6 +80,7 @@ class OfflineSyncQueue {
 
   Future<void> clearQueue() async {
     await _prefs.remove(_kQueueKey);
+    _notifyCount(0);
   }
 
   Future<void> _saveQueue(List<SyncAction> queue) async {

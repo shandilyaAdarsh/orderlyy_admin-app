@@ -15,17 +15,16 @@ import 'repository_providers.dart';
 import '../auth/mock_auth_provider.dart';
 import '../data/local/offline_sync_queue.dart';
 import '../data/repositories/offline_first_orders_repository.dart';
-import '../runtime/runtime_context.dart';
 
 // ── Orders stream ─────────────────────────────────────────────────────────────
 // Emits every time the underlying repository pushes an update.
 final ordersStreamProvider = StreamProvider<List<OrderDto>>((ref) async* {
-  final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = requireContextValue(
-    value: profile?['tenant_id'] as String?,
-    field: 'tenantId',
-    source: 'ordersStreamProvider',
-  );
+  final ctx = ref.watch(appContextProvider);
+  if (ctx == null) {
+    yield [];
+    return;
+  }
+  final tenantId = ctx.tenant.id;
 
   final repo = ref.watch(ordersRepositoryProvider);
   yield* repo.watchOrders(tenantId);
@@ -88,11 +87,9 @@ class IsOnlineNotifier extends StateNotifier<bool> {
 }
 
 // ── Pending Actions Queue Count ───────────────────────────────────────────────
-final pendingActionsCountProvider = StreamProvider<int>((ref) async* {
+// Uses a push-based StreamController so consumers only rebuild when the queue
+// actually changes — NOT every second via a hot polling loop.
+final pendingActionsCountProvider = StreamProvider<int>((ref) {
   final queue = ref.watch(offlineSyncQueueProvider);
-  while (true) {
-    final list = await queue.getQueue();
-    yield list.length;
-    await Future.delayed(const Duration(seconds: 1));
-  }
+  return queue.watchCount();
 });

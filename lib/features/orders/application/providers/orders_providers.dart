@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/providers/orders_repository_providers.dart';
 import '../../../../core/auth/mock_auth_provider.dart';
 import '../../../../core/storage/state_persistence.dart';
-import '../../../../core/runtime/runtime_context.dart';
 import '../../domain/models/order.dart';
 import '../../domain/models/order_status.dart';
 import '../state/orders_state.dart';
@@ -93,9 +92,5 @@ final ordersErrorProvider = Provider.autoDispose<bool>((ref) {
 final currentTenantIdProvider = Provider<String>((ref) {
   // Get from app context
   final appContext = ref.watch(appContextProvider);
-  return requireContextValue(
-    value: appContext?.tenant.id,
-    field: 'tenantId',
-    source: 'currentTenantIdProvider',
-  );
+  return appContext?.tenant.id ?? '';
 });

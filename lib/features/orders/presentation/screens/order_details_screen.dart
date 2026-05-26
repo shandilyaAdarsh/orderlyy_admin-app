@@ -5,7 +5,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/order_item.dart';
 import '../../providers/orders_providers.dart';
-import '../state/active_order_notifier.dart';
 
 class OrderDetailsScreen extends ConsumerWidget {
   final String orderId;
@@ -209,82 +208,29 @@ class OrderDetailsScreen extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
+            CircleAvatar(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              child: const Icon(Icons.person_rounded, color: AppColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                  child: const Icon(Icons.person_rounded, color: AppColors.primary),
+                Text(
+                  'Waiter Ownership',
+                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Waiter Ownership',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      order.waiterName,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  order.waiterName,
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
-            ),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-              label: const Text('Transfer Waiter'),
-              onPressed: () => _showTransferWaiterDialog(context, ref, order),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showTransferWaiterDialog(BuildContext context, WidgetRef ref, Order order) {
-    final waiters = ['John Doe', 'Sarah Miller', 'Alex Wong', 'Elena Rostova', 'Michael Chang'];
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Transfer Waiter Ownership'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: waiters.map((name) {
-              return ListTile(
-                title: Text(name),
-                leading: const Icon(Icons.person_rounded),
-                trailing: order.waiterName == name ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
-                onTap: () {
-                  ref.read(activeOrderNotifierProvider(order.tableId).notifier).assignWaiter(name);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Order ownership transferred to $name'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -396,26 +342,13 @@ class OrderDetailsScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${item.quantity}x ${item.totalPrice.formatted}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  decoration: isCancelled ? TextDecoration.lineThrough : null,
-                                  color: isCancelled ? Colors.grey : null,
-                                ),
-                              ),
-                              if (!isCancelled) ...[
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.cancel_outlined, color: AppColors.error, size: 20),
-                                  onPressed: () => _showCancelItemDialog(context, ref, order, item),
-                                  tooltip: 'Cancel Item',
-                                ),
-                              ],
-                            ],
+                          trailing: Text(
+                            '${item.quantity}x ${item.totalPrice.formatted}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              decoration: isCancelled ? TextDecoration.lineThrough : null,
+                              color: isCancelled ? Colors.grey : null,
+                            ),
                           ),
                         );
                       }),
@@ -427,56 +360,6 @@ class OrderDetailsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  void _showCancelItemDialog(BuildContext context, WidgetRef ref, Order order, OrderItem item) {
-    final textController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Cancel ${item.product.name}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Please enter the reason for cancelling this item:'),
-              const SizedBox(height: 12),
-              TextField(
-                controller: textController,
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Guest changed mind, Out of stock',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Back'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
-              onPressed: () {
-                final reason = textController.text.trim();
-                if (reason.isNotEmpty) {
-                  ref.read(activeOrderNotifierProvider(order.tableId).notifier).cancelItem(item.id, reason);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Cancelled ${item.product.name} successfully.'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Confirm Cancel'),
-            ),
-          ],
-        );
-      },
     );
   }
 

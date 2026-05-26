@@ -9,7 +9,6 @@
 //   • routerNotifier        — ChangeNotifier that GoRouter listens to via
 //                             refreshListenable; notifies on every auth change.
 //   • appContextProvider    — holds resolved AppContextDto after login.
-//   • staffSessionProvider  — holds staff session after PIN login.
 //
 // PRODUCTION MIGRATION:
 //   Replace MockAuthRepository with SupabaseAuthRepository in
@@ -69,34 +68,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (!mounted) return;
 
-    // Ensure session is fully restored
-    final userId = repo.currentUserId;
-    final staff = repo.currentStaff;
-
-    debugPrint(
-      '[TRACE] [AuthNotifier _init] Initial session check: userId=$userId staffName=${staff?.name}',
-    );
-
-    if (userId != null) {
-      if (userId.startsWith('staff-') && staff != null) {
+    final restoredUserId = repo.currentUserId;
+    if (restoredUserId != null) {
+      try {
         debugPrint(
-          '[TRACE] [AuthNotifier _init] Restoring staff session: ${staff.name}',
+          '[TRACE] [AuthNotifier _init] Resolving context for admin: $restoredUserId',
         );
-        _ref.read(staffSessionProvider.notifier).setStaff(staff);
-        state = AuthState.authenticated(userId);
-      } else {
-        try {
-          debugPrint(
-            '[TRACE] [AuthNotifier _init] Resolving context for admin: $userId',
-          );
-          await _ref.read(appContextProvider.notifier).resolveContext();
-          state = AuthState.authenticated(userId);
-        } catch (e) {
-          debugPrint(
-            '[MockAuth] ⚠️ Context resolution failed during initialization: $e',
-          );
-          state = AuthState.unauthenticated();
-        }
+        await _ref.read(appContextProvider.notifier).resolveContext();
+        state = AuthState.authenticated(restoredUserId);
+      } catch (e) {
+        debugPrint(
+          '[MockAuth] ⚠️ Context resolution failed during initialization: $e',
+        );
+        state = AuthState.unauthenticated();
       }
     } else {
       state = AuthState.unauthenticated();
@@ -112,27 +96,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
         '[TRACE] [AuthNotifier Stream Listen] Received newUserId=$newUserId',
       );
       if (newUserId != null) {
-        if (newUserId.startsWith('staff-')) {
-          final currentStaff = repo.currentStaff;
-          if (currentStaff != null) {
-            _ref.read(staffSessionProvider.notifier).setStaff(currentStaff);
-          }
+        try {
+          await _ref.read(appContextProvider.notifier).resolveContext();
           state = AuthState.authenticated(newUserId);
-        } else {
-          try {
-            await _ref.read(appContextProvider.notifier).resolveContext();
-            state = AuthState.authenticated(newUserId);
-          } catch (e) {
-            debugPrint(
-              '[MockAuth] ⚠️ Context resolution failed on stream change: $e',
-            );
-            state = AuthState.unauthenticated();
-          }
+        } catch (e) {
+          debugPrint(
+            '[MockAuth] ⚠️ Context resolution failed on stream change: $e',
+          );
+          state = AuthState.unauthenticated();
         }
       } else {
         // Clear contexts upon logout
         _ref.read(appContextProvider.notifier).clearContext();
-        _ref.read(staffSessionProvider.notifier).clear();
         state = AuthState.unauthenticated();
       }
       debugPrint(
@@ -263,57 +238,7 @@ final appContextProvider =
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Staff session
-// ─────────────────────────────────────────────────────────────────────────────
-
-class MockStaffSession {
-  final String id;
-  final String name;
-  final String role;
-  final String tenantId;
-  final String tenantName;
-  final String tenantSlug;
-
-  const MockStaffSession({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.tenantId,
-    required this.tenantName,
-    required this.tenantSlug,
-  });
-
-  factory MockStaffSession.fromDto(StaffDto dto) => MockStaffSession(
-    id: dto.id,
-    name: dto.name,
-    role: dto.role,
-    tenantId: dto.tenantId,
-    tenantName: dto.tenantName,
-    tenantSlug: dto.tenantSlug,
-  );
-}
-
-class MockStaffSessionNotifier extends StateNotifier<MockStaffSession?> {
-  MockStaffSessionNotifier() : super(null);
-
-  void setStaff(StaffDto dto) {
-    debugPrint('[StaffSession] 👤 Staff set: ${dto.name} (${dto.role})');
-    state = MockStaffSession.fromDto(dto);
-  }
-
-  void clear() {
-    debugPrint('[StaffSession] 🗑️ Staff session cleared');
-    state = null;
-  }
-}
-
-final staffSessionProvider =
-    StateNotifierProvider<MockStaffSessionNotifier, MockStaffSession?>((ref) {
-      return MockStaffSessionNotifier();
-    });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. Auth state stream provider (kept for compatibility)
+// 5. Auth state stream provider (kept for compatibility)
 // ─────────────────────────────────────────────────────────────────────────────
 
 final authStateStreamProvider = StreamProvider<String?>((ref) {
@@ -322,7 +247,7 @@ final authStateStreamProvider = StreamProvider<String?>((ref) {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. Compatibility providers for screens that expect Supabase User type
+// 6. Compatibility providers for screens that expect Supabase User type
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Mock user class to replace Supabase User
@@ -339,9 +264,7 @@ final currentUserProvider = Provider<MockUser?>((ref) {
   if (userId == null) return null;
 
   // For mock mode, derive email from userId
-  final email = userId.startsWith('staff-')
-      ? '$userId@staff.orderlli.com'
-      : 'admin@orderlli.com';
+  final email = 'admin@orderlli.com';
 
   return MockUser(id: userId, email: email);
 });

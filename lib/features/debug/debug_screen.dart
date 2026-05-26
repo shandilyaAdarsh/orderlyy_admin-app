@@ -7,27 +7,13 @@ class DebugScreen extends StatelessWidget {
 
   static const _routes = [
     ('/splash', 'Splash Screen', Icons.play_circle_rounded),
-    ('/role-select', 'Role Select', Icons.people_alt_rounded),
     ('/admin/login', 'Admin Login', Icons.admin_panel_settings_rounded),
-    ('/staff/login', 'Staff Login', Icons.badge_rounded),
     ('/admin/dashboard', 'Admin Dashboard', Icons.dashboard_rounded),
     ('/admin/orders', 'Admin Live Orders', Icons.receipt_long_rounded),
-    ('/admin/tables', 'Admin Tables', Icons.table_restaurant_rounded),
     ('/admin/inventory', 'Admin Inventory', Icons.inventory_2_rounded),
     ('/admin/analytics', 'Admin Analytics', Icons.bar_chart_rounded),
     ('/admin/profile', 'Admin Profile', Icons.person_rounded),
     ('/admin/settings', 'App Settings', Icons.settings_rounded),
-    (
-      '/manager/dashboard',
-      'Manager Dashboard',
-      Icons.supervisor_account_rounded,
-    ),
-    ('/staff/orders', 'Waiter My Orders', Icons.restaurant_menu_rounded),
-    (
-      '/staff/attention',
-      'Needs Attention',
-      Icons.notification_important_rounded,
-    ),
   ];
 
   @override

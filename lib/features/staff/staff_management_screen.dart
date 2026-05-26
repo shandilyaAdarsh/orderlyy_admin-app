@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/data/dtos/staff_dto.dart';
 import '../../core/providers/staff_providers.dart';
 import '../../core/auth/mock_auth_provider.dart';
-import '../../core/runtime/runtime_context.dart';
 import '../../core/utils/uuid.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -385,12 +384,11 @@ class _StaffSheetState extends ConsumerState<_StaffSheet> {
 
     setState(() => _isSaving = true);
     try {
-      final profile = await ref.read(userProfileProvider.future);
-      final tenantId = requireContextValue(
-        value: profile?['tenant_id'] as String?,
-        field: 'tenantId',
-        source: 'StaffFormSheet._save',
-      );
+      final appContext = ref.read(appContextProvider);
+      final tenantId = appContext?.tenant.id ?? '';
+      if (tenantId.isEmpty) {
+        throw Exception('Tenant context is not yet loaded.');
+      }
       if (widget.member == null) {
         // Create
         final newStaff = StaffDto(

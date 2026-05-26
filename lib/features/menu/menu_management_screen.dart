@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/auth/mock_auth_provider.dart';
 import '../../core/data/dtos/menu_dto.dart';
 import '../../core/providers/menu_providers.dart';
-import '../../core/runtime/runtime_context.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/uuid.dart';
 
@@ -618,12 +617,11 @@ class _MenuItemSheetState extends ConsumerState<_MenuItemSheet> {
 
     setState(() => _isSaving = true);
     try {
-      final profile = await ref.read(userProfileProvider.future);
-      final tenantId = requireContextValue(
-        value: profile?['tenant_id'] as String?,
-        field: 'tenantId',
-        source: 'MenuItemSheet._save',
-      );
+      final appContext = ref.read(appContextProvider);
+      final tenantId = appContext?.tenant.id ?? '';
+      if (tenantId.isEmpty) {
+        throw Exception('Tenant context is not yet loaded.');
+      }
       final imageUrl = await _resolveImageUrl();
       final categoryLabel = _useCustomCat
           ? _customCatCtrl.text.trim().toUpperCase()

@@ -10,12 +10,6 @@ import '../config/app_config.dart';
 import '../../features/orders/providers/orders_providers.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/data/dtos/order_dto.dart';
-import '../../features/tables/providers/tables_providers.dart';
-import '../../features/tables/data/repositories/tables_repository_impl.dart';
-import '../../features/tables/data/dtos/table_dto.dart';
-import '../../features/waiter_calls/presentation/state/waiter_calls_providers.dart';
-import '../../features/waiter_calls/data/repositories/waiter_calls_repository_impl.dart';
-import '../../features/waiter_calls/domain/entities/waiter_call.dart';
 
 class SyncEvent {
   final String idempotencyKey;
@@ -52,16 +46,16 @@ class RealtimeSyncManager {
     if (enabled) {
       connectLocal();
     }
+  }
 
-    static bool _isEnabled() {
-      try {
-        final flag = AppConfig.instance.featureFlags['enableExperimentalRealtime'] ?? false;
-        return !kIsWeb &&
-            !Platform.environment.containsKey('FLUTTER_TEST') &&
-            flag;
-      } catch (_) {
-        return false;
-      }
+  static bool _isEnabled() {
+    try {
+      final flag = AppConfig.instance.featureFlags['enableExperimentalRealtime'] ?? false;
+      return !kIsWeb &&
+          !Platform.environment.containsKey('FLUTTER_TEST') &&
+          flag;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -175,41 +169,6 @@ class RealtimeSyncManager {
         final orderDto = OrderDto.fromJson(staffOrderJson);
         ordersRepo.local.cacheOrder(orderDto);
         debugPrint('[SYNC] Successfully updated order ${orderDto.id} locally.');
-      } else if (type == 'table_update') {
-        final tablesRepo = ref.read(tablesRepositoryProvider) as TablesRepositoryImpl;
-        final staffTableJson = _mapAdminTableToStaffTable(payload);
-        final tableDto = TableDto.fromJson(staffTableJson);
-        tablesRepo.local.cacheTable(tableDto);
-        debugPrint('[SYNC] Successfully updated table ${tableDto.id} locally.');
-      } else if (type == 'table_delete') {
-        final tablesRepo = ref.read(tablesRepositoryProvider) as TablesRepositoryImpl;
-        final id = payload['id'] as String;
-        tablesRepo.local.getCachedTables().then((currentList) {
-          final updated = currentList.where((t) => t.id != id).toList();
-          tablesRepo.local.cacheTables(updated);
-        });
-        debugPrint('[SYNC] Successfully deleted table $id locally.');
-      } else if (type == 'waiter_call') {
-        final waiterCallsRepo = ref.read(waiterCallsRepositoryProvider) as WaiterCallsRepositoryImpl;
-        final call = WaiterCall(
-          id: payload['id'] as String,
-          tableId: payload['tableId'] as String,
-          tableLabel: payload['tableLabel'] as String,
-          type: CallType.values.firstWhere((e) => e.name == payload['type'] as String),
-          status: CallStatus.values.firstWhere((e) => e.name == payload['status'] as String),
-          customerNote: payload['customerNote'] as String?,
-          timestamp: DateTime.parse(payload['timestamp'] as String),
-          waiterId: payload['waiterId'] as String?,
-          waiterName: payload['waiterName'] as String?,
-          isVip: payload['isVip'] as bool? ?? false,
-        );
-        waiterCallsRepo.applyRemoteCallUpdate(call);
-        debugPrint('[SYNC] Successfully updated waiter call ${call.id} locally.');
-      } else if (type == 'waiter_call_delete') {
-        final waiterCallsRepo = ref.read(waiterCallsRepositoryProvider) as WaiterCallsRepositoryImpl;
-        final id = payload['id'] as String;
-        waiterCallsRepo.applyRemoteCallDelete(id);
-        debugPrint('[SYNC] Successfully deleted waiter call $id locally.');
       }
     } catch (e, stack) {
       debugPrint('[SYNC] Error dispatching payload to repository: $e\n$stack');
@@ -248,18 +207,6 @@ class RealtimeSyncManager {
       'updatedAt': adminOrder['updated_at'] ?? DateTime.now().toIso8601String(),
       'waiterName': adminOrder['staff_name'] ?? 'John Doe',
       'cancelLogs': [],
-    };
-  }
-
-  Map<String, dynamic> _mapAdminTableToStaffTable(Map<String, dynamic> adminTable) {
-    return {
-      'id': adminTable['id'],
-      'label': adminTable['label'],
-      'capacity': adminTable['capacity'],
-      'status': adminTable['status'] ?? 'available',
-      'active_order_id': adminTable['active_order_id'],
-      'occupied_seats': adminTable['occupied_seats'] ?? [],
-      'merged_table_ids': adminTable['merged_table_ids'] ?? [],
     };
   }
 

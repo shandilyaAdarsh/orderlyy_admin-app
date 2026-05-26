@@ -9,7 +9,6 @@ import '../../core/data/dtos/order_dto.dart';
 import '../../core/providers/orders_providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../orders/admin_orders_screen.dart';
-import '../staff/staff_tables_screen.dart';
 import '../analytics/analytics_screen.dart';
 
 // ── Bottom Nav State ──────────────────────────────────────────────────────────
@@ -29,7 +28,6 @@ class AdminDashboardScreen extends ConsumerWidget {
         children: const [
           _DashboardHome(),
           AdminOrdersScreen(),
-          StaffTablesScreen(),
           AnalyticsScreen(),
           _MoreTab(),
         ],
@@ -53,7 +51,6 @@ class _BottomNav extends StatelessWidget {
     final items = [
       (icon: Icons.dashboard_rounded, label: 'Home'),
       (icon: Icons.receipt_long_rounded, label: 'Orders'),
-      (icon: Icons.deck_rounded, label: 'Tables'),
       (icon: Icons.bar_chart_rounded, label: 'Analytics'),
       (icon: Icons.grid_view_rounded, label: 'Manage'),
     ];
@@ -147,6 +144,13 @@ class _MoreTab extends ConsumerWidget {
 
     final tiles = [
       (
+        icon: Icons.business_rounded,
+        label: 'Organization',
+        sub: 'Tenant & Branches',
+        route: '/admin/organization',
+        color: const Color(0xFF0369A1),
+      ),
+      (
         icon: Icons.restaurant_menu_rounded,
         label: 'Menu',
         sub: 'Items & categories',
@@ -154,11 +158,32 @@ class _MoreTab extends ConsumerWidget {
         color: const Color(0xFFC0272D),
       ),
       (
+        icon: Icons.table_restaurant_rounded,
+        label: 'Tables',
+        sub: 'QR & layout config',
+        route: '/admin/tables',
+        color: const Color(0xFF0F766E),
+      ),
+      (
         icon: Icons.group_rounded,
         label: 'Staff',
         sub: 'Team management',
         route: '/admin/staff',
         color: const Color(0xFF2563EB),
+      ),
+      (
+        icon: Icons.people_outline_rounded,
+        label: 'Sessions',
+        sub: 'Active guest sessions',
+        route: '/admin/guest-sessions',
+        color: const Color(0xFFD97706),
+      ),
+      (
+        icon: Icons.devices_rounded,
+        label: 'Devices',
+        sub: 'POS & KDS monitors',
+        route: '/admin/devices',
+        color: const Color(0xFF4B5563),
       ),
       (
         icon: Icons.monetization_on_rounded,
@@ -400,7 +425,7 @@ class _MoreTab extends ConsumerWidget {
                     onTap: () async {
                       final authService = ref.read(authServiceProvider);
                       await authService.signOut();
-                      if (context.mounted) context.go('/role-select');
+                      if (context.mounted) context.go('/admin/login');
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
@@ -679,7 +704,7 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
                     _QuickActionsRow(
                       onOrders: () =>
                           ref.read(_currentNavIndexProvider.notifier).state = 1,
-                      onTables: () =>
+                      onAnalytics: () =>
                           ref.read(_currentNavIndexProvider.notifier).state = 2,
                       onMenu: () => context.push('/admin/menu'),
                       onStaff: () => context.push('/admin/staff'),
@@ -1169,12 +1194,12 @@ class _KpiCard extends StatelessWidget {
 // ── Quick Actions Row ─────────────────────────────────────────────────────────
 class _QuickActionsRow extends StatelessWidget {
   final VoidCallback onOrders;
-  final VoidCallback onTables;
+  final VoidCallback onAnalytics;
   final VoidCallback onMenu;
   final VoidCallback onStaff;
   const _QuickActionsRow({
     required this.onOrders,
-    required this.onTables,
+    required this.onAnalytics,
     required this.onMenu,
     required this.onStaff,
   });
@@ -1189,10 +1214,10 @@ class _QuickActionsRow extends StatelessWidget {
         onTap: onOrders,
       ),
       (
-        icon: Icons.deck_rounded,
-        label: 'Tables',
+        icon: Icons.bar_chart_rounded,
+        label: 'Analytics',
         color: const Color(0xFF2563EB),
-        onTap: onTables,
+        onTap: onAnalytics,
       ),
       (
         icon: Icons.restaurant_menu_rounded,

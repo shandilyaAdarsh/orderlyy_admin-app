@@ -115,11 +115,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         elevation: 1,
         shadowColor: AppTheme.surfaceContainerHigh,
         toolbarHeight: 64.h,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, size: 24.r),
-          onPressed: () => context.pop(),
-          color: AppTheme.secondary,
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           'Admin Login',
           style: GoogleFonts.inter(
@@ -128,19 +124,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             color: AppTheme.primaryContainer,
           ),
         ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.w),
-            child: Text(
-              'Orderlli',
-              style: GoogleFonts.inter(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.primaryContainer,
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: LayoutBuilder(

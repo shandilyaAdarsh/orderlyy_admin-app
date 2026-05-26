@@ -243,7 +243,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
     } catch (e) {
       return null;
     }
-
-    String get _stateKey => '$_stateKeyPrefix:$_tenantId';
   }
+
+  String get _stateKey => '$_stateKeyPrefix:$_tenantId';
 }

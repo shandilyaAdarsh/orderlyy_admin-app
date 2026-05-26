@@ -12,17 +12,16 @@ import '../data/dtos/staff_dto.dart';
 import 'repository_providers.dart';
 
 import '../auth/mock_auth_provider.dart';
-import '../runtime/runtime_context.dart';
 
 // ── Staff stream ──────────────────────────────────────────────────────────────
 // Emits every time the underlying repository pushes an update.
 final staffStreamProvider = StreamProvider<List<StaffDto>>((ref) async* {
-  final profile = await ref.watch(userProfileProvider.future);
-  final tenantId = requireContextValue(
-    value: profile?['tenant_id'] as String?,
-    field: 'tenantId',
-    source: 'staffStreamProvider',
-  );
+  final ctx = ref.watch(appContextProvider);
+  if (ctx == null) {
+    yield [];
+    return;
+  }
+  final tenantId = ctx.tenant.id;
 
   final repo = ref.watch(staffRepositoryProvider);
   yield* repo.watchStaff(tenantId);

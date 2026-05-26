@@ -85,7 +85,7 @@ class _OnboardingWizardScreenState
         if (mounted) {
           setState(() {
             if (updatedCtx == null) {
-              context.go('/role-select');
+              context.go('/admin/login');
               return;
             }
             final done = updatedCtx.onboarding.stepsCompleted;

@@ -177,6 +177,7 @@ class _OccConflictScreenState extends State<OccConflictScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFC0272D),
                     foregroundColor: Colors.white,
+                    minimumSize: Size(0, 48.h),
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
                   ),
                 ),
@@ -191,6 +192,7 @@ class _OccConflictScreenState extends State<OccConflictScreen> {
                     });
                   },
                   style: OutlinedButton.styleFrom(
+                    minimumSize: Size(0, 48.h),
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
                   ),
                   child: const Text('KEEP SERVER VERSION (ROLLBACK)'),
@@ -199,6 +201,7 @@ class _OccConflictScreenState extends State<OccConflictScreen> {
                 OutlinedButton(
                   onPressed: _resetSimState,
                   style: OutlinedButton.styleFrom(
+                    minimumSize: Size(0, 48.h),
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
                   ),
                   child: const Text('RESET SIMULATOR'),

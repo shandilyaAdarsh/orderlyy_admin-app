@@ -8,13 +8,11 @@ import '../../../../core/network/network_providers.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/network/sync_state.dart';
 import '../../../../core/utils/logger.dart';
-import '../../../../core/auth/mock_auth_provider.dart';
-import '../../../../core/runtime/runtime_context.dart';
 import '../../../orders/domain/entities/menu_product.dart' as orders_entities;
 import '../../data/repositories/menu_repository_impl.dart';
 import '../../domain/entities/menu_snapshot.dart';
 import '../../domain/repositories/menu_repository.dart';
-import '../../../customer/presentation/state/customer_providers.dart';
+import '../../runtime/snapshot_migration.dart';
 
 final menuSnapshotRepositoryProvider = Provider<MenuRepository>((ref) {
   final dioClient = ref.watch(dioClientProvider);
@@ -31,12 +29,11 @@ final menuSnapshotRepositoryProvider = Provider<MenuRepository>((ref) {
 
 // Core Providers
 final branchIdProvider = Provider<String>((ref) {
-  final session = ref.watch(customerSessionProvider);
-  return session?.branchId ?? 'mock_branch';
+  return 'branch_1';
 });
 
 final menuCacheProvider = Provider<MenuRepository>((ref) {
-  return ref.watch(menuRepositoryProvider);
+  return ref.watch(menuSnapshotRepositoryProvider);
 });
 
 class MenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>> {
@@ -86,29 +83,6 @@ class MenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>> {
 
   Future<void> _fetch({required String branchId, bool forceRefresh = false}) async {
     try {
-      final customerSession = _ref.read(customerSessionProvider);
-      if (customerSession == null) {
-        throw RuntimeInitializationException(
-          'Customer session is required before menu snapshot fetch.',
-        );
-      }
-      final branchId = requireContextValue(
-        value: customerSession.branchId,
-        field: 'branchId',
-        source: 'MenuSnapshotNotifier._fetch',
-      );
-      requireContextValue(
-        value: customerSession.tenantId,
-        field: 'tenantId',
-        source: 'MenuSnapshotNotifier._fetch',
-      );
-      requireContextValue(
-        value: customerSession.tableId,
-        field: 'sessionId',
-        source: 'MenuSnapshotNotifier._fetch',
-      );
-      final isConnected = await _ref.read(networkInfoProvider).isConnected;
-
       final snapshot = await _repository.getMenuSnapshot(
         branchId: branchId,
         forceRefresh: forceRefresh,
@@ -121,10 +95,41 @@ class MenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>> {
       }
     }
   }
+
+  void reconcileAvailability({
+    required Map<String, bool> authoritativeAvailability,
+    required int revision,
+  }) {
+    if (revision <= _lastOverlayRevision) {
+      _talker.info(
+        '[MenuNotifier] Ignored stale overlay revision $revision (last=$_lastOverlayRevision).',
+      );
+      return;
+    }
+
+    state.whenData((snapshot) {
+      final updatedItems = snapshot.items.map((item) {
+        return item.copyWith(
+          isAvailable: authoritativeAvailability[item.id] ?? false,
+        );
+      }).toList();
+
+      state = AsyncValue.data(
+        MenuSnapshot(
+          categories: snapshot.categories,
+          items: updatedItems,
+          modifierGroups: snapshot.modifierGroups,
+          taxConfig: snapshot.taxConfig,
+        ),
+      );
+
+      _lastOverlayRevision = revision;
+    });
+  }
 }
 
 final menuSnapshotProvider = StateNotifierProvider<MenuSnapshotNotifier, AsyncValue<MenuSnapshot>>((ref) {
-  final repository = ref.watch(menuRepositoryProvider);
+  final repository = ref.watch(menuSnapshotRepositoryProvider);
   final talker = ref.watch(talkerProvider);
   // Re-run if branch changes
   ref.watch(branchIdProvider);
@@ -145,45 +150,20 @@ class MenuAvailabilityNotifier extends StateNotifier<Map<String, bool>> {
     state = cached;
   }
 
-void reconcileAvailability({
-  required Map<String, bool> authoritativeAvailability,
-  required int revision,
-}) {
-  if (revision <= _lastOverlayRevision) {
-    _talker.info(
-      '[MenuNotifier] Ignored stale overlay revision $revision (last=$_lastOverlayRevision).',
-    );
-    return;
+  void updateAvailability(Map<String, bool> availabilityMap) {
+    state = { ...state, ...availabilityMap };
   }
 
-  state.whenData((snapshot) {
-    final updatedItems = snapshot.items.map((item) {
-      return item.copyWith(
-        isAvailable: authoritativeAvailability[item.id] ?? false,
-      );
-    }).toList();
-
-    state = AsyncValue.data(
-      MenuSnapshot(
-        categories: snapshot.categories,
-        items: updatedItems,
-        modifierGroups: snapshot.modifierGroups,
-        taxConfig: snapshot.taxConfig,
-      ),
-    );
-
-    _lastOverlayRevision = revision;
-  });
-}
 }
 
-final menuSnapshotNotifierProvider =
-    StateNotifierProvider<MenuSnapshotNotifier, AsyncValue<MenuSnapshot>>((ref) {
+final menuAvailabilityProvider = StateNotifierProvider<MenuAvailabilityNotifier, Map<String, bool>>((ref) {
   final repository = ref.watch(menuSnapshotRepositoryProvider);
+  return MenuAvailabilityNotifier(repository, ref);
+});
 
 // Derived Providers
 final availableItemsProvider = Provider<List<MenuItem>>((ref) {
-  final projection = ref.watch(menuProjectionProvider);
+  final projection = ref.watch(menuSnapshotProvider);
   return projection.maybeWhen(
     data: (snapshot) => snapshot.items.where((i) => i.isAvailable).toList(),
     orElse: () => const [],
@@ -191,7 +171,7 @@ final availableItemsProvider = Provider<List<MenuItem>>((ref) {
 });
 
 final branchMenuProvider = Provider<List<MenuItem>>((ref) {
-  final projection = ref.watch(menuProjectionProvider);
+  final projection = ref.watch(menuSnapshotProvider);
   return projection.maybeWhen(
     data: (snapshot) => snapshot.items,
     orElse: () => const [],
@@ -199,7 +179,7 @@ final branchMenuProvider = Provider<List<MenuItem>>((ref) {
 });
 
 final modifierGroupsProvider = Provider<List<ModifierGroup>>((ref) {
-  final projection = ref.watch(menuProjectionProvider);
+  final projection = ref.watch(menuSnapshotProvider);
   return projection.maybeWhen(
     data: (snapshot) => snapshot.modifierGroups,
     orElse: () => const [],
@@ -207,7 +187,7 @@ final modifierGroupsProvider = Provider<List<ModifierGroup>>((ref) {
 });
 
 final taxProjectionProvider = Provider<TaxConfig?>((ref) {
-  final projection = ref.watch(menuProjectionProvider);
+  final projection = ref.watch(menuSnapshotProvider);
   return projection.maybeWhen(
     data: (snapshot) => snapshot.taxConfig,
     orElse: () => null,
@@ -255,7 +235,7 @@ class LegacyMenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>>
   final Ref _ref;
 
   LegacyMenuSnapshotNotifier(this._ref) : super(const AsyncValue.loading()) {
-    _ref.listen<AsyncValue<MenuSnapshot>>(menuProjectionProvider, (previous, next) {
+    _ref.listen<AsyncValue<MenuSnapshot>>(menuSnapshotProvider, (previous, next) {
       state = next;
     }, fireImmediately: true);
   }
@@ -274,6 +254,22 @@ class LegacyMenuSnapshotNotifier extends StateNotifier<AsyncValue<MenuSnapshot>>
 
   void updateAvailability(Map<String, bool> availabilityMap) {
     _ref.read(menuAvailabilityProvider.notifier).updateAvailability(availabilityMap);
+    state.whenData((snapshot) {
+      final updatedItems = snapshot.items.map((item) {
+        if (availabilityMap.containsKey(item.id)) {
+          return item.copyWith(isAvailable: availabilityMap[item.id]!);
+        }
+        return item;
+      }).toList();
+      state = AsyncValue.data(
+        MenuSnapshot(
+          categories: snapshot.categories,
+          items: updatedItems,
+          modifierGroups: snapshot.modifierGroups,
+          taxConfig: snapshot.taxConfig,
+        ),
+      );
+    });
   }
 }
 
@@ -295,49 +291,7 @@ final menuStalenessProvider = Provider<SyncState>((ref) {
 });
 
 final menuAvailabilityPollingProvider = Provider.autoDispose<void>((ref) {
-  final repository = ref.watch(menuSnapshotRepositoryProvider);
-  final notifier = ref.watch(menuSnapshotNotifierProvider.notifier);
-  final talker = ref.watch(talkerProvider);
-  final networkInfo = ref.watch(networkInfoProvider);
-  final customerSession = ref.watch(customerSessionProvider);
-  if (customerSession == null) {
-    throw RuntimeInitializationException(
-      'Customer session is required before availability polling can start.',
-    );
-  }
-
-  final branchId = requireContextValue(
-    value: customerSession.branchId,
-    field: 'branchId',
-    source: 'menuAvailabilityPollingProvider',
-  );
-  requireContextValue(
-    value: customerSession.tenantId,
-    field: 'tenantId',
-    source: 'menuAvailabilityPollingProvider',
-  );
-  requireContextValue(
-    value: customerSession.tableId,
-    field: 'sessionId',
-    source: 'menuAvailabilityPollingProvider',
-  );
-
-  talker.info(
-    '[MenuPolling] Availability polling initialized for branch $branchId.',
-  );
-
-  final scheduler = _AvailabilityPollingScheduler(
-    repository: repository,
-    networkInfo: networkInfo,
-    notifier: notifier,
-    talker: talker,
-    branchId: branchId,
-  )..start();
-
-  ref.onDispose(() {
-    scheduler.dispose();
-    talker.info('[MenuPolling] Availability polling stopped.');
-  });
+  // Supervisory only: no availability polling required for client sessions.
 });
 
 class _AvailabilityPollingScheduler {

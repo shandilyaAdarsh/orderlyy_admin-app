@@ -4,34 +4,30 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/auth/mock_auth_provider.dart';
 import '../../features/splash/splash_screen.dart';
-import '../../features/auth/role_select_screen.dart';
 import '../../features/auth/admin_login_screen.dart';
-import '../../features/auth/staff_login_screen.dart';
 import '../../features/auth/change_password_screen.dart';
-import '../../features/auth/blocked_screens.dart';
+import '../../features/auth/subscription_expired_screen.dart';
+import '../../features/auth/account_suspended_screen.dart';
 import '../../features/onboarding/onboarding_wizard_screen.dart';
 import '../../features/dashboard/admin_dashboard_screen.dart';
-import '../../features/staff/staff_tables_screen.dart';
-import '../../features/staff/manager_dashboard_screen.dart';
-import '../../features/staff/needs_attention_screen.dart';
 import '../../features/profile/admin_profile_screen.dart';
 import '../../features/inventory/inventory_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/orders/admin_orders_screen.dart';
-import '../../features/orders/waiter_orders_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
 import '../../features/menu/menu_management_screen.dart';
 import '../../features/staff/staff_management_screen.dart';
 import '../../features/debug/debug_screen.dart';
-import '../../features/orders/add_order_screen.dart';
-import '../data/dtos/order_dto.dart';
-import '../../features/customer/presentation/screens/customer_landing_screen.dart';
-import '../../features/customer/presentation/screens/customer_menu_screen.dart';
 import '../../features/pricing/pricing_management_screen.dart';
+import '../../features/tables_infrastructure/presentation/screens/table_infrastructure_screen.dart';
+import '../../features/organization/presentation/screens/organization_dashboard_screen.dart';
+import '../../features/runtime_monitoring/presentation/screens/guest_sessions_screen.dart';
+import '../../features/runtime_monitoring/presentation/screens/device_management_screen.dart';
 import '../../features/taxes/tax_management_screen.dart';
 import '../../features/branch_overrides/branch_override_screen.dart';
 import '../../features/audit/audit_logs_screen.dart';
 import '../../features/menu/presentation/screens/occ_conflict_screen.dart';
+import '../runtime/runtime_ready_gate.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -52,20 +48,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ── Read auth state directly from providers (reactive via notifier) ───
       final authState = ref.read(authNotifierProvider);
       final currentUserId = authState.userId;
-      final staffSession = ref.read(staffSessionProvider);
       final resolvedCtx = ref.read(appContextProvider);
       final loc = state.matchedLocation;
 
       debugPrint(
-        '[ROUTER] location=$loc authStatus=${authState.status} userId=$currentUserId staff=${staffSession?.role}',
+        '[ROUTER] location=$loc authStatus=${authState.status} userId=$currentUserId',
       );
 
-      // ── 1. If auth is loading, MUST NOT redirect ───────────────────────────
       if (authState.status == AuthStatus.loading) {
         debugPrint(
-          '[ROUTER] ⏳ Auth status is loading. Staying on $loc (redirectResult=null)',
+          '[ROUTER] ⏳ Auth status is loading. Redirecting to /splash',
         );
-        return null;
+        return loc == '/splash' ? null : '/splash';
       }
 
       // Debug route always accessible
@@ -80,47 +74,26 @@ final routerProvider = Provider<GoRouter>((ref) {
           currentUserId != null &&
           !currentUserId.startsWith('staff-');
 
-      final isStaffLoggedIn =
-          staffSession != null ||
-          (authState.status == AuthStatus.authenticated &&
-              currentUserId != null &&
-              currentUserId.startsWith('staff-'));
-
-      // isAnyoneLoggedIn: available if redirect logic needs it later
-      // final isAnyoneLoggedIn = isAdminLoggedIn || isStaffLoggedIn;
-
-      // postLoginRoutes (reserved — uncomment with isPostLoginRoute when needed):
-      // const postLoginRoutes = {
-      //   '/change-password', '/subscription-expired',
-      //   '/account-suspended', '/onboarding',
-      // };
-
       const publicRoutes = {
         '/splash',
-        '/role-select',
         '/admin/login',
-        '/staff/login',
-        '/customer/landing',
-        '/customer/menu',
       };
 
       final isPublicRoute = publicRoutes.contains(loc);
-      // isPostLoginRoute: reserved for post-login redirect handling
-      // final isPostLoginRoute = postLoginRoutes.contains(loc);
 
       // ── 3. Unauthenticated redirects ────────────────────────────────────────
       if (authState.status == AuthStatus.unauthenticated) {
         if (!isPublicRoute) {
           debugPrint(
-            '[ROUTER] 🔒 Protected route "$loc" accessed without session → redirectResult=/role-select',
+            '[ROUTER] 🔒 Protected route "$loc" accessed without session → redirectResult=/admin/login',
           );
-          return '/role-select';
+          return '/admin/login';
         }
         if (loc == '/splash') {
           debugPrint(
-            '[ROUTER] ℹ️ Unauthenticated on splash → redirectResult=/role-select',
+            '[ROUTER] ℹ️ Unauthenticated on splash → redirectResult=/admin/login',
           );
-          return '/role-select';
+          return '/admin/login';
         }
         debugPrint(
           '[ROUTER] ✅ Public route "$loc" allowed for unauthenticated (redirectResult=null)',
@@ -169,26 +142,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             );
             return '/admin/dashboard';
           }
-          if (isStaffLoggedIn) {
-            final role =
-                staffSession?.role ??
-                (currentUserId != null
-                    ? currentUserId.split('-')[1]
-                    : 'waiter');
-            debugPrint(
-              '[ROUTER] ✅ Staff logged in on public route → redirect role=$role',
-            );
-            if (role == 'waiter') {
-              debugPrint('[ROUTER] redirectResult=/staff/tables');
-              return '/staff/tables';
-            }
-            if (role == 'manager') {
-              debugPrint('[ROUTER] redirectResult=/manager/dashboard');
-              return '/manager/dashboard';
-            }
-            debugPrint('[ROUTER] redirectResult=/admin/dashboard');
-            return '/admin/dashboard';
-          }
         }
 
         // C. Protect admin / staff routes
@@ -209,34 +162,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/admin/occ-conflict',
         };
 
-        const protectedStaffRoutes = {
-          '/staff/tables',
-          '/staff/orders',
-          '/staff/inventory',
-          '/staff/attention',
-          '/staff/add-order',
-          '/manager/dashboard',
-        };
-
         final isProtectedAdmin = protectedAdminRoutes.contains(loc);
-        final isProtectedStaff = protectedStaffRoutes.contains(loc);
 
         if (isProtectedAdmin && !isAdminLoggedIn) {
           debugPrint(
-            '[ROUTER] 🔒 Protected admin route accessed by non-admin → redirectResult=/role-select',
+            '[ROUTER] 🔒 Protected admin route accessed by non-admin → redirectResult=/admin/login',
           );
-          return '/role-select';
-        }
-
-        if (isProtectedStaff && !isStaffLoggedIn) {
-          debugPrint(
-            '[ROUTER] 🔒 Protected staff route accessed by non-staff → redirectResult=/role-select',
-          );
-          return '/role-select';
+          return '/admin/login';
         }
 
         // STRICT RUNTIME GOVERNANCE GUARDS
-        if (isProtectedAdmin || isProtectedStaff) {
+        if (isProtectedAdmin) {
           if (resolvedCtx == null || resolvedCtx.tenant.id.isEmpty) {
             debugPrint('[ROUTER] 🚫 Missing Tenant scope. Redirecting to initialization.');
             // return '/initialization'; // Or handle appropriately
@@ -270,11 +206,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/role-select',
-        name: 'role-select',
-        builder: (context, state) => const RoleSelectScreen(),
-      ),
 
       // ── Admin Auth ───────────────────────────────────────────────────────
       GoRoute(
@@ -306,147 +237,95 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // ── Admin App ───────────────────────────────────────────────────────
-      GoRoute(
-        path: '/admin/dashboard',
-        name: 'admin-dashboard',
-        builder: (context, state) => const AdminDashboardScreen(),
-      ),
-      GoRoute(
-        path: '/admin/orders',
-        name: 'admin-orders',
-        builder: (context, state) => const AdminOrdersScreen(),
-      ),
-      GoRoute(
-        path: '/admin/analytics',
-        name: 'admin-analytics',
-        builder: (context, state) => const AnalyticsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/settings',
-        name: 'admin-settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/profile',
-        name: 'admin-profile',
-        builder: (context, state) => const AdminProfileScreen(),
-      ),
-      GoRoute(
-        path: '/admin/inventory',
-        name: 'admin-inventory',
-        builder: (context, state) => const InventoryScreen(),
-      ),
-      GoRoute(
-        path: '/admin/tables',
-        name: 'admin-tables',
-        builder: (context, state) => const StaffTablesScreen(),
-      ),
-      GoRoute(
-        path: '/admin/menu',
-        name: 'admin-menu',
-        builder: (context, state) => const MenuManagementScreen(),
-      ),
-      GoRoute(
-        path: '/admin/staff',
-        name: 'admin-staff',
-        builder: (context, state) => const StaffManagementScreen(),
-      ),
-      GoRoute(
-        path: '/admin/pricing',
-        name: 'admin-pricing',
-        builder: (context, state) => const PricingManagementScreen(),
-      ),
-      GoRoute(
-        path: '/admin/taxes',
-        name: 'admin-taxes',
-        builder: (context, state) => const TaxManagementScreen(),
-      ),
-      GoRoute(
-        path: '/admin/overrides',
-        name: 'admin-overrides',
-        builder: (context, state) => const BranchOverrideScreen(),
-      ),
-      GoRoute(
-        path: '/admin/audit',
-        name: 'admin-audit',
-        builder: (context, state) => const AuditLogsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/occ-conflict',
-        name: 'admin-occ-conflict',
-        builder: (context, state) => const OccConflictScreen(),
-      ),
-
-      // ── Staff Auth ────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/staff/login',
-        name: 'staff-login',
-        builder: (context, state) => const StaffLoginScreen(),
-      ),
-
-      // ── Staff App ─────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/staff/tables',
-        name: 'staff-tables',
-        builder: (context, state) => const StaffTablesScreen(),
-      ),
-      GoRoute(
-        path: '/staff/orders',
-        name: 'staff-orders',
-        builder: (context, state) => const WaiterOrdersScreen(),
-      ),
-      GoRoute(
-        path: '/staff/add-order',
-        name: 'staff-add-order',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          final tableId = extra?['tableId'] as String?;
-          final tableLabel = extra?['tableLabel'] as String?;
-          final existingOrder = extra?['existingOrder'] as OrderDto?;
-          return AddOrderScreen(
-            tableId: tableId ?? '',
-            tableLabel: tableLabel ?? '',
-            existingOrder: existingOrder,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/staff/inventory',
-        name: 'staff-inventory',
-        builder: (context, state) => const InventoryScreen(),
-      ),
-      GoRoute(
-        path: '/staff/attention',
-        name: 'staff-attention',
-        builder: (context, state) => const NeedsAttentionScreen(),
-      ),
-
-      // ── Manager ───────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/manager/dashboard',
-        name: 'manager-dashboard',
-        builder: (context, state) => const ManagerDashboardScreen(),
-      ),
-
-      // ── Customer ──────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/customer/landing',
-        name: 'customer-landing',
-        builder: (context, state) {
-          final tenantId = state.uri.queryParameters['tenant_id'];
-          final branchId = state.uri.queryParameters['branch_id'];
-          final tableId = state.uri.queryParameters['table_id'];
-          return CustomerLandingScreen(
-            tenantId: tenantId,
-            branchId: branchId,
-            tableId: tableId,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/customer/menu',
-        name: 'customer-menu',
-        builder: (context, state) => const CustomerMenuScreen(),
+      ShellRoute(
+        builder: (context, state, child) => RuntimeReadyGate(child: child),
+        routes: [
+          GoRoute(
+            path: '/admin/dashboard',
+            name: 'admin-dashboard',
+            builder: (context, state) => const AdminDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/admin/orders',
+            name: 'admin-orders',
+            builder: (context, state) => const AdminOrdersScreen(),
+          ),
+          GoRoute(
+            path: '/admin/organization',
+            name: 'admin-organization',
+            builder: (context, state) => const OrganizationDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/admin/guest-sessions',
+            name: 'admin-guest-sessions',
+            builder: (context, state) => const GuestSessionsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/devices',
+            name: 'admin-devices',
+            builder: (context, state) => const DeviceManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/tables',
+            name: 'admin-tables',
+            builder: (context, state) => const TableInfrastructureScreen(),
+          ),
+          GoRoute(
+            path: '/admin/analytics',
+            name: 'admin-analytics',
+            builder: (context, state) => const AnalyticsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/settings',
+            name: 'admin-settings',
+            builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/profile',
+            name: 'admin-profile',
+            builder: (context, state) => const AdminProfileScreen(),
+          ),
+          GoRoute(
+            path: '/admin/inventory',
+            name: 'admin-inventory',
+            builder: (context, state) => const InventoryScreen(),
+          ),
+          GoRoute(
+            path: '/admin/menu',
+            name: 'admin-menu',
+            builder: (context, state) => const MenuManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/staff',
+            name: 'admin-staff',
+            builder: (context, state) => const StaffManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/pricing',
+            name: 'admin-pricing',
+            builder: (context, state) => const PricingManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/taxes',
+            name: 'admin-taxes',
+            builder: (context, state) => const TaxManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/overrides',
+            name: 'admin-overrides',
+            builder: (context, state) => const BranchOverrideScreen(),
+          ),
+          GoRoute(
+            path: '/admin/audit',
+            name: 'admin-audit',
+            builder: (context, state) => const AuditLogsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/occ-conflict',
+            name: 'admin-occ-conflict',
+            builder: (context, state) => const OccConflictScreen(),
+          ),
+        ],
       ),
     ],
   );
