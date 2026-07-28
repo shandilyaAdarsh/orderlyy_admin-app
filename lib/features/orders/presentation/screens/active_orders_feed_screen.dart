@@ -136,12 +136,20 @@ class _ActiveOrdersFeedScreenState extends ConsumerState<ActiveOrdersFeedScreen>
   }
 
   Widget _buildOrderCard(Order order, ThemeData theme, bool isDark) {
+    final hasPaymentIntent = order.customerPaymentIntent != null;
+    final paymentLabel = order.customerPaymentIntent == 'upi' ? 'UPI PENDING' : 'CASH REQ';
+
     Widget card = Card(
-      color: isDark ? AppColors.darkSurface : Colors.white,
+      color: hasPaymentIntent 
+          ? (isDark ? Colors.orange.withValues(alpha: 0.2) : Colors.orange.shade50)
+          : (isDark ? AppColors.darkSurface : Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: hasPaymentIntent 
+              ? Colors.orange 
+              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          width: hasPaymentIntent ? 2.0 : 1.0,
         ),
       ),
       margin: const EdgeInsets.only(bottom: 12),
@@ -167,6 +175,27 @@ class _ActiveOrdersFeedScreenState extends ConsumerState<ActiveOrdersFeedScreen>
                   ),
                   Row(
                     children: [
+                      if (hasPaymentIntent) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            paymentLabel,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

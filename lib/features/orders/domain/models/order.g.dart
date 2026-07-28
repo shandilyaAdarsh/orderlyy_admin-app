@@ -24,6 +24,7 @@ _Order _$OrderFromJson(Map<String, dynamic> json) => _Order(
   completedAt: json['completedAt'] == null
       ? null
       : DateTime.parse(json['completedAt'] as String),
+  customerPaymentIntent: json['customer_payment_intent'] as String?,
 );
 
 Map<String, dynamic> _$OrderToJson(_Order instance) => <String, dynamic>{
@@ -40,6 +41,7 @@ Map<String, dynamic> _$OrderToJson(_Order instance) => <String, dynamic>{
   'staffName': instance.staffName,
   'notes': instance.notes,
   'completedAt': instance.completedAt?.toIso8601String(),
+  'customer_payment_intent': instance.customerPaymentIntent,
 };
 
 const _$OrderStatusEnumMap = {

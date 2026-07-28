@@ -28,6 +28,7 @@ abstract class Order with _$Order {
     String? staffName,
     String? notes,
     DateTime? completedAt,
+    @JsonKey(name: 'customer_payment_intent') String? customerPaymentIntent,
   }) = _Order;
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
