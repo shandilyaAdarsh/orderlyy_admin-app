@@ -7,49 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../state/table_infrastructure_providers.dart';
 import '../../data/dtos/table_dto.dart';
 import 'table_infrastructure_screen.dart';
-
-// ── Models & State ────────────────────────────────────────────────────────────
-enum TableDiningPhase {
-  vacant, // Emerald green
-  seated, // Amber yellow
-  cooking, // Orange KDS preparing
-  dining, // Blue served
-  waitingForBill, // Purple checkout requested
-}
-
-// Table dining status state provider (maps tableId to its dining phase & guest count)
-class TableStatusState {
-  final TableDiningPhase phase;
-  final int activeGuests;
-  TableStatusState({required this.phase, required this.activeGuests});
-}
-
-final tableStatusProvider = StateNotifierProvider<TableStatusNotifier, Map<String, TableStatusState>>((ref) {
-  return TableStatusNotifier();
-});
-
-class TableStatusNotifier extends StateNotifier<Map<String, TableStatusState>> {
-  TableStatusNotifier() : super({});
-
-  TableStatusState getStatus(String tableId) {
-    return state[tableId] ?? TableStatusState(phase: TableDiningPhase.vacant, activeGuests: 0);
-  }
-
-  void seatGuests(String tableId, int guests) {
-    state = {
-      ...state,
-      tableId: TableStatusState(phase: TableDiningPhase.seated, activeGuests: guests),
-    };
-  }
-
-  void updatePhase(String tableId, TableDiningPhase phase) {
-    final current = getStatus(tableId);
-    state = {
-      ...state,
-      tableId: TableStatusState(phase: phase, activeGuests: current.activeGuests),
-    };
-  }
-}
+import '../../../../core/providers/tables_providers.dart';
 
 // ── Screen Class ──────────────────────────────────────────────────────────────
 class LiveFloorplanScreen extends ConsumerWidget {
