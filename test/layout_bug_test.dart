@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderlli_admin/main.dart'; // adjust path to your main
@@ -10,8 +11,8 @@ void main() {
       await tester.pumpWidget(const ProviderScope(child: OrderlyyApp()));
       await tester.pumpAndSettle();
     } catch (e, st) {
-      print('CAUGHT EXCEPTION: $e');
-      print('STACKTRACE: $st');
+      debugPrint('CAUGHT EXCEPTION: $e');
+      debugPrint('STACKTRACE: $st');
       rethrow;
     }
   });

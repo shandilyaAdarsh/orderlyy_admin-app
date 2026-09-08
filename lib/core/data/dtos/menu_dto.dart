@@ -126,9 +126,7 @@ class MenuItemDto {
 
   factory MenuItemDto.fromJson(Map<String, dynamic> json) {
     final dietaryTags = List<String>.from(json['dietary_tags'] as List? ?? []);
-    final isVeg =
-        dietaryTags.contains('vegetarian') ||
-        (json['is_vegetarian'] as bool? ?? false);
+    final isVeg = json['is_veg'] as bool? ?? false;
 
     return MenuItemDto(
       id: json['id'] as String,
@@ -161,11 +159,6 @@ class MenuItemDto {
   }
 
   Map<String, dynamic> toJson() {
-    List<String> combinedTags = List.from(tags);
-    if (isVegetarian && !combinedTags.contains('vegetarian')) {
-      combinedTags.add('vegetarian');
-    }
-
     return {
       // id, version_num, deleted_at handled by backend on insert
       'tenant_id': tenantId,
@@ -177,7 +170,8 @@ class MenuItemDto {
       'base_price_amount': basePriceAmount,
       'image_url': (imageUrl != null && imageUrl!.trim().isEmpty) ? null : imageUrl,
       'status': isAvailable ? 'active' : 'inactive',
-      'dietary_tags': combinedTags,
+      'is_veg': isVegetarian,
+      'dietary_tags': tags,
       'prep_time_minutes': prepTimeMinutes,
       'version_num': versionNum, // sent for OCC
     };

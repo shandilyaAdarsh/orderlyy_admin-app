@@ -5,7 +5,6 @@ import '../network/api_exception.dart';
 import 'repository_providers.dart';
 import 'branch_context_service.dart';
 import '../../features/organization/presentation/state/branch_providers.dart';
-import '../../features/organization/domain/entities/branch_entity.dart';
 
 // ── Category Tree Node ────────────────────────────────────────────────────────
 class CategoryNode {

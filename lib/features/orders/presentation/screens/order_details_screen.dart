@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/order.dart';
-import '../../domain/entities/order_item.dart';
-import '../../providers/orders_providers.dart';
+import '../../domain/models/order.dart';
+import '../../domain/models/order_status.dart';
+import '../../data/providers/orders_repository_providers.dart';
+import '../../../../shared/models/result.dart';
+import '../../../../shared/models/failures.dart';
 
 class OrderDetailsScreen extends ConsumerWidget {
   final String orderId;
@@ -17,8 +19,8 @@ class OrderDetailsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return StreamBuilder<Order?>(
-      stream: repository.watchOrderById(orderId),
+    return StreamBuilder<Result<Order, AppFailure>>(
+      stream: repository.watchOrder(orderId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -28,8 +30,8 @@ class OrderDetailsScreen extends ConsumerWidget {
           );
         }
 
-        final order = snapshot.data;
-        if (order == null) {
+        final result = snapshot.data;
+        if (result == null || result is Failure<Order, AppFailure>) {
           return Scaffold(
             appBar: AppBar(title: const Text('Order Details')),
             body: const Center(
@@ -37,6 +39,8 @@ class OrderDetailsScreen extends ConsumerWidget {
             ),
           );
         }
+
+        final order = (result as Success<Order, AppFailure>).value;
 
         return Scaffold(
           appBar: AppBar(
@@ -73,8 +77,6 @@ class OrderDetailsScreen extends ConsumerWidget {
                 _buildWaiterOwnershipCard(context, ref, order, theme, isDark),
                 const SizedBox(height: 16),
                 _buildItemsList(context, ref, order, theme, isDark),
-                const SizedBox(height: 16),
-                _buildCancelLogsCard(order, theme, isDark),
               ],
             ),
           ),
@@ -85,11 +87,11 @@ class OrderDetailsScreen extends ConsumerWidget {
 
   Widget _buildProgressTimeline(Order order, ThemeData theme, bool isDark) {
     final stages = [
-      OrderStatus.draft,
-      OrderStatus.sent,
+      OrderStatus.pending,
+      OrderStatus.confirmed,
       OrderStatus.preparing,
       OrderStatus.ready,
-      OrderStatus.completed,
+      OrderStatus.served,
     ];
 
     final currentStageIndex = stages.indexOf(order.status);
@@ -248,7 +250,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  order.waiterName,
+                  order.staffName ?? 'Unknown',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -268,13 +270,6 @@ class OrderDetailsScreen extends ConsumerWidget {
     ThemeData theme,
     bool isDark,
   ) {
-    final groupedItems = <int, List<OrderItem>>{};
-    for (final item in order.items) {
-      groupedItems.putIfAbsent(item.seatNumber, () => []).add(item);
-    }
-
-    final sortedSeats = groupedItems.keys.toList()..sort();
-
     return Card(
       color: isDark ? AppColors.darkSurface : Colors.white,
       shape: RoundedRectangleBorder(
@@ -298,7 +293,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  order.totalPrice.formatted,
+                  order.totalAmount.format(),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -316,103 +311,28 @@ class OrderDetailsScreen extends ConsumerWidget {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: sortedSeats.length,
-                itemBuilder: (context, sIndex) {
-                  final seat = sortedSeats[sIndex];
-                  final seatItems = groupedItems[seat]!;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 4,
-                          horizontal: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkBorder
-                              : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        width: double.infinity,
-                        child: Text(
-                          'Seat $seat',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                itemCount: order.items.length,
+                itemBuilder: (context, index) {
+                  final item = order.items[index];
+                  
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      item.menuItemName,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      ...seatItems.map((item) {
-                        final isCancelled =
-                            item.status == OrderItemStatus.cancelled;
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            item.product.name,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              decoration: isCancelled
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: isCancelled ? Colors.grey : null,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (item.selectedModifiers.isNotEmpty)
-                                Text(
-                                  item.selectedModifiers
-                                      .map((m) => m.name)
-                                      .join(', '),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    decoration: isCancelled
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
-                                ),
-                              const SizedBox(height: 2),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      (isCancelled
-                                              ? Colors.grey
-                                              : AppColors.primary)
-                                          .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  item.status.name.toUpperCase(),
-                                  style: TextStyle(
-                                    color: isCancelled
-                                        ? Colors.grey
-                                        : AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 9,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: Text(
-                            '${item.quantity}x ${item.totalPrice.formatted}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              decoration: isCancelled
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: isCancelled ? Colors.grey : null,
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 12),
-                    ],
+                    ),
+                    subtitle: Text(
+                      item.notes ?? '',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    trailing: Text(
+                      '${item.quantity}x ${(item.unitPrice * item.quantity).format()}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -422,61 +342,5 @@ class OrderDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCancelLogsCard(Order order, ThemeData theme, bool isDark) {
-    return Card(
-      color: isDark ? AppColors.darkSurface : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Cancellation Audit Logs',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Divider(height: 24),
-            if (order.cancelLogs.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('No item cancellations logged for this session.'),
-              )
-            else
-              ...order.cancelLogs.map((log) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.assignment_late_outlined,
-                        color: AppColors.error,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          log,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.red[800],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-          ],
-        ),
-      ),
-    );
-  }
+
 }

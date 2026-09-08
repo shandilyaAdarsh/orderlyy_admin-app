@@ -955,7 +955,7 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
 
     final isVoided = order.status == OrderStatus.cancelled;
     final isServed = order.status == OrderStatus.served;
-    final isPreparing = order.status == OrderStatus.preparing;
+
 
     return Container(
       padding: EdgeInsets.all(20.r),

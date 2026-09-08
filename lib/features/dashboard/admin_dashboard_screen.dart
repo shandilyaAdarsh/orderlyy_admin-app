@@ -660,8 +660,7 @@ class _DashboardHomeState extends ConsumerState<_DashboardHome> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  static List<Order> _todayOrders(List<Order> all) =>
-      all.where((o) => o.createdAt.toLocal().isAfter(_todayMidnight)).toList();
+
 
   static String _fmtCurrency(double v) {
     if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
@@ -1794,7 +1793,6 @@ class _LiveOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUrgent = order.status == OrderStatus.pending;
     final itemSummary = order.items.isEmpty
         ? 'No items'
         : order.items
@@ -1913,7 +1911,7 @@ class _LiveOrderCard extends StatelessWidget {
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w800,
-                        color: isUrgent ? AppTheme.primary : AppTheme.onSurface,
+                        color: AppTheme.onSurface,
                       ),
                     ),
                   ],
