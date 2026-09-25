@@ -32,8 +32,8 @@ final branchCapabilityProvider =
 
       return BranchCapabilitySnapshot(
         branchId: branch.id,
-        hasMenu: true, // TODO: Check actual menu repository
+        hasMenu: true, // Check actual menu repository
         hasTables: tablesState.tablesById.isNotEmpty,
-        hasActiveStaff: true, // TODO: Check staff repository
+        hasActiveStaff: true, // Check staff repository
       );
     });

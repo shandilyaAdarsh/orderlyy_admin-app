@@ -16,7 +16,6 @@ class TableQrPngService {
     final painter = QrPainter(
       data: qrUrl,
       version: QrVersions.auto,
-      emptyColor: Colors.white,
       eyeStyle: const QrEyeStyle(
         eyeShape: QrEyeShape.square,
         color: Colors.black,
@@ -27,7 +26,14 @@ class TableQrPngService {
       ),
     );
 
-    final image = await painter.toImage(logicalSize * 3);
+    final size = logicalSize * 3;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint()..color = Colors.white;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size, size), paint);
+    painter.paint(canvas, Size(size, size));
+    
+    final image = await recorder.endRecording().toImage(size.toInt(), size.toInt());
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     if (byteData == null) {
       throw StateError('Failed to encode QR PNG');

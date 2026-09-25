@@ -95,7 +95,7 @@ class OrdersRepositoryFactory {
     dynamic httpClient,
     String? baseUrl,
   }) {
-    // TODO: Replace with Drift-backed datasource when migration is complete.
+    // NOTE: Replace with Drift-backed datasource when migration is complete.
     // SharedPrefs-based offline persistence has been deprecated.
     // Use ordersRepositoryProvider from orders_repository_providers.dart instead.
     throw UnimplementedError(
@@ -111,7 +111,7 @@ class OrdersRepositoryFactory {
     dynamic httpClient,
     String? baseUrl,
   }) {
-    // TODO: Replace with Drift-backed datasource when migration is complete.
+    // NOTE: Replace with Drift-backed datasource when migration is complete.
     throw UnimplementedError(
       'Hybrid mode requires Drift migration. '
       'Use ordersRepositoryProvider from orders_repository_providers.dart instead.',

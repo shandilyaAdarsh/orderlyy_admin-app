@@ -1,0 +1,253 @@
+[
+  {
+    "id": "TC001",
+    "title": "Load dashboard statistics after login",
+    "description": "An authenticated admin can open the dashboard and see key statistics loaded successfully.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify key dashboard statistics are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard navigation controls are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Navigate from dashboard to an admin section and back",
+    "description": "An authenticated admin can move from the dashboard into an admin section and return without losing access.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open an admin section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected admin section is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to return to the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard is displayed again"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Keep dashboard access after moving between admin areas",
+    "description": "An authenticated admin can repeatedly leave the dashboard for admin sections and return while the session remains active.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open an admin section"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to return to the dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Click another admin section link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard navigation remains available after returning"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Review dashboard in mobile portrait layout",
+    "description": "An authenticated admin using a narrow viewport can review the dashboard stats and navigate to admin sections on mobile.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify key dashboard statistics are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard navigation controls are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC005",
+    "title": "Show an error state when dashboard data cannot be loaded",
+    "description": "An authenticated admin sees an error state on the dashboard when dashboard data is not available and can retry later.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard statistics are displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC006",
+    "title": "Prevent unauthenticated access to the dashboard",
+    "description": "An unauthenticated visitor who opens the dashboard is redirected or shown access denial instead of the protected admin view.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied or the user is redirected to authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the admin dashboard is not displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC007",
+    "title": "Display a usable empty dashboard state",
+    "description": "An authenticated admin sees a clear empty state when the dashboard has no statistics to show.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state is displayed"
+      }
+    ],
+    "priority": "Low"
+  }
+]

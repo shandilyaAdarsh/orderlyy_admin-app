@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -323,7 +322,7 @@ class TableInfrastructureScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedFloorId,
+                    initialValue: selectedFloorId,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       border: OutlineInputBorder(
@@ -599,9 +598,9 @@ class TableInfrastructureScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.error.withOpacity(0.08),
+                        color: AppTheme.error.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.error.withOpacity(0.2)),
+                        border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
                       ),
                       child: Text(
                         errorMessage!,

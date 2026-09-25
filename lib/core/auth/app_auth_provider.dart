@@ -202,7 +202,7 @@ class AppContextNotifier extends StateNotifier<AppContextDto?> {
     AppContextDto? ctx;
     if (result is Success) {
       ctx = (result as Success<AppContextDto?>).value;
-    } else if (result is Failure) {
+    } else {
       debugPrint(
         '[AppContext] ⚠️ Context resolution failed: ${(result as Failure).error.message}',
       );

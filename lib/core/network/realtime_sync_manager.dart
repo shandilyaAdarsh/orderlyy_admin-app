@@ -8,9 +8,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../config/app_config.dart';
 
 import '../providers/orders_providers.dart';
-import '../../features/orders/data/providers/orders_repository_providers.dart';
-import '../../features/orders/data/repositories/orders_repository_impl.dart';
-import '../../features/orders/data/dtos/order_dto.dart' as feature_dto;
 import '../../core/data/dtos/order_dto.dart' as core_dto;
 
 class SyncEvent {
@@ -181,16 +178,11 @@ class RealtimeSyncManager {
     debugPrint('[SYNC] Dispatched event type: $type, payload: $payload');
     try {
       if (type == 'order_update') {
-        final ordersRepo =
-            ref.read(ordersRepositoryProvider) as OrdersRepositoryImpl;
         final staffOrderJson = _mapAdminOrderToStaffOrder(payload);
-        // Feature-level DTO for local cache
-        final featureOrderDto = feature_dto.OrderDto.fromJson(staffOrderJson);
-        ordersRepo.local.cacheOrder(featureOrderDto);
         // Core-level DTO for provider reconciliation
         final coreOrderDto = core_dto.OrderDto.fromJson(staffOrderJson);
         ref.read(ordersProvider.notifier).reconcileRemoteUpdate(coreOrderDto);
-        debugPrint('[SYNC] Successfully updated order ${featureOrderDto.id} locally.');
+        debugPrint('[SYNC] Successfully updated order ${coreOrderDto.id} locally.');
       }
     } catch (e, stack) {
       debugPrint('[SYNC] Error dispatching payload to repository: $e\n$stack');

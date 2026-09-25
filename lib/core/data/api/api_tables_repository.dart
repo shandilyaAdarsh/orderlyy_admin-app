@@ -24,7 +24,7 @@ class ApiTablesRepository implements TablesRepository {
         'page': page,
         'limit': limit,
         'includeDeleted': includeDeleted,
-        if (sectionId != null) 'sectionId': sectionId,
+        'sectionId': ?sectionId,
       };
 
       final endpoint = '/api/v1/admin/tables';

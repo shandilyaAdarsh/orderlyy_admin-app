@@ -1,0 +1,403 @@
+Below is a Product Specification Document (PSD/PRD) you can upload for the **Admin App (Flutter) Frontend Testing**. It aligns with your restaurant management system and covers the core modules identified in your pilot readiness work.  
+
+---
+
+# Product Specification Document
+
+## Orderlly Admin App (Flutter) – Frontend Testing
+
+### Version
+
+1.0
+
+### Product
+
+Orderlly Restaurant Management Platform
+
+### Platform
+
+Flutter Mobile Application (Android & iOS)
+
+### Purpose
+
+The Admin App enables restaurant owners and managers to configure, monitor, and manage their restaurant operations from a mobile device. This testing phase validates that every frontend screen, workflow, and interaction functions correctly with the backend APIs and maintains a consistent user experience.
+
+---
+
+# Objectives
+
+Validate:
+
+* Authentication
+* Navigation
+* Dashboard
+* Branch Management
+* Staff Management
+* Menu Management
+* Categories
+* Tables
+* Floor Management
+* Taxes
+* Discounts
+* Orders
+* Notifications
+* Settings
+* Error Handling
+* Responsive UI
+* Loading States
+* API Integration
+
+---
+
+# Target Users
+
+### Owner
+
+Full system access.
+
+### Restaurant Manager
+
+Branch-level management.
+
+---
+
+# Authentication
+
+## Login
+
+User enters:
+
+* Email
+* Password
+
+Expected:
+
+* Successful login
+* Token stored securely
+* Redirect to dashboard
+
+Validation
+
+* Invalid email
+* Invalid password
+* Empty fields
+* Expired session
+* Network error
+
+---
+
+# Dashboard
+
+Displays
+
+* Today's Orders
+* Revenue
+* Active Tables
+* Pending Orders
+* Completed Orders
+* Staff Count
+
+Validation
+
+* Cards load correctly
+* Numbers update
+* Loading skeletons
+* Empty states
+* Error state
+
+---
+
+# Branch Management
+
+Features
+
+* View branches
+* Create branch
+* Edit branch
+* Delete branch
+* Activate/Deactivate branch
+
+Validation
+
+* Required fields
+* Duplicate names
+* Success messages
+* Error messages
+
+---
+
+# Staff Management
+
+Features
+
+* List staff
+* Search staff
+* Filter by role
+* Create staff
+* Edit staff
+* Reset password
+* Enable/Disable account
+
+Validation
+
+* Form validation
+* Duplicate email handling
+* Role assignment
+* Branch assignment
+
+---
+
+# Menu Management
+
+Features
+
+* View menu
+* Search
+* Filter
+* Add item
+* Edit item
+* Delete item
+* Availability toggle
+
+Fields
+
+* Name
+* Description
+* Price
+* Category
+* Image
+* Preparation Time
+* Veg / Non-Veg
+
+Validation
+
+* Required fields
+* Price validation
+* Image upload
+* Duplicate names
+
+---
+
+# Category Management
+
+Features
+
+* Create category
+* Edit category
+* Delete category
+* Display order
+
+Validation
+
+* Duplicate category
+* Empty name
+
+---
+
+# Floor Management
+
+Features
+
+* Create floor
+* Edit floor
+* Delete floor
+
+Validation
+
+* Required fields
+* Duplicate floor names
+
+---
+
+# Table Management
+
+Features
+
+* Create table
+* QR generation
+* Capacity
+* Status
+
+Validation
+
+* Duplicate table number
+* QR generation
+* Table availability
+
+---
+
+# Tax Management
+
+Features
+
+* Create tax
+* Edit tax
+* Delete tax
+* Enable/Disable
+
+Validation
+
+* Percentage limits
+* Duplicate tax names
+
+---
+
+# Discount Management
+
+Features
+
+* Create discount
+* Edit discount
+* Activate
+* Expiry
+
+Validation
+
+* Date validation
+* Percentage validation
+
+---
+
+# Orders
+
+Features
+
+* Live order list
+* Order details
+* Status tracking
+* Search
+* Filter
+
+Validation
+
+* Correct order information
+* Real-time updates
+* Status badges
+* Empty state
+
+---
+
+# Notifications
+
+Features
+
+* New order notifications
+* Important alerts
+* Read/Unread state
+
+Validation
+
+* Notification arrival
+* Tap navigation
+* Badge count
+
+---
+
+# Settings
+
+Features
+
+* Restaurant information
+* Branch settings
+* Profile
+* Logout
+
+Validation
+
+* Save changes
+* Form validation
+* Logout flow
+
+---
+
+# UI Testing
+
+Verify
+
+* Consistent spacing
+* Typography
+* Icons
+* Theme colors
+* Button states
+* Disabled states
+* Loading indicators
+* Error messages
+* Success messages
+* Responsive layouts
+
+---
+
+# API Integration Testing
+
+Validate
+
+* GET requests
+* POST requests
+* PUT requests
+* DELETE requests
+* Retry handling
+* Timeout handling
+* Authentication headers
+
+---
+
+# Error Handling
+
+Verify
+
+* Internet disconnected
+* Server unavailable
+* Unauthorized access
+* Validation errors
+* API failures
+
+Application should never crash and must display appropriate user feedback.
+
+---
+
+# Performance
+
+Targets
+
+* Login < 3 seconds
+* Dashboard < 2 seconds
+* Menu loading < 2 seconds
+* Screen transition < 300 ms
+* Smooth scrolling
+
+---
+
+# Acceptance Criteria
+
+The Admin App is considered ready when:
+
+* All authentication flows pass
+* Dashboard loads successfully
+* CRUD operations work for all management modules
+* No UI crashes occur
+* API integration succeeds
+* Loading and error states are handled correctly
+* Responsive layouts work across supported devices
+* No critical or high-severity frontend defects remain
+
+---
+
+# Out of Scope
+
+* Backend implementation
+* Database migrations
+* Payment gateway testing
+* POS testing
+* Customer App testing
+* Kitchen Display System testing
+* Staff App testing
+
+---
+
+# Deliverables
+
+* Fully functional Flutter Admin App
+* Complete frontend validation
+* API integration verification
+* Responsive UI verification
+* Pilot-ready frontend experience

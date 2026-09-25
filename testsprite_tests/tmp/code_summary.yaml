@@ -1,0 +1,24 @@
+version: "2"
+type: frontend
+tech_stack:
+  - dart
+  - flutter
+routes:
+  - path: /admin/dashboard
+    file: lib/main.dart
+    auth_required: true
+    description: Admin dashboard
+features:
+  - name: Admin Dashboard
+    description: View and manage admin settings
+    files:
+      - lib/main.dart
+    entry_route: /admin/dashboard
+    user_interactions:
+      - View stats
+      - Navigate to sections
+    api_calls:
+      - method: GET
+        endpoint: /api/admin/dashboard
+    auth_required: true
+known_limitations: []

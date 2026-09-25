@@ -15,7 +15,6 @@ import 'package:orderlli_admin/core/providers/repository_providers.dart';
 
 import 'package:orderlli_admin/features/menu/data/repositories/menu_repository_impl.dart';
 import 'package:orderlli_admin/features/menu/presentation/state/menu_providers.dart';
-import 'package:orderlli_admin/features/orders/providers/orders_providers.dart';
 
 // Mocks for testing snapshot integration
 class MockDioClient implements DioClient {
@@ -337,7 +336,7 @@ void main() {
       expect(menuState.value!.items[0].name, 'Classic Burger');
 
       // Check legacy products mapping
-      final products = container.read(menuProductsProvider);
+      final products = container.read(publicMenuProductsProvider);
       expect(products.length, 1);
       expect(products[0].name, 'Classic Burger');
       expect(products[0].category, 'Burgers');

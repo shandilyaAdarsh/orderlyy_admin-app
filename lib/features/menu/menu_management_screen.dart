@@ -167,6 +167,7 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
                   await ref
                       .read(categoriesProvider.notifier)
                       .loadCategories(forceRefresh: true);
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(message),

@@ -27,7 +27,7 @@ class ApiOrdersRepository implements OrdersRepository {
         'page': page,
         'limit': limit,
         if (status != null) 'status': status.name,
-        if (tableId != null) 'table_id': tableId,
+        'table_id': ?tableId,
       };
 
       final response = await _dioClient.dio.get(

@@ -24,7 +24,7 @@ class TableManagementScreen extends ConsumerWidget {
         data: (tables) => ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: tables.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (ctx, i) => _TableTile(table: tables[i]),
         ),
       ),

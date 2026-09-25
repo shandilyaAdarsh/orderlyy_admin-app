@@ -1,0 +1,19 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:58090",
+  "loginUser": "testcafe.owner@test.com",
+  "loginPassword": "Test@123456",
+  "executionArgs": {
+    "projectName": "tableos_admin",
+    "projectPath": "v:\\All Projects\\g8g ROS Main\\Orderlli\\tableosapk\\tableos_admin",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-8jNkDbOLsH2QovZug--8LrxGfJcPGI2o-Qqfp3tGnPu5RslPheAP70cazkWTIjF2iQScZrns7_zrifugVyRuCEi29gMSHtSFDDe92u6E06XSnxZUdt6cOpx8ZWCI0hd-pHc"
+    }
+  },
+  "serverPort": 59517
+}
