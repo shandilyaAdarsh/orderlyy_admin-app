@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
@@ -18,6 +19,31 @@ import 'core/runtime/runtime_reset_service.dart';
 import 'core/constants/supabase_constants.dart';
 
 Future<void> main() async {
+  const enableSentry =
+      bool.fromEnvironment('ENABLE_SENTRY', defaultValue: false);
+  const sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue:
+        'https://29f6feb26ecd48ef0b238c9833b9d943@o4512208763420672.ingest.de.sentry.io/4512208776462416',
+  );
+
+  if (enableSentry) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 1.0;
+      },
+      // appRunner ensures WidgetsFlutterBinding.ensureInitialized() and
+      // runApp() are both called inside the same Sentry-managed zone,
+      // preventing the "Zone mismatch" AssertionError.
+      appRunner: _bootstrap,
+    );
+  } else {
+    await _bootstrap();
+  }
+}
+
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Local Hive Database Snapshot Cache
@@ -36,7 +62,9 @@ Future<void> main() async {
 
   // Supabase initialization with Secure Token Storage
   final supabaseEnvUrl = const String.fromEnvironment('SUPABASE_URL');
-  final supabaseUrl = supabaseEnvUrl.isNotEmpty ? supabaseEnvUrl : SupabaseConstants.supabaseUrl;
+  final supabaseUrl = supabaseEnvUrl.isNotEmpty
+      ? supabaseEnvUrl
+      : SupabaseConstants.supabaseUrl;
 
   const supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
@@ -54,17 +82,20 @@ Future<void> main() async {
   // ── PHASE 2: Hard User Validation & Schema Version Check Before Hydration ──────────
   final previousUserId = prefs.getString('bootstrap_last_user_id');
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-  
+
   final storedSchemaVersion = prefs.getInt('runtime_schema_version') ?? 0;
   const currentSchemaVersion = 1;
 
-  final isUserMismatch = previousUserId != null && currentUserId != null && previousUserId != currentUserId;
+  final isUserMismatch = previousUserId != null &&
+      currentUserId != null &&
+      previousUserId != currentUserId;
   final isSchemaMismatch = storedSchemaVersion != currentSchemaVersion;
 
   if (isUserMismatch || isSchemaMismatch) {
-    debugPrint('[Main] ⚠️ Runtime reset trigger detected (userMismatch: $isUserMismatch, schemaMismatch: $isSchemaMismatch). Performing hard reset.');
+    debugPrint(
+        '[Main] ⚠️ Runtime reset trigger detected (userMismatch: $isUserMismatch, schemaMismatch: $isSchemaMismatch). Performing hard reset.');
     await RuntimeResetService.fullReset();
-    
+
     // Save current schema version after reset to prevent loop
     await prefs.setInt('runtime_schema_version', currentSchemaVersion);
   }
