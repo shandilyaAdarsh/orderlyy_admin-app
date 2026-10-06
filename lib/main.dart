@@ -46,6 +46,12 @@ Future<void> main() async {
   }
 }
 
+/// Sentry's own setup-verification test events: always drop these regardless
+/// of build mode so they never appear in the issue dashboard.
+const _alwaysDropSignatures = <String>[
+  'Verify Sentry Setup',
+];
+
 /// Engine assertions that only fire in debug builds when Flutter web is
 /// hot-restarted: a frame queued by the old app instance renders into the
 /// already-disposed view, and the persisted bindings no longer match the new
@@ -56,18 +62,22 @@ const _debugHotRestartSignatures = <String>[
 ];
 
 SentryEvent? _dropDebugHotRestartNoise(SentryEvent event, Hint hint) {
-  if (!kDebugMode) return event;
-
   final messages = <String>[
+    event.message?.formatted ?? '',
     ...?event.exceptions?.map((e) => e.value ?? ''),
     event.throwable?.toString() ?? '',
   ];
 
-  final isHotRestartNoise = messages.any(
-    (message) => _debugHotRestartSignatures.any(message.contains),
-  );
+  // Always drop Sentry's own setup-verification test events.
+  if (messages.any((m) => _alwaysDropSignatures.any(m.contains))) return null;
 
-  return isHotRestartNoise ? null : event;
+  // Drop Flutter hot-restart noise in debug builds only.
+  if (kDebugMode &&
+      messages.any((m) => _debugHotRestartSignatures.any(m.contains))) {
+    return null;
+  }
+
+  return event;
 }
 
 /// Returns a clean Supabase URL. A SUPABASE_URL dart-define containing stray
