@@ -43,6 +43,30 @@ Future<void> main() async {
   }
 }
 
+/// Returns a clean Supabase URL. A SUPABASE_URL dart-define containing stray
+/// characters (e.g. "https://© xyz.supabase.co" from a bad copy/paste) makes
+/// every auth request fail with "ClientException: Failed to fetch", so invalid
+/// values fall back to the bundled constant.
+String _resolveSupabaseUrl(String rawEnvUrl) {
+  final candidate = rawEnvUrl.trim();
+  if (candidate.isEmpty) return SupabaseConstants.supabaseUrl;
+
+  final uri = Uri.tryParse(candidate);
+  final isValidHost = uri != null &&
+      (uri.scheme == 'https' || uri.scheme == 'http') &&
+      uri.host.isNotEmpty &&
+      RegExp(r'^[A-Za-z0-9.\-]+$').hasMatch(uri.host);
+
+  if (!isValidHost) {
+    debugPrint(
+      '[Supabase] Ignoring invalid SUPABASE_URL "$rawEnvUrl"; '
+      'falling back to ${SupabaseConstants.supabaseUrl}',
+    );
+    return SupabaseConstants.supabaseUrl;
+  }
+  return candidate;
+}
+
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -61,10 +85,9 @@ Future<void> _bootstrap() async {
   final localStorage = SharedPreferencesStorage(prefs);
 
   // Supabase initialization with Secure Token Storage
-  final supabaseEnvUrl = const String.fromEnvironment('SUPABASE_URL');
-  final supabaseUrl = supabaseEnvUrl.isNotEmpty
-      ? supabaseEnvUrl
-      : SupabaseConstants.supabaseUrl;
+  final supabaseUrl = _resolveSupabaseUrl(
+    const String.fromEnvironment('SUPABASE_URL'),
+  );
 
   const supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
