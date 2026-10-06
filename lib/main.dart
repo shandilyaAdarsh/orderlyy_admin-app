@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,6 +32,8 @@ Future<void> main() async {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;
+        options.environment = kReleaseMode ? 'production' : 'debug';
+        options.beforeSend = _dropDebugHotRestartNoise;
         options.tracesSampleRate = 1.0;
       },
       // appRunner ensures WidgetsFlutterBinding.ensureInitialized() and
@@ -41,6 +44,30 @@ Future<void> main() async {
   } else {
     await _bootstrap();
   }
+}
+
+/// Engine assertions that only fire in debug builds when Flutter web is
+/// hot-restarted: a frame queued by the old app instance renders into the
+/// already-disposed view, and the persisted bindings no longer match the new
+/// zone. They are dev-tooling artifacts, not application bugs.
+const _debugHotRestartSignatures = <String>[
+  'Trying to render a disposed EngineFlutterView',
+  'Zone mismatch',
+];
+
+SentryEvent? _dropDebugHotRestartNoise(SentryEvent event, Hint hint) {
+  if (!kDebugMode) return event;
+
+  final messages = <String>[
+    ...?event.exceptions?.map((e) => e.value ?? ''),
+    event.throwable?.toString() ?? '',
+  ];
+
+  final isHotRestartNoise = messages.any(
+    (message) => _debugHotRestartSignatures.any(message.contains),
+  );
+
+  return isHotRestartNoise ? null : event;
 }
 
 /// Returns a clean Supabase URL. A SUPABASE_URL dart-define containing stray
