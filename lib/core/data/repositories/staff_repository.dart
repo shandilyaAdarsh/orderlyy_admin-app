@@ -8,8 +8,6 @@ abstract class StaffRepository {
   // ── Fetch ─────────────────────────────────────────────────────────────────
   Future<List<StaffDto>> getStaff(String tenantId);
 
-  Future<StaffDto?> getStaffById(String staffId);
-
   // ── Mutations ─────────────────────────────────────────────────────────────
   Future<StaffDto> createStaff(StaffDto staff);
 

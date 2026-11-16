@@ -104,6 +104,8 @@ class MenuItemDto {
   final bool isVegetarian;
   final int prepTimeMinutes;
   final List<String> tags;
+  final bool recommendationEnabled;
+  final List<String> recommendationTags;
   final int versionNum;
   final DateTime? deletedAt;
 
@@ -120,6 +122,8 @@ class MenuItemDto {
     required this.isVegetarian,
     required this.prepTimeMinutes,
     required this.tags,
+    this.recommendationEnabled = true,
+    this.recommendationTags = const [],
     required this.versionNum,
     this.deletedAt,
   });
@@ -127,6 +131,13 @@ class MenuItemDto {
   factory MenuItemDto.fromJson(Map<String, dynamic> json) {
     final dietaryTags = List<String>.from(json['dietary_tags'] as List? ?? []);
     final isVeg = json['is_veg'] as bool? ?? false;
+    final recEnabled = json['recommendation_enabled'] as bool? ?? true;
+    final recTags = (json['recommendation_tags'] as List<dynamic>?)
+            ?.map((e) => e.toString().trim().toLowerCase())
+            .where((e) => e.isNotEmpty)
+            .toSet()
+            .toList() ??
+        const <String>[];
 
     return MenuItemDto(
       id: json['id'] as String,
@@ -143,6 +154,8 @@ class MenuItemDto {
       isVegetarian: isVeg,
       prepTimeMinutes: json['prep_time_minutes'] as int? ?? 15,
       tags: dietaryTags,
+      recommendationEnabled: recEnabled,
+      recommendationTags: recTags,
       versionNum: json['version_num'] as int? ?? 1,
       deletedAt: json['deleted_at'] != null
           ? DateTime.parse(json['deleted_at'] as String)
@@ -173,6 +186,12 @@ class MenuItemDto {
       'is_veg': isVegetarian,
       'dietary_tags': tags,
       'prep_time_minutes': prepTimeMinutes,
+      'recommendation_enabled': recommendationEnabled,
+      'recommendation_tags': recommendationTags
+          .map((e) => e.trim().toLowerCase())
+          .where((e) => e.isNotEmpty)
+          .toSet()
+          .toList(),
       'version_num': versionNum, // sent for OCC
     };
   }
@@ -190,6 +209,8 @@ class MenuItemDto {
     bool? isVegetarian,
     int? prepTimeMinutes,
     List<String>? tags,
+    bool? recommendationEnabled,
+    List<String>? recommendationTags,
     int? versionNum,
     DateTime? deletedAt,
   }) {
@@ -206,6 +227,9 @@ class MenuItemDto {
       isVegetarian: isVegetarian ?? this.isVegetarian,
       prepTimeMinutes: prepTimeMinutes ?? this.prepTimeMinutes,
       tags: tags ?? this.tags,
+      recommendationEnabled:
+          recommendationEnabled ?? this.recommendationEnabled,
+      recommendationTags: recommendationTags ?? this.recommendationTags,
       versionNum: versionNum ?? this.versionNum,
       deletedAt: deletedAt ?? this.deletedAt,
     );

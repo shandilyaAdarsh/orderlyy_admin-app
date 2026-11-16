@@ -63,23 +63,23 @@ class RestaurantTableDto {
 
   factory RestaurantTableDto.fromJson(Map<String, dynamic> json) =>
       RestaurantTableDto(
-        id: json['id'] as String,
-        tenantId: json['tenant_id'] as String,
-        label: (json['label'] ?? json['display_name'] ?? json['table_number'] ?? json['table_num'] ?? '') as String,
-        capacity: json['capacity'] as int? ?? 4,
+        id: json['id']?.toString() ?? '',
+        tenantId: json['tenant_id']?.toString() ?? '',
+        label: (json['label'] ?? json['display_name'] ?? json['table_number'] ?? json['table_num'])?.toString() ?? 'T??',
+        capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         status: TableStatus.fromString(
-          (json['status'] ?? 'available') as String,
+          json['status']?.toString() ?? 'available',
         ),
-        activeOrderId: json['active_order_id'] as String?,
-        sectionId: (json['section_id'] ?? json['floor']?.toString()) as String?,
-        updatedAt: DateTime.parse(
-          json['updated_at'] ??
-              json['created_at'] ??
-              DateTime.now().toUtc().toIso8601String(),
-        ),
-        versionNum: json['version_num'] as int? ?? 1,
+        activeOrderId: json['active_order_id']?.toString(),
+        sectionId: (json['section_id'] ?? json['floor'])?.toString(),
+        updatedAt: DateTime.tryParse(
+          json['updated_at']?.toString() ??
+              json['created_at']?.toString() ??
+              '',
+        ) ?? DateTime.now(),
+        versionNum: (json['version_num'] as num?)?.toInt() ?? 1,
         deletedAt: json['deleted_at'] != null
-            ? DateTime.parse(json['deleted_at'] as String)
+            ? DateTime.tryParse(json['deleted_at'].toString())
             : null,
       );
 

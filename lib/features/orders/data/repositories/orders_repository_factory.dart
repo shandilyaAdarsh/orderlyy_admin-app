@@ -3,6 +3,7 @@
 // Enables easy swapping between mock/live/offline modes.
 
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/config/app_config.dart';
 import '../datasources/orders_remote_datasource.dart';
 import '../datasources/orders_mock_datasource.dart';
 import 'orders_repository_interface.dart';
@@ -126,8 +127,7 @@ class OrdersRepositoryFactory {
   }
 
   static String _getDefaultBaseUrl() {
-    // Return default API base URL
-    return 'https://api.example.com';
+    return AppConfig.instance.apiBaseUrl;
   }
 }
 

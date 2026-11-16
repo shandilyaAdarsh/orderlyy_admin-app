@@ -121,12 +121,12 @@ class AppContextDto {
   });
 
   factory AppContextDto.fromJson(Map<String, dynamic> json) => AppContextDto(
-    user: UserContextDto.fromJson(json['user'] as Map<String, dynamic>),
-    tenant: TenantContextDto.fromJson(json['tenant'] as Map<String, dynamic>),
+    user: UserContextDto.fromJson(json['user'] as Map<String, dynamic>? ?? {}),
+    tenant: TenantContextDto.fromJson(json['tenant'] as Map<String, dynamic>? ?? {}),
     onboarding: OnboardingContextDto.fromJson(
-      json['onboarding'] as Map<String, dynamic>,
+      json['onboarding'] as Map<String, dynamic>? ?? {},
     ),
-    flags: ContextFlagsDto.fromJson(json['flags'] as Map<String, dynamic>),
+    flags: ContextFlagsDto.fromJson(json['flags'] as Map<String, dynamic>? ?? {}),
   );
 }
 
@@ -146,9 +146,9 @@ class UserContextDto {
   });
 
   factory UserContextDto.fromJson(Map<String, dynamic> json) => UserContextDto(
-    id: json['id'] as String,
-    fullName: json['full_name'] as String,
-    role: json['role'] as String,
+    id: json['id']?.toString() ?? '',
+    fullName: (json['full_name'] ?? json['fullName'])?.toString() ?? 'User',
+    role: json['role']?.toString() ?? 'admin',
     mustChangePassword: json['must_change_password'] as bool? ?? false,
     isFirstLogin: json['is_first_login'] as bool? ?? false,
   );
@@ -177,14 +177,14 @@ class TenantContextDto {
 
   factory TenantContextDto.fromJson(Map<String, dynamic> json) =>
       TenantContextDto(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        slug: json['slug'] as String,
-        plan: json['plan'] as String,
-        status: json['status'] as String,
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString() ?? 'Restaurant',
+        slug: json['slug']?.toString() ?? '',
+        plan: json['plan']?.toString() ?? 'standard',
+        status: json['status']?.toString() ?? 'active',
         isActive: json['is_active'] as bool? ?? true,
         dismissedQrBanner: json['dismissed_qr_banner'] as bool? ?? false,
-        nextBillingDate: json['next_billing_date'] as String?,
+        nextBillingDate: json['next_billing_date']?.toString(),
       );
 }
 

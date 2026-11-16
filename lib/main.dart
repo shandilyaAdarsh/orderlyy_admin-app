@@ -21,14 +21,14 @@ import 'core/constants/supabase_constants.dart';
 
 Future<void> main() async {
   const enableSentry =
-      bool.fromEnvironment('ENABLE_SENTRY', defaultValue: false);
+      bool.fromEnvironment('ENABLE_SENTRY', defaultValue: true);
   const sentryDsn = String.fromEnvironment(
     'SENTRY_DSN',
     defaultValue:
         'https://29f6feb26ecd48ef0b238c9833b9d943@o4512208763420672.ingest.de.sentry.io/4512208776462416',
   );
 
-  if (enableSentry) {
+  if (enableSentry && sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;

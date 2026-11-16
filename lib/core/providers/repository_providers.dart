@@ -1,16 +1,5 @@
 // ── Repository Providers ──────────────────────────────────────────────────────
 // Single source of truth for which implementation is wired.
-//
-// MOCK MODE (current): All repositories use Mock* implementations.
-// No Supabase calls are made anywhere in the app.
-//
-// PRODUCTION MIGRATION CHECKLIST:
-//   1. Set kUseMockRepositories = false
-//   2. Implement SupabaseAuthRepository, SupabaseMenuRepository, etc.
-//   3. Wire them in the `else` branch below.
-//   4. Remove the mock imports.
-//   Zero UI code changes needed.
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,6 +20,8 @@ import '../data/api/api_categories_repository.dart';
 import '../data/repositories/categories_repository.dart';
 import '../data/api/api_menu_items_repository.dart';
 import '../data/repositories/menu_items_repository.dart';
+import '../data/api/api_menu_recommendations_repository.dart';
+import '../data/repositories/menu_recommendations_repository.dart';
 import '../data/api/api_pricing_repository.dart';
 import '../data/repositories/pricing_repository.dart';
 import '../data/api/api_tax_repository.dart';
@@ -96,6 +87,15 @@ final menuItemsRepositoryProvider = Provider<MenuItemsRepository>((ref) {
   final ctx = ref.watch(appContextProvider);
   final tenantId = ctx?.tenant.id ?? '';
   return ApiMenuItemsRepository(dioClient, tenantId);
+});
+
+// ── Menu Recommendations Repository Provider ─────────────────────────────────
+final menuRecommendationsRepositoryProvider =
+    Provider<MenuRecommendationsRepository>((ref) {
+  final dioClient = ref.watch(dioClientProvider);
+  final ctx = ref.watch(appContextProvider);
+  final tenantId = ctx?.tenant.id ?? '';
+  return ApiMenuRecommendationsRepository(dioClient, tenantId);
 });
 
 // ── Pricing Repository Provider ───────────────────────────────────────────────

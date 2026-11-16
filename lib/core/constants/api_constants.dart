@@ -19,6 +19,14 @@ class ApiConstants {
   static String pricing(String tenantId) => '$apiVersion/tenants/$tenantId/pricing';
   static String taxes(String tenantId) => '$apiVersion/tenants/$tenantId/tax/profiles';
   static String modifiers(String tenantId) => '$apiVersion/tenants/$tenantId/modifier/groups';
+  static String itemRecommendations(String tenantId, String itemId) =>
+      '${menuItems(tenantId)}/$itemId/recommendations';
+  static String recommendation(String tenantId, String recId) =>
+      '$apiVersion/tenants/$tenantId/menu/recommendations/$recId';
+  static String deactivateRecommendation(String tenantId, String recId) =>
+      '${recommendation(tenantId, recId)}/deactivate';
+  static String reactivateRecommendation(String tenantId, String recId) =>
+      '${recommendation(tenantId, recId)}/reactivate';
 
   // Operational Endpoints
   static String get tables => '$apiVersion/admin/tables';

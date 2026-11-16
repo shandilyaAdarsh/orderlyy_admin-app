@@ -20,7 +20,7 @@ class BranchContextService extends AsyncNotifier<BranchDto?> {
 
     final dio = ref.read(dioClientProvider);
     try {
-      final response = await dio.get('/tenants/${ctx.tenant.id}/branches');
+      final response = await dio.get('/api/v1/tenants/${ctx.tenant.id}/branches');
       availableBranches = (response.data['data'] as List).map((e) => BranchDto.fromJson(e)).toList();
     } catch (e) {
       debugPrint('[BranchContextService] Error fetching branches: $e');
@@ -58,7 +58,7 @@ class BranchContextService extends AsyncNotifier<BranchDto?> {
     if (availableBranches.isEmpty) {
       final dio = ref.read(dioClientProvider);
       try {
-        final response = await dio.get('/tenants/${ctx.tenant.id}/branches');
+        final response = await dio.get('/api/v1/tenants/${ctx.tenant.id}/branches');
         availableBranches = (response.data['data'] as List).map((e) => BranchDto.fromJson(e)).toList();
       } catch (e) {
         debugPrint('[BranchContextService] Error fetching branches: $e');

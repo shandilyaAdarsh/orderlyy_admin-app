@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/table_model.dart';
 import '../providers/table_provider.dart';
 
@@ -86,6 +87,14 @@ class TableManagementScreen extends ConsumerWidget {
           ),
         ]),
         actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.open_in_browser_rounded, size: 16),
+            onPressed: () async {
+              final uri = Uri.parse(table.qrUrl);
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            label: const Text('Preview'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Done'),
@@ -164,6 +173,14 @@ class _TableTile extends ConsumerWidget {
               style: const TextStyle(fontSize: 11)),
         ]),
         actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.open_in_browser_rounded, size: 16),
+            onPressed: () async {
+              final uri = Uri.parse(table.qrUrl);
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            label: const Text('Preview'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),

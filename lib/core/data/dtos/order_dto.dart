@@ -13,7 +13,8 @@ enum OrderStatus {
   served,
   cancelled;
 
-  static OrderStatus fromString(String value) {
+  static OrderStatus fromString(String? value) {
+    if (value == null) return OrderStatus.pending;
     if (value == 'accepted') return OrderStatus.confirmed;
     if (value == 'delivered' || value == 'completed') return OrderStatus.served;
     return OrderStatus.values.firstWhere(
@@ -50,7 +51,7 @@ class OrderItemDto {
   });
 
   factory OrderItemDto.fromJson(Map<String, dynamic> json) {
-    final int q = (json['quantity'] ?? json['qty'] ?? 1) as int;
+    final int q = (json['quantity'] ?? json['qty'] as num?)?.toInt() ?? 1;
     final int up = (((json['unit_price_amount'] ?? json['unit_price'] as num?)?.toDouble() ?? 0) * 100).toInt();
     final int lt = (((json['line_total_amount'] ?? json['total_price'] as num?)?.toDouble() ?? 0) * 100).toInt();
     
@@ -58,13 +59,13 @@ class OrderItemDto {
     final int finalLt = lt != 0 ? lt : (up * q);
 
     return OrderItemDto(
-      id: json['id'] as String,
-      menuItemId: json['menu_item_id'] as String,
-      menuItemName: (json['menu_item_name'] ?? json['name'] ?? 'Unknown Item') as String,
+      id: json['id']?.toString() ?? '',
+      menuItemId: (json['menu_item_id'] ?? json['menuItemId'])?.toString() ?? '',
+      menuItemName: (json['menu_item_name'] ?? json['name'] ?? json['item_name_snapshot'] ?? 'Unknown Item').toString(),
       quantity: q,
       unitPriceAmount: up,
       lineTotalAmount: finalLt,
-      notes: (json['notes'] ?? json['note'] ?? json['special_instructions']) as String?,
+      notes: (json['notes'] ?? json['note'] ?? json['special_instructions'])?.toString(),
     );
   }
 
@@ -120,23 +121,24 @@ class OrderDto {
   });
 
   factory OrderDto.fromJson(Map<String, dynamic> json) => OrderDto(
-    id: json['id'] as String,
-    tenantId: json['tenant_id'] as String,
-    tableId: json['table_id'] as String? ?? '',
-    tableLabel: json['table_label'] as String? ?? 'T??',
-    status: OrderStatus.fromString(json['status'] as String),
+    id: (json['id'] ?? json['order_id'])?.toString() ?? '',
+    tenantId: json['tenant_id']?.toString() ?? '',
+    tableId: json['table_id']?.toString() ?? '',
+    tableLabel: (json['table_label'] ?? json['table_number'])?.toString() ?? 'T??',
+    status: OrderStatus.fromString(json['status']?.toString()),
     items: (json['items'] as List? ?? [])
+        .where((e) => e != null)
         .map((e) => OrderItemDto.fromJson(e as Map<String, dynamic>))
         .toList(),
     totalAmount: (((json['total_amount'] as num?)?.toDouble() ?? 0) * 100).toInt(),
     totalTaxAmount: (((json['total_tax_amount'] as num?)?.toDouble() ?? 0) * 100).toInt(),
     totalDiscountAmount: (((json['total_discount_amount'] as num?)?.toDouble() ?? 0) * 100).toInt(),
-    staffId: json['staff_id'] as String?,
-    staffName: json['staff_name'] as String?,
-    notes: (json['notes'] ?? json['order_notes']) as String?,
-    createdAt: DateTime.parse(json['created_at'] as String),
-    updatedAt: DateTime.parse(json['updated_at'] as String),
-    versionNum: json['version_num'] as int? ?? 1,
+    staffId: json['staff_id']?.toString(),
+    staffName: json['staff_name']?.toString(),
+    notes: (json['notes'] ?? json['order_notes'])?.toString(),
+    createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+    updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+    versionNum: (json['version_num'] as num?)?.toInt() ?? 1,
   );
 
   Map<String, dynamic> toJson() => {

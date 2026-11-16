@@ -48,15 +48,15 @@ class StaffDto {
   });
 
   factory StaffDto.fromJson(Map<String, dynamic> json) => StaffDto(
-    id: json['id'] as String,
-    tenantId: json['tenant_id'] as String,
-    name: json['name'] as String? ?? 'Unknown',
-    role: StaffRole.fromString(json['role'] as String? ?? 'waiter'),
-    pin: json['pin'] as String? ?? '----',
+    id: json['id']?.toString() ?? '',
+    tenantId: json['tenant_id']?.toString() ?? '',
+    name: (json['name'] ?? json['full_name'])?.toString() ?? 'Unknown',
+    role: StaffRole.fromString(json['role']?.toString() ?? 'waiter'),
+    pin: json['pin']?.toString() ?? '----',
     isActive: json['is_active'] as bool? ?? true,
-    employeeId: json['employee_id'] as String?,
-    branchId: json['branch_id'] as String?,
-    email: json['email'] as String?,
+    employeeId: json['employee_id']?.toString(),
+    branchId: json['branch_id']?.toString(),
+    email: json['email']?.toString(),
   );
 
   Map<String, dynamic> toJson() => {

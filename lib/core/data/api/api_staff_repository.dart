@@ -34,10 +34,6 @@ class ApiStaffRepository implements StaffRepository {
     }
   }
 
-  @override
-  Future<StaffDto?> getStaffById(String staffId) async {
-    throw UnimplementedError('getStaffById without tenant context not supported by backend');
-  }
 
   @override
   Future<StaffDto> createStaff(StaffDto staff) async {

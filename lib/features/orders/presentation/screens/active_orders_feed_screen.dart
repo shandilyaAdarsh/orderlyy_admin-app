@@ -5,6 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/models/order.dart';
 import '../../domain/models/order_status.dart';
 import '../../providers/live_active_orders_provider.dart';
+import '../../../../core/providers/orders_providers.dart';
+import '../../../../core/data/dtos/order_dto.dart' as dto;
 
 
 class ActiveOrdersFeedScreen extends ConsumerStatefulWidget {
@@ -246,6 +248,34 @@ class _ActiveOrdersFeedScreenState extends ConsumerState<ActiveOrdersFeedScreen>
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final scaffold = ScaffoldMessenger.of(context);
+                    await ref
+                        .read(ordersProvider.notifier)
+                        .transitionOrderStatus(order.id, dto.OrderStatus.served);
+                    scaffold.showSnackBar(
+                      const SnackBar(
+                        content: Text('Order marked as SERVED & Completed.'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text('Mark Served & Complete'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

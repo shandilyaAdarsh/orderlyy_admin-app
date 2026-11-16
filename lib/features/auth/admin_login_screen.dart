@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/data/dtos/auth_dto.dart';
 import '../../core/network/api_exception.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
@@ -338,9 +339,29 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                                   ),
                           ),
                         ),
-                        SizedBox(height: 24.h),
+                        SizedBox(height: 12.h),
 
-
+                        // Verify Sentry Setup button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44.h,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await Sentry.captureMessage('Verify Sentry Setup: test event');
+                              throw StateError('This is test exception');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E384D),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text('Verify Sentry Setup'),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
                       ],
                     ),
                   ),

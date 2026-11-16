@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/dtos/floor_dto.dart';
 import '../../data/dtos/table_dto.dart';
@@ -69,20 +71,45 @@ class _TableQrBottomSheetState extends ConsumerState<TableQrBottomSheet> {
     return 'Table $name';
   }
 
+  String get _resolvedQrUrl => AppConfig.instance.normalizeCustomerQrUrl(
+        _table.qrUrl,
+        fallbackToken: _table.qrCodeToken ?? _table.id,
+      );
+
   String get _shortUrl {
-    final url = _table.qrUrl;
-    if (url == null || url.isEmpty) return '';
+    final url = _resolvedQrUrl;
+    if (url.isEmpty) return '';
     return url.replaceFirst(RegExp(r'^https?://'), '');
   }
 
   Future<void> _copyLink() async {
-    final url = _table.qrUrl;
-    if (url == null || url.isEmpty) return;
+    final url = _resolvedQrUrl;
+    if (url.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: url));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Link copied!')),
     );
+  }
+
+  Future<void> _previewCustomerMenu() async {
+    final url = _resolvedQrUrl;
+    if (url.isEmpty) return;
+    final uri = Uri.parse(url);
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open preview for $url')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open preview: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _downloadPng() async {
@@ -151,7 +178,7 @@ class _TableQrBottomSheetState extends ConsumerState<TableQrBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final qrUrl = _table.qrUrl ?? '';
+    final qrUrl = _resolvedQrUrl;
 
     return Container(
       decoration: BoxDecoration(
@@ -229,8 +256,8 @@ class _TableQrBottomSheetState extends ConsumerState<TableQrBottomSheet> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _downloadPng,
-                    icon: const Icon(Icons.download_rounded, size: 18),
-                    label: const Text('Download QR'),
+                    icon: const Icon(Icons.download_rounded, size: 16),
+                    label: const Text('Download'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
@@ -238,12 +265,24 @@ class _TableQrBottomSheetState extends ConsumerState<TableQrBottomSheet> {
                     ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _previewCustomerMenu,
+                    icon: const Icon(Icons.open_in_browser_rounded, size: 16),
+                    label: const Text('Preview'),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      side: const BorderSide(color: AppTheme.surfaceContainerHigh),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _copyLink,
-                    icon: const Icon(Icons.link_rounded, size: 18),
-                    label: const Text('Copy link'),
+                    icon: const Icon(Icons.link_rounded, size: 16),
+                    label: const Text('Copy'),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       side: const BorderSide(color: AppTheme.surfaceContainerHigh),

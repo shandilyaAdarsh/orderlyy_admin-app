@@ -50,7 +50,7 @@ class ApiTableInfrastructureRepository
       if (table.floorId != null && table.floorId!.isNotEmpty) 'floor_id': table.floorId,
       if (table.sectionId != null && table.sectionId!.isNotEmpty) 'section_id': table.sectionId,
     };
-    final res = await _dio.post('/v1/admin/tables', data: payload);
+    final res = await _dio.post('/api/v1/admin/tables', data: payload);
     return TableDto.fromJson(res.data['data']);
   }
 
@@ -65,7 +65,7 @@ class ApiTableInfrastructureRepository
       if (table.sectionId != null && table.sectionId!.isNotEmpty) 'section_id': table.sectionId,
     };
     final res = await _dio.patch(
-      '/v1/admin/tables/${table.id}',
+      '/api/v1/admin/tables/${table.id}',
       data: payload,
     );
     return TableDto.fromJson(res.data['data']);
@@ -73,25 +73,25 @@ class ApiTableInfrastructureRepository
 
   @override
   Future<void> deleteTable(String tableId) async {
-    await _dio.delete('/v1/admin/tables/$tableId');
+    await _dio.delete('/api/v1/admin/tables/$tableId');
   }
 
   @override
   Future<String> rotateQrCode(String tableId) async {
-    final res = await _dio.post('/v1/admin/tables/$tableId/qr/rotate');
+    final res = await _dio.post('/api/v1/admin/tables/$tableId/qr/rotate');
     return res.data['token'] as String;
   }
 
   @override
   Future<TableDto> generateQr(String tableId) async {
-    final res = await _dio.post('/v1/admin/tables/$tableId/generate-qr');
+    final res = await _dio.post('/api/v1/admin/tables/$tableId/generate-qr');
     return TableDto.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 
   // Floors implementation
   @override
   Future<List<FloorDto>> getFloors(String tenantId, String branchId) async {
-    final res = await _dio.get('/v1/admin/tables/floors?branch_id=$branchId');
+    final res = await _dio.get('/api/v1/admin/tables/floors?branch_id=$branchId');
     final data = res.data['data'] as List;
     return data.map((json) => FloorDto.fromJson(json)).toList();
   }
@@ -102,12 +102,12 @@ class ApiTableInfrastructureRepository
       'branch_id': branchId,
       'name': name,
     };
-    final res = await _dio.post('/v1/admin/tables/floors', data: payload);
+    final res = await _dio.post('/api/v1/admin/tables/floors', data: payload);
     return FloorDto.fromJson(res.data['data']);
   }
 
   @override
   Future<void> deleteFloor(String floorId) async {
-    await _dio.delete('/v1/admin/tables/floors/$floorId');
+    await _dio.delete('/api/v1/admin/tables/floors/$floorId');
   }
 }

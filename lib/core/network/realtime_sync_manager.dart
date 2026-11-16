@@ -67,9 +67,10 @@ class RealtimeSyncManager {
 
   void connectLocal() {
     if (!enabled) return;
-    debugPrint('[SYNC] Connecting to local sync server ws://localhost:8085...');
+    final wsUrl = AppConfig.instance.websocketUrl;
+    debugPrint('[SYNC] Connecting to realtime sync server $wsUrl...');
     try {
-      _channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8085'));
+      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
       _channel!.stream.listen(
         (message) {
           debugPrint('[SYNC] Received raw message: $message');

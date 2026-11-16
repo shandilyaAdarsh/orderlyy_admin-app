@@ -68,9 +68,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // Restore persisted session first (works for mock & live repos)
     await repo.restoreSession();
 
-    // Enforce a 2000ms minimum splash delay to display animations beautifully
-    await Future.delayed(const Duration(milliseconds: 2000));
-
     if (!mounted) return;
 
     final restoredUserId = repo.currentUserId;

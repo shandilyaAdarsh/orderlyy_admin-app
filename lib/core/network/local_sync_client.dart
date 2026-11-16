@@ -43,12 +43,13 @@ class LocalSyncClient {
     if (!enabled) return;
     if (_isConnected || _isConnecting) return;
     _isConnecting = true;
+    final wsUrl = AppConfig.instance.websocketUrl;
     if (kDebugMode) {
-      print('[LocalSyncClient] Connecting to ws://localhost:8085...');
+      print('[LocalSyncClient] Connecting to $wsUrl...');
     }
 
     try {
-      _channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8085'));
+      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
       // Listen to the channel's stream. In web_socket_channel v3,
       // the channel is a WebSocketChannel wrapper that handles connection asynchronously.

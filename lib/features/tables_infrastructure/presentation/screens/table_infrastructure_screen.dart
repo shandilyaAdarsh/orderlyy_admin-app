@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/config/app_config.dart';
 import '../services/table_qr_file_save.dart';
 import '../services/table_qr_png_service.dart';
 import '../widgets/table_qr_bottom_sheet.dart';
@@ -1112,10 +1113,16 @@ class _MassQrBuilderPanelState extends ConsumerState<_MassQrBuilderPanel> {
 
       Future<String> resolveUrl(TableDto table) async {
         if (table.qrUrl != null && table.qrUrl!.isNotEmpty) {
-          return table.qrUrl!;
+          return AppConfig.instance.normalizeCustomerQrUrl(
+            table.qrUrl,
+            fallbackToken: table.qrCodeToken ?? table.id,
+          );
         }
         final updated = await repo.generateQr(table.id);
-        return updated.qrUrl ?? '';
+        return AppConfig.instance.normalizeCustomerQrUrl(
+          updated.qrUrl,
+          fallbackToken: updated.qrCodeToken ?? updated.id,
+        );
       }
 
       final zipBytes = await _pngService.buildZipArchive(

@@ -1,3 +1,5 @@
+import '../../../../core/config/app_config.dart';
+
 class TableDto {
   final String id;
   final String tenantId;
@@ -13,6 +15,11 @@ class TableDto {
   final int versionNum;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  String get resolvedQrUrl => AppConfig.instance.normalizeCustomerQrUrl(
+        qrUrl,
+        fallbackToken: qrCodeToken ?? id,
+      );
 
   const TableDto({
     required this.id,

@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../data/dtos/table_dto.dart';
+import '../../../../core/config/app_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final qrExportServiceProvider = Provider<QRExportService>((ref) {
@@ -36,7 +37,7 @@ class QRExportService {
           final List<pw.Widget> gridItems = tokenDataList.map((data) {
             final TableDto table = data['table'];
             final String token = data['token'];
-            final qrUrl = 'https://app.orderlyy.com/t/$token';
+            final qrUrl = AppConfig.instance.buildCustomerQrUrl(token);
 
             return pw.Container(
               decoration: pw.BoxDecoration(
@@ -143,6 +144,10 @@ class QRExportService {
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
     final doc = pw.Document();
+    final normalizedUrl = AppConfig.instance.normalizeCustomerQrUrl(
+      qrUrl,
+      fallbackToken: table.qrCodeToken ?? table.id,
+    );
 
     doc.addPage(
       pw.Page(
@@ -193,7 +198,7 @@ class QRExportService {
                   ],
                   pw.SizedBox(height: 24),
                   pw.BarcodeWidget(
-                    data: qrUrl,
+                    data: normalizedUrl,
                     barcode: pw.Barcode.qrCode(),
                     width: 180,
                     height: 180,

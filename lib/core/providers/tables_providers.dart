@@ -8,6 +8,7 @@
 //     └─ SupabaseTablesRepository  (future, kUseMockRepositories = false)
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/dtos/table_dto.dart';
 import 'repository_providers.dart';
@@ -131,21 +132,19 @@ class TableStatusNotifier extends StateNotifier<Map<String, TableStatusState>> {
         .select()
         .eq('tenant_id', tenantId)
         .then((data) {
-          if (data is List) {
-            final newMap = <String, TableStatusState>{};
-            for (final row in data) {
-              final tableId = row['table_id'] as String;
-              final stateStr = row['runtime_state'] as String? ?? 'FREE';
-              final guests = row['active_guest_count'] as int? ?? 0;
-              newMap[tableId] = TableStatusState(
-                phase: _phaseFromDb(stateStr),
-                activeGuests: guests,
-              );
-            }
-            state = newMap;
+          final newMap = <String, TableStatusState>{};
+          for (final row in data) {
+            final tableId = row['table_id'] as String;
+            final stateStr = row['runtime_state'] as String? ?? 'FREE';
+            final guests = row['active_guest_count'] as int? ?? 0;
+            newMap[tableId] = TableStatusState(
+              phase: _phaseFromDb(stateStr),
+              activeGuests: guests,
+            );
           }
+          state = newMap;
         }).catchError((err) {
-          print('[TableStatusNotifier] Error fetching initial states: $err');
+          debugPrint('[TableStatusNotifier] Error fetching initial states: $err');
         });
 
     // 2. Subscribe to realtime stream
@@ -166,7 +165,7 @@ class TableStatusNotifier extends StateNotifier<Map<String, TableStatusState>> {
           }
           state = newMap;
         }, onError: (err) {
-          print('[TableStatusNotifier] Realtime stream error: $err');
+          debugPrint('[TableStatusNotifier] Realtime stream error: $err');
         });
   }
 

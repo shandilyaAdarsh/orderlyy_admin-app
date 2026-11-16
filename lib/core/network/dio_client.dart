@@ -15,7 +15,6 @@ class DioClient {
   final void Function(String message)? onUnauthorized;
   final _uuid = const Uuid();
   bool _isRefreshing = false;
-  final _retryQueue = <Map<String, dynamic>>[];
 
   DioClient({
     required Talker talker,
@@ -38,6 +37,20 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // Normalize path to ensure /api/v1 prefix is consistently present
+          if (!options.path.startsWith('http://') && !options.path.startsWith('https://')) {
+            var path = options.path;
+            if (!path.startsWith('/')) {
+              path = '/$path';
+            }
+            if (path.startsWith('/v1/')) {
+              path = '/api$path';
+            } else if (!path.startsWith('/api/v1/')) {
+              path = '/api/v1$path';
+            }
+            options.path = path;
+          }
+
           // 1. Inject Trace ID
           options.headers['x-request-id'] = _uuid.v4();
 
@@ -127,19 +140,10 @@ class DioClient {
         opts.headers['Authorization'] = 'Bearer $newToken';
         final retryResponse = await _dio.fetch(opts);
         handler.resolve(retryResponse);
-
-        // Retry queued requests
-        for (var queued in _retryQueue) {
-          final queuedOpts = (queued['err'] as DioException).requestOptions;
-          queuedOpts.headers['Authorization'] = 'Bearer $newToken';
-          final queuedRes = await _dio.fetch(queuedOpts);
-          (queued['handler'] as ErrorInterceptorHandler).resolve(queuedRes);
-        }
       } else {
         throw Exception('Refresh failed');
       }
     } catch (e) {
-      _retryQueue.clear();
       try {
         await Supabase.instance.client.auth.signOut();
       } catch (_) {}
@@ -147,7 +151,6 @@ class DioClient {
       handler.next(err);
     } finally {
       _isRefreshing = false;
-      _retryQueue.clear();
     }
   }
 
