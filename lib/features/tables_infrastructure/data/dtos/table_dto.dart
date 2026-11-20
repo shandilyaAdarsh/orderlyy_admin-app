@@ -15,6 +15,10 @@ class TableDto {
   final int versionNum;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? assignedStaffId;
+  final String? assignedStaffName;
+  final String? status;
+  final String? currentSessionId;
 
   String get resolvedQrUrl => AppConfig.instance.normalizeCustomerQrUrl(
         qrUrl,
@@ -36,6 +40,10 @@ class TableDto {
     this.versionNum = 1,
     this.createdAt,
     this.updatedAt,
+    this.assignedStaffId,
+    this.assignedStaffName,
+    this.status,
+    this.currentSessionId,
   });
 
   TableDto copyWith({
@@ -53,6 +61,10 @@ class TableDto {
     int? versionNum,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? assignedStaffId,
+    String? assignedStaffName,
+    String? status,
+    String? currentSessionId,
   }) {
     return TableDto(
       id: id ?? this.id,
@@ -69,6 +81,10 @@ class TableDto {
       versionNum: versionNum ?? this.versionNum,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      assignedStaffId: assignedStaffId ?? this.assignedStaffId,
+      assignedStaffName: assignedStaffName ?? this.assignedStaffName,
+      status: status ?? this.status,
+      currentSessionId: currentSessionId ?? this.currentSessionId,
     );
   }
 
@@ -85,6 +101,12 @@ class TableDto {
     sectionId: json['section_id'] as String?,
     isActive: json['is_active'] as bool? ?? true,
     versionNum: json['version_num'] as int? ?? 1,
+    assignedStaffId: json['assigned_staff_id'] as String?,
+    assignedStaffName: json['staff'] is Map
+        ? (json['staff'] as Map)['name']?.toString()
+        : json['assigned_staff_name']?.toString(),
+    status: json['status'] as String?,
+    currentSessionId: json['current_session_id'] as String?,
     createdAt: json['created_at'] != null
         ? DateTime.tryParse(json['created_at'] as String)
         : null,
@@ -106,6 +128,9 @@ class TableDto {
     'section_id': sectionId,
     'is_active': isActive,
     'version_num': versionNum,
+    'assigned_staff_id': assignedStaffId,
+    'status': status,
+    'current_session_id': currentSessionId,
     'created_at': createdAt?.toIso8601String(),
     'updated_at': updatedAt?.toIso8601String(),
   };

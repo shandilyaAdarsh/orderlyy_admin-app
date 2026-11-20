@@ -76,6 +76,12 @@ class RealtimeSyncManager {
           debugPrint('[SYNC] Received raw message: $message');
           try {
             final Map<String, dynamic> data = jsonDecode(message as String);
+            final type = data['type'] as String?;
+            if (type == 'server_ping' || type == 'ping') {
+              _channel?.sink.add(jsonEncode({'type': 'pong'}));
+              return;
+            }
+            if (type == 'pong') return;
             receiveRawPayload(data);
           } catch (e) {
             debugPrint('[SYNC] Failed decoding message: $e');

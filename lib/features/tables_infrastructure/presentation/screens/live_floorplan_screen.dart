@@ -514,7 +514,9 @@ class LiveFloorplanScreen extends ConsumerWidget {
     WidgetRef ref,
     TableDto table,
   ) {
-    final status = ref.watch(tableStatusProvider.notifier).getStatus(table.id);
+    final statusMap = ref.watch(tableStatusProvider);
+    final status = statusMap[table.id] ??
+        TableStatusState(phase: TableDiningPhase.vacant, activeGuests: 0);
     final isRound = table.capacity == 2;
 
     final Color borderCol = switch (status.phase) {
@@ -583,13 +585,7 @@ class LiveFloorplanScreen extends ConsumerWidget {
               if (status.phase != TableDiningPhase.vacant) ...[
                 SizedBox(height: 2.h),
                 Text(
-                  status.phase == TableDiningPhase.seated
-                      ? 'Browsing Menu'
-                      : status.phase == TableDiningPhase.cooking
-                          ? 'Mains Fired'
-                          : status.phase == TableDiningPhase.dining
-                              ? 'Served & Enjoying'
-                              : 'Bill Requested',
+                  status.diningStatusDisplay,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 8.sp,
                     fontWeight: FontWeight.w800,
@@ -612,187 +608,232 @@ class LiveFloorplanScreen extends ConsumerWidget {
     WidgetRef ref,
     TableDto table,
   ) {
-    final status = ref.watch(tableStatusProvider.notifier).getStatus(table.id);
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-          ),
-          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final statusMap = ref.watch(tableStatusProvider);
+            final status = statusMap[table.id] ??
+                TableStatusState(
+                  phase: TableDiningPhase.vacant,
+                  activeGuests: 0,
+                );
+
+            final Color borderCol = switch (status.phase) {
+              TableDiningPhase.vacant => Colors.green,
+              TableDiningPhase.seated => Colors.amber.shade600,
+              TableDiningPhase.cooking => Colors.orange,
+              TableDiningPhase.dining => Colors.blue,
+              TableDiningPhase.waitingForBill => Colors.purple,
+            };
+
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
               ),
-              SizedBox(height: 20.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Table Details — ${table.tableNumber}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.onSurface,
-                        ),
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(2.r),
                       ),
-                      Text(
-                        'Capacity: ${table.capacity} Seating Seats',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.sp,
-                          color: AppTheme.secondary,
-                          fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Table Details — ${table.tableNumber}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            'Capacity: ${table.capacity} Seating Seats',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.sp,
+                              color: AppTheme.secondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: borderCol.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Text(
+                          status.phase.name.toUpperCase(),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w800,
+                            color: borderCol,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryContainer.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Text(
-                      status.phase.name.toUpperCase(),
+                  SizedBox(height: 20.h),
+                  Divider(
+                    height: 1.h,
+                    thickness: 1.h,
+                    color: AppTheme.surfaceContainerHigh,
+                  ),
+                  SizedBox(height: 16.h),
+
+                  if (status.phase == TableDiningPhase.vacant) ...[
+                    Text(
+                      'Seat Guests (Manual Seating Trigger)',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.sp,
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.primary,
+                        color: AppTheme.onSurface,
                       ),
                     ),
-                  ),
+                    SizedBox(height: 10.h),
+                    Row(
+                      children: [
+                        _buildSeatButton(context, ref, table.id, 2),
+                        SizedBox(width: 8.w),
+                        _buildSeatButton(context, ref, table.id, 4),
+                        SizedBox(width: 8.w),
+                        if (table.capacity >= 6) ...[
+                          _buildSeatButton(context, ref, table.id, 6),
+                        ],
+                      ],
+                    ),
+                  ] else ...[
+                    _buildDetailRow(
+                      Icons.timer_rounded,
+                      'Session Duration',
+                      status.sessionDurationDisplay,
+                    ),
+                    _buildDetailRow(
+                      Icons.room_service_rounded,
+                      'Dining Status',
+                      status.diningStatusDisplay,
+                    ),
+                    _buildDetailRow(
+                      Icons.people_rounded,
+                      'Assigned Waiter',
+                      status.waiterDisplay,
+                    ),
+                    SizedBox(height: 12.h),
+                    Row(
+                      children: [
+                        if (status.phase == TableDiningPhase.seated)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref
+                                    .read(tableStatusProvider.notifier)
+                                    .updatePhase(table.id, TableDiningPhase.cooking);
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Start Kitchen Preparation'),
+                            ),
+                          ),
+                        if (status.phase == TableDiningPhase.cooking)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref
+                                    .read(tableStatusProvider.notifier)
+                                    .updatePhase(table.id, TableDiningPhase.dining);
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Mark Served'),
+                            ),
+                          ),
+                        if (status.phase == TableDiningPhase.dining)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref
+                                    .read(tableStatusProvider.notifier)
+                                    .updatePhase(table.id, TableDiningPhase.waitingForBill);
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Request Bill'),
+                            ),
+                          ),
+                        if (status.phase == TableDiningPhase.waitingForBill)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref
+                                    .read(tableStatusProvider.notifier)
+                                    .updatePhase(table.id, TableDiningPhase.vacant);
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Clear Table'),
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (status.phase != TableDiningPhase.waitingForBill) ...[
+                      SizedBox(height: 8.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            ref
+                                .read(tableStatusProvider.notifier)
+                                .updatePhase(table.id, TableDiningPhase.vacant);
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.error,
+                            side: BorderSide(
+                              color: AppTheme.error.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: const Text('Vacate Table'),
+                        ),
+                      ),
+                    ],
+                  ],
                 ],
               ),
-              SizedBox(height: 20.h),
-              Divider(
-                height: 1.h,
-                thickness: 1.h,
-                color: AppTheme.surfaceContainerHigh,
-              ),
-              SizedBox(height: 16.h),
-
-              if (status.phase == TableDiningPhase.vacant) ...[
-                Text(
-                  'Seat Guests (Manual Seating Trigger)',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                Row(
-                  children: [
-                    _buildSeatButton(context, ref, table.id, 2),
-                    SizedBox(width: 8.w),
-                    _buildSeatButton(context, ref, table.id, 4),
-                    SizedBox(width: 8.w),
-                    if (table.capacity >= 6) ...[
-                      _buildSeatButton(context, ref, table.id, 6),
-                    ],
-                  ],
-                ),
-              ] else ...[
-                _buildDetailRow(
-                  Icons.timer_rounded,
-                  'Session Duration',
-                  status.phase == TableDiningPhase.seated
-                      ? '10m seated'
-                      : status.phase == TableDiningPhase.cooking
-                          ? '22m elapsed'
-                          : status.phase == TableDiningPhase.dining
-                              ? '35m dining'
-                              : '48m elapsed',
-                ),
-                _buildDetailRow(
-                  Icons.room_service_rounded,
-                  'Dining Status',
-                  status.phase == TableDiningPhase.seated
-                      ? 'Browsing Menu'
-                      : status.phase == TableDiningPhase.cooking
-                          ? 'Mains Fired'
-                          : status.phase == TableDiningPhase.dining
-                              ? 'Served & Enjoying'
-                              : 'Bill Requested',
-                ),
-                _buildDetailRow(
-                  Icons.people_rounded,
-                  'Assigned Waiter',
-                  'Maria (Server)',
-                ),
-                SizedBox(height: 12.h),
-                // Allow transitioning phase directly!
-                Row(
-                  children: [
-                    if (status.phase == TableDiningPhase.seated)
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(tableStatusProvider.notifier).updatePhase(table.id, TableDiningPhase.cooking);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
-                          child: const Text('Fire Mains'),
-                        ),
-                      ),
-                    if (status.phase == TableDiningPhase.cooking)
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(tableStatusProvider.notifier).updatePhase(table.id, TableDiningPhase.dining);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
-                          child: const Text('Serve Order'),
-                        ),
-                      ),
-                    if (status.phase == TableDiningPhase.dining)
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(tableStatusProvider.notifier).updatePhase(table.id, TableDiningPhase.waitingForBill);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
-                          child: const Text('Request Bill'),
-                        ),
-                      ),
-                    if (status.phase == TableDiningPhase.waitingForBill)
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(tableStatusProvider.notifier).updatePhase(table.id, TableDiningPhase.vacant);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                          child: const Text('Clear Table'),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
+            );
+          },
         );
       },
     );
